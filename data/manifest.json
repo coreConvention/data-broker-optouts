@@ -1,0 +1,46 @@
+[
+  {
+    "name": "Whitepages",
+    "removalUrl": "https://www.whitepages.com/suppression-requests",
+    "requirements": [
+      "online",
+      "captcha"
+    ],
+    "adapter": "Whitepages",
+    "notes": "Requires locating your listing before suppression."
+  },
+  {
+    "name": "Spokeo",
+    "removalUrl": "https://www.spokeo.com/optout",
+    "requirements": [
+      "online",
+      "email-verification",
+      "captcha"
+    ],
+    "adapter": "Spokeo",
+    "notes": "Email confirmation required."
+  },
+  {
+    "name": "Example Generic",
+    "removalUrl": "https://example.com/opt-out",
+    "requirements": [
+      "online"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "name": "input[name='fullName']",
+        "email": "input[type='email']",
+        "city": "input[name='city']",
+        "state": "select[name='state']",
+        "zip": "input[name='zip']",
+        "submit": "button[type='submit']"
+      },
+      "checkboxes": [
+        "input[name='confirmAccuracy']",
+        "input[name='agreeTerms']"
+      ],
+      "postSubmitWaitMs": 5000
+    }
+  }
+]
