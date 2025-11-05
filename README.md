@@ -1,32 +1,41 @@
 # Data Broker Opt-Out Runner
 
-**Automate your privacy:** A Playwright-based tool that streamlines opt-out requests from 20+ data broker sites using a **human-in-the-loop** approach for CAPTCHAs and verification steps.
+**Automate your privacy:** A Playwright-based tool that streamlines opt-out requests from **45+ data broker sites** using a **human-in-the-loop** approach for CAPTCHAs and verification steps.
 
 > ⚠️ **Privacy-Focused & Legal:** This tool only uses official opt-out pages and never bypasses CAPTCHAs. You handle verification steps manually, ensuring compliance with Terms of Service.
 
 ## 🎯 Features
 
-- **20+ Data Brokers Supported** including Spokeo, Whitepages, BeenVerified, Radaris, Nuwber, and more
-- **Smart Adapters**: Site-specific adapters for complex flows + generic adapter for simple forms
+### Core Capabilities
+- **45+ Data Brokers Supported** including Spokeo, Whitepages, BeenVerified, Radaris, Nuwber, and more
+- **Smart Adapters**: 7 site-specific adapters for complex flows + generic adapter for 38+ simple forms
 - **Human-in-the-Loop**: Pauses for CAPTCHA solving, email verification, and manual steps
 - **Progress Tracking**: Real-time progress indicators and detailed summary reports
 - **Error Handling**: Automatic retry with exponential backoff + screenshot capture on failures
 - **Audit Logging**: Timestamped JSONL logs of all opt-out attempts
 
+### Advanced Features ⚡
+- **Stealth Mode**: Anti-bot detection with realistic browser fingerprinting and human-like behavior
+- **Selective Execution**: Filter by broker name, exclude specific brokers, or limit batch size
+- **Dry Run Mode**: Test configurations without actually submitting requests
+- **Resume Support**: Skip already-successful brokers from previous runs
+- **Smart Filtering**: Run only specific brokers or exclude problematic ones
+
 ## 📊 Coverage
 
-### Tier 1: High-Priority People Search Sites (20 brokers)
-- **Spokeo** (custom adapter)
-- **Whitepages** (custom adapter)
-- **BeenVerified** (custom adapter)
-- **Intelius/PeopleConnect** (custom adapter)
-- **Radaris** (custom adapter)
-- **Nuwber** (custom adapter)
-- **MyLife** (custom adapter)
-- FastPeopleSearch, TruePeopleSearch, CheckPeople, ThatsThem
-- SmartBackgroundChecks, ClustrMaps, PeopleSearchNow
-- AdvancedBackgroundChecks, PublicDataUSA, Dataveria
-- NeighborReport, FamilyTreeNow, USPhoneBook
+### Total: 45 Data Brokers
+
+#### Tier 1: Major People Search Sites (7 custom adapters)
+- **Spokeo** - Multi-step opt-out with email verification
+- **Whitepages** - Comprehensive form automation
+- **BeenVerified** - Search and selection flow
+- **Intelius/PeopleConnect** - Network-wide suppression
+- **Radaris** - Profile-based removal
+- **Nuwber** - Email verification flow
+- **MyLife** - CCPA-compliant opt-out
+
+#### Tier 2: Popular Search Sites (38 generic adapters)
+FastPeopleSearch, TruePeopleSearch, CheckPeople, ThatsThem, SmartBackgroundChecks, ClustrMaps, PeopleSearchNow, AdvancedBackgroundChecks, PublicDataUSA, Dataveria, NeighborReport, FamilyTreeNow, USPhoneBook, PeopleFinders, PeekYou, InstantCheckmate, TruthFinder, USSearch, Zabasearch, AnyWho, Addresses, InfoTracer, PrivateEye, SearchQuarry, SearchBug, SpyFly, PeopleByName, OldFriends, PrivateRecords, PropertyRecords, Classmates, Acxiom, Epsilon, Experian, 411, YellowPages, VoterRecords
 
 ### Success Rate
 Based on Consumer Reports research, **manual opt-outs have 70% success rate** vs. only 27% for automated services like DeleteMe. This tool combines the best of both: automation where possible, human verification where needed.
@@ -72,12 +81,14 @@ npx playwright install chromium
 
 #### 2. Review Manifest (`data/manifest.json`)
 
-The manifest contains 20 pre-configured data brokers. You can:
+The manifest contains **45 pre-configured data brokers**. You can:
 - Enable/disable specific brokers by removing entries
 - Add custom brokers using the generic adapter
 - Modify selectors for sites that have changed their forms
 
 ### Run the Tool
+
+#### Basic Usage
 
 **Headful Mode (Recommended for first run):**
 ```bash
@@ -87,6 +98,64 @@ npm start
 **Headless Mode (Background):**
 ```bash
 npm run start:headless
+```
+
+**Dry Run (Test without submitting):**
+```bash
+npm run start:dry-run
+```
+
+#### Advanced CLI Options
+
+The tool supports powerful filtering and control options:
+
+**Filter specific brokers:**
+```bash
+npm start -- --filter "Spokeo,Whitepages,Radaris"
+```
+
+**Exclude specific brokers:**
+```bash
+npm start -- --exclude "BeenVerified,Intelius"
+```
+
+**Resume from previous run:**
+```bash
+npm start -- --resume ./optouts-2025-11-05-14-30-00.jsonl
+```
+
+**Limit number of brokers:**
+```bash
+npm start -- --limit 5
+```
+
+**Disable stealth mode:**
+```bash
+npm start -- --stealth=false
+```
+
+**Combine multiple options:**
+```bash
+npm start -- --filter "True,Fast,Check" --limit 10 --dry-run
+```
+
+#### All CLI Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--manifest` | string | required | Path to manifest.json |
+| `--profile` | string | required | Path to profile.json |
+| `--headful` | boolean | false | Run browser in visible mode |
+| `--stealth` | boolean | true | Enable anti-bot detection measures |
+| `--filter` | string | - | Filter brokers (comma-separated names) |
+| `--exclude` | string | - | Exclude brokers (comma-separated names) |
+| `--dry-run` | boolean | false | Simulate without submitting |
+| `--resume` | string | - | Resume from log file |
+| `--limit` | number | - | Limit number of brokers to process |
+
+**Get help:**
+```bash
+npm run help
 ```
 
 ## 📖 How It Works

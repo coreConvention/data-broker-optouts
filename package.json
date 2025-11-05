@@ -6,7 +6,11 @@
   "scripts": {
     "start": "tsx src/run.ts --manifest ./data/manifest.json --profile ./data/profile.json --headful",
     "start:headless": "tsx src/run.ts --manifest ./data/manifest.json --profile ./data/profile.json",
-    "extract:pdf": "tsx src/tools/extract-pdf.ts ./data/workbook.pdf > ./data/manifest.json"
+    "start:dry-run": "tsx src/run.ts --manifest ./data/manifest.json --profile ./data/profile.json --headful --dry-run",
+    "start:filter": "tsx src/run.ts --manifest ./data/manifest.json --profile ./data/profile.json --headful --filter",
+    "start:limited": "tsx src/run.ts --manifest ./data/manifest.json --profile ./data/profile.json --headful --limit 5",
+    "extract:pdf": "tsx src/run.ts ./data/workbook.pdf > ./data/manifest.json",
+    "help": "tsx src/run.ts --help"
   },
   "dependencies": {
     "@playwright/test": "^1.46.0",

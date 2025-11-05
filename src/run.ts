@@ -14,11 +14,28 @@ import { RadarisAdapter } from "./adapters/sites/RadarisAdapter.js";
 import { BeenVerifiedAdapter } from "./adapters/sites/BeenVerifiedAdapter.js";
 import { InteliusAdapter } from "./adapters/sites/InteliusAdapter.js";
 import { MyLifeAdapter } from "./adapters/sites/MyLifeAdapter.js";
+import {
+  applyStealthToContext,
+  getRealisticUserAgent,
+  getRealisticViewport,
+  getStealthLaunchArgs
+} from "./utils/stealth.js";
 
 const argv = await yargs(hideBin(process.argv))
-  .option("manifest", { type: "string", demandOption: true })
-  .option("profile",  { type: "string", demandOption: true })
-  .option("headful",  { type: "boolean", default: false })
+  .option("manifest", { type: "string", demandOption: true, description: "Path to manifest.json" })
+  .option("profile",  { type: "string", demandOption: true, description: "Path to profile.json" })
+  .option("headful",  { type: "boolean", default: false, description: "Run browser in headful mode (visible)" })
+  .option("stealth",  { type: "boolean", default: true, description: "Enable stealth mode to avoid bot detection" })
+  .option("filter",   { type: "string", description: "Filter brokers by name (comma-separated or regex)" })
+  .option("exclude",  { type: "string", description: "Exclude brokers by name (comma-separated or regex)" })
+  .option("dry-run",  { type: "boolean", default: false, description: "Simulate run without actually submitting" })
+  .option("resume",   { type: "string", description: "Resume from previous log file, skip successful brokers" })
+  .option("limit",    { type: "number", description: "Limit number of brokers to process" })
+  .example("$0 --manifest data/manifest.json --profile data/profile.json --headful", "Run in visible mode")
+  .example("$0 --filter 'Spokeo,Whitepages' --headful", "Run only Spokeo and Whitepages")
+  .example("$0 --exclude 'BeenVerified,Intelius' --headful", "Run all except BeenVerified and Intelius")
+  .example("$0 --dry-run --headful", "Test run without submitting")
+  .example("$0 --resume optouts-2025-11-05.jsonl --headful", "Resume from previous run")
   .parse();
 
 const opts: RunOptions = {
@@ -73,6 +90,56 @@ function makeAdapter(entry: BrokerEntry) {
   }
 }
 
+// Helper function to filter brokers by name
+function filterBrokers(brokers: BrokerEntry[], filterStr?: string, excludeStr?: string): BrokerEntry[] {
+  let filtered = [...brokers];
+
+  // Apply include filter
+  if (filterStr) {
+    const filters = filterStr.split(',').map(f => f.trim().toLowerCase());
+    filtered = filtered.filter(broker =>
+      filters.some(f => broker.name.toLowerCase().includes(f))
+    );
+  }
+
+  // Apply exclude filter
+  if (excludeStr) {
+    const excludes = excludeStr.split(',').map(e => e.trim().toLowerCase());
+    filtered = filtered.filter(broker =>
+      !excludes.some(e => broker.name.toLowerCase().includes(e))
+    );
+  }
+
+  return filtered;
+}
+
+// Helper function to load successful brokers from previous log
+async function loadSuccessfulBrokers(logPath?: string): Promise<Set<string>> {
+  const successful = new Set<string>();
+
+  if (!logPath) return successful;
+
+  try {
+    const logContent = await fs.readFile(logPath, "utf-8");
+    const lines = logContent.trim().split("\n");
+
+    for (const line of lines) {
+      try {
+        const entry = JSON.parse(line) as OptOutResult;
+        if (entry.status === "success") {
+          successful.add(entry.site);
+        }
+      } catch {}
+    }
+
+    console.log(`📂 Loaded ${successful.size} successful brokers from ${logPath}`);
+  } catch (error) {
+    console.log(`⚠️  Could not load resume file: ${logPath}`);
+  }
+
+  return successful;
+}
+
 (async () => {
   console.log("=".repeat(60));
   console.log("🚀 Data Broker Opt-Out Runner");
@@ -82,20 +149,74 @@ function makeAdapter(entry: BrokerEntry) {
   const manifestRaw = await fs.readFile(opts.manifestPath, "utf-8");
   const profileRaw  = await fs.readFile(opts.profilePath, "utf-8");
 
-  const manifest = z.array(BrokerEntrySchema).parse(JSON.parse(manifestRaw)) as BrokerEntry[];
+  let manifest = z.array(BrokerEntrySchema).parse(JSON.parse(manifestRaw)) as BrokerEntry[];
   const profile  = ProfileSchema.parse(JSON.parse(profileRaw)) as PersonProfile;
 
   console.log(`\n📋 Loaded ${manifest.length} data brokers from manifest`);
+
+  // Load resume data if specified
+  const successfulBrokers = await loadSuccessfulBrokers(argv.resume);
+
+  // Apply filters
+  const originalCount = manifest.length;
+  manifest = filterBrokers(manifest, argv.filter, argv.exclude);
+
+  // Filter out already successful brokers if resuming
+  if (argv.resume && successfulBrokers.size > 0) {
+    manifest = manifest.filter(b => !successfulBrokers.has(b.name));
+    console.log(`⏭️  Skipping ${successfulBrokers.size} already successful brokers`);
+  }
+
+  // Apply limit
+  if (argv.limit && argv.limit > 0) {
+    manifest = manifest.slice(0, argv.limit);
+    console.log(`🔢 Limited to first ${argv.limit} brokers`);
+  }
+
+  if (argv.filter || argv.exclude) {
+    console.log(`🔍 Filtered: ${originalCount} → ${manifest.length} brokers`);
+  }
+
+  if (manifest.length === 0) {
+    console.log("❌ No brokers to process after filtering");
+    process.exit(0);
+  }
+
   console.log(`👤 Profile: ${profile.fullName} (${profile.email})`);
   console.log(`🌐 Browser mode: ${opts.headful ? "Headful (visible)" : "Headless"}`);
+  console.log(`🥷 Stealth mode: ${argv.stealth ? "Enabled" : "Disabled"}`);
+  if (argv["dry-run"]) {
+    console.log(`🧪 DRY RUN MODE: No actual submissions will be made`);
+  }
   console.log(`📝 Log file: ${logger.path()}`);
   console.log("\n" + "=".repeat(60) + "\n");
 
-  const browser = await chromium.launch({ headless: !opts.headful, args: ["--disable-blink-features=AutomationControlled"] });
-  const context = await browser.newContext({
-    viewport: { width: 1280, height: 900 },
-    userAgent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome Safari",
+  // Launch browser with stealth options
+  const launchArgs = argv.stealth ? getStealthLaunchArgs() : ["--disable-blink-features=AutomationControlled"];
+  const browser = await chromium.launch({
+    headless: !opts.headful,
+    args: launchArgs
   });
+
+  // Create context with stealth settings
+  const viewport = argv.stealth ? getRealisticViewport() : { width: 1280, height: 900 };
+  const userAgent = argv.stealth ? getRealisticUserAgent() : "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome Safari";
+
+  const context = await browser.newContext({
+    viewport,
+    userAgent,
+    locale: 'en-US',
+    timezoneId: 'America/New_York',
+    permissions: [],
+    colorScheme: 'light',
+    deviceScaleFactor: 1,
+  });
+
+  // Apply stealth scripts if enabled
+  if (argv.stealth) {
+    await applyStealthToContext(context);
+    console.log(`🥷 Stealth configurations applied`);
+  }
 
   const stats = { success: 0, failed: 0, skipped: 0, manualNeeded: 0 };
   const totalBrokers = manifest.length;
@@ -144,14 +265,26 @@ function makeAdapter(entry: BrokerEntry) {
         continue;
       }
 
-      const adapter = makeAdapter(entry);
-      await adapter.run(context, profile);
+      if (argv["dry-run"]) {
+        // Dry run mode - simulate without actually running
+        console.log(`    🧪 [DRY RUN] Would run ${entry.adapter} adapter`);
+        console.log(`    🧪 [DRY RUN] Would navigate to: ${entry.removalUrl}`);
+        console.log(`    🧪 [DRY RUN] Would fill profile data: ${profile.fullName}, ${profile.email}`);
+        base.status = "success";
+        base.message = "[DRY RUN] Simulated successful submission";
+        await logger.append(base);
+        stats.success++;
+        console.log(`    ✓ Dry run completed`);
+      } else {
+        const adapter = makeAdapter(entry);
+        await adapter.run(context, profile);
 
-      base.status = "success";
-      base.message = "Submitted (some steps may have been manual).";
-      await logger.append(base);
-      stats.success++;
-      console.log(`    ✓ Success: ${base.message}`);
+        base.status = "success";
+        base.message = "Submitted (some steps may have been manual).";
+        await logger.append(base);
+        stats.success++;
+        console.log(`    ✓ Success: ${base.message}`);
+      }
     } catch (err) {
       base.status = "failed";
       base.message = err instanceof Error ? err.message : "Unknown error";

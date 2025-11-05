@@ -295,5 +295,420 @@
       "postSubmitWaitMs": 3000
     },
     "notes": "Search for your address first at neighbor.report. Email verification required."
+  },
+  {
+    "name": "PeopleFinders",
+    "removalUrl": "https://www.peoplefinders.com/opt-out",
+    "requirements": [
+      "online",
+      "email-verification",
+      "captcha"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "name": "input[name='name'], input[placeholder*='Name']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Major people search engine. Email verification required. Search for profile first."
+  },
+  {
+    "name": "PeekYou",
+    "removalUrl": "https://www.peekyou.com/about/contact/optout/",
+    "requirements": [
+      "online",
+      "email"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "name": "input[name='name'], input[placeholder*='Name']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Contact form for opt-out requests. Requires profile URL."
+  },
+  {
+    "name": "InstantCheckmate",
+    "removalUrl": "https://www.instantcheckmate.com/opt-out/",
+    "requirements": [
+      "online",
+      "email-verification"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Background check service. Search for yourself first, then submit opt-out with profile URL."
+  },
+  {
+    "name": "TruthFinder",
+    "removalUrl": "https://www.truthfinder.com/opt-out/",
+    "requirements": [
+      "online",
+      "email-verification"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "submit": "button[type='submit'], button:has-text('Submit')"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Background check site. Search for record first, include profile URL in opt-out."
+  },
+  {
+    "name": "USSearch",
+    "removalUrl": "https://www.ussearch.com/opt-out/submit/",
+    "requirements": [
+      "online",
+      "captcha"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "name": "input[name='name'], input[placeholder*='Name']",
+        "email": "input[type='email']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Requires finding your record first and providing record details."
+  },
+  {
+    "name": "Zabasearch",
+    "removalUrl": "https://www.zabasearch.com/block_records/",
+    "requirements": [
+      "online"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "name": "input[name='name'], input[placeholder*='Name']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Free people search. Opt-out by blocking records."
+  },
+  {
+    "name": "AnyWho",
+    "removalUrl": "https://www.anywho.com/optout",
+    "requirements": [
+      "online"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "phone": "input[type='tel'], input[name='phone']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "White pages directory. Opt-out by phone number."
+  },
+  {
+    "name": "Addresses",
+    "removalUrl": "https://www.addresses.com/optout.php",
+    "requirements": [
+      "online",
+      "email-verification"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "name": "input[name='name'], input[placeholder*='Name']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Address lookup service. Email verification required."
+  },
+  {
+    "name": "InfoTracer",
+    "removalUrl": "https://infotracer.com/optout/",
+    "requirements": [
+      "online",
+      "email-verification"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Public records search. Email verification required."
+  },
+  {
+    "name": "PrivateEye",
+    "removalUrl": "https://www.privateeye.com/static/view/optout/",
+    "requirements": [
+      "online",
+      "email-verification"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "name": "input[name='name'], input[placeholder*='Name']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "People search and background checks. Email verification required."
+  },
+  {
+    "name": "SearchQuarry",
+    "removalUrl": "https://www.searchquarry.com/opt-out",
+    "requirements": [
+      "online",
+      "email-verification"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Public records search. Must search for record first."
+  },
+  {
+    "name": "SearchBug",
+    "removalUrl": "https://www.searchbug.com/peoplefinder/protect-my-privacy.aspx",
+    "requirements": [
+      "online"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "name": "input[name='name'], input[placeholder*='Name']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Privacy protection form for people finder."
+  },
+  {
+    "name": "SpyFly",
+    "removalUrl": "https://www.spyfly.com/opt-out",
+    "requirements": [
+      "online",
+      "email-verification"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Background check service. Email verification required."
+  },
+  {
+    "name": "PeopleByName",
+    "removalUrl": "https://www.peoplebyname.com/remove.php",
+    "requirements": [
+      "online"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "People directory. Simple removal form."
+  },
+  {
+    "name": "OldFriends",
+    "removalUrl": "https://www.oldfriends.com/privacy",
+    "requirements": [
+      "email"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Classmate finder. Contact privacy team for removal."
+  },
+  {
+    "name": "PrivateRecords",
+    "removalUrl": "https://www.privaterecords.net/help",
+    "requirements": [
+      "email"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Public records database. Email help desk for removal."
+  },
+  {
+    "name": "PropertyRecords",
+    "removalUrl": "https://www.propertyrecord.com/help.php",
+    "requirements": [
+      "email"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Property and owner information. Contact for removal."
+  },
+  {
+    "name": "Classmates",
+    "removalUrl": "https://www.classmates.com/siteui/account/settings/privacy",
+    "requirements": [
+      "online"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "submit": "button:has-text('Delete'), a:has-text('Delete')"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Requires login. Delete account to remove information."
+  },
+  {
+    "name": "Acxiom",
+    "removalUrl": "https://isapps.acxiom.com/optout/optout.aspx",
+    "requirements": [
+      "online"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "name": "input[name='name'], input[placeholder*='Name']",
+        "email": "input[type='email']",
+        "address": "input[name='address'], input[placeholder*='Address']",
+        "city": "input[name='city']",
+        "state": "select[name='state']",
+        "zip": "input[name='zip'], input[name='zipcode']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Major data aggregator. Comprehensive form required."
+  },
+  {
+    "name": "PeopleConnect",
+    "removalUrl": "https://suppression.peopleconnect.us/login",
+    "requirements": [
+      "online",
+      "email-verification"
+    ],
+    "adapter": "Intelius",
+    "notes": "Same as Intelius - covers Intelius, InstantCheckmate, TruthFinder, and other PeopleConnect sites."
+  },
+  {
+    "name": "Epsilon",
+    "removalUrl": "https://www.epsilon.com/privacy-policy",
+    "requirements": [
+      "email"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Marketing data aggregator. Email privacy team at privacy@epsilon.com"
+  },
+  {
+    "name": "Experian",
+    "removalUrl": "https://www.experian.com/privacy/opting_out_online_behavioral_ads.html",
+    "requirements": [
+      "online"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "submit": "button[type='submit'], a:has-text('Opt Out')"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Credit bureau. Opt out of marketing/advertising use."
+  },
+  {
+    "name": "411",
+    "removalUrl": "https://www.411.com/manage",
+    "requirements": [
+      "online"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "phone": "input[type='tel'], input[name='phone']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Phone directory. Manage listing via phone number."
+  },
+  {
+    "name": "YellowPages",
+    "removalUrl": "https://www.yellowpages.com/account/privacy",
+    "requirements": [
+      "online"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "submit": "button:has-text('Suppress'), button:has-text('Remove')"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Business and residential directory. Account required."
+  },
+  {
+    "name": "VoterRecords",
+    "removalUrl": "https://voterrecords.com/contact",
+    "requirements": [
+      "email"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "name": "input[name='name'], input[placeholder*='Name']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Voter registration data. Contact for removal."
   }
 ]
