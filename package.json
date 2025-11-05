@@ -4,13 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "tsx src/run.ts --manifest ./data/manifest.json --profile ./data/profile.json --headful",
-    "start:headless": "tsx src/run.ts --manifest ./data/manifest.json --profile ./data/profile.json",
-    "start:dry-run": "tsx src/run.ts --manifest ./data/manifest.json --profile ./data/profile.json --headful --dry-run",
-    "start:filter": "tsx src/run.ts --manifest ./data/manifest.json --profile ./data/profile.json --headful --filter",
-    "start:limited": "tsx src/run.ts --manifest ./data/manifest.json --profile ./data/profile.json --headful --limit 5",
+    "start": "tsx src/run-refactored.ts --manifest ./data/manifest.json --profile ./data/profile.json --headful",
+    "start:headless": "tsx src/run-refactored.ts --manifest ./data/manifest.json --profile ./data/profile.json",
+    "start:dry-run": "tsx src/run-refactored.ts --manifest ./data/manifest.json --profile ./data/profile.json --headful --dry-run",
+    "start:filter": "tsx src/run-refactored.ts --manifest ./data/manifest.json --profile ./data/profile.json --headful --filter",
+    "start:limited": "tsx src/run-refactored.ts --manifest ./data/manifest.json --profile ./data/profile.json --headful --limit 5",
+    "start:stealth": "tsx src/run-refactored.ts --manifest ./data/manifest.json --profile ./data/profile.json --headful --stealth",
+    "start:resume": "tsx src/run-refactored.ts --manifest ./data/manifest.json --profile ./data/profile.json --headful --resume",
     "extract:pdf": "tsx src/run.ts ./data/workbook.pdf > ./data/manifest.json",
-    "help": "tsx src/run.ts --help"
+    "help": "tsx src/run-refactored.ts --help",
+    "build": "tsc --noEmit"
   },
   "dependencies": {
     "@playwright/test": "^1.46.0",
