@@ -11,7 +11,7 @@ export interface BrokerEntry {
   name: string;
   removalUrl?: string | null;
   requirements: BrokerRequirement[];
-  adapter: "generic" | "Spokeo" | "Whitepages";
+  adapter: "generic" | "Spokeo" | "Whitepages" | "Nuwber" | "Radaris" | "BeenVerified" | "Intelius" | "MyLife";
   notes?: string | null;
   config?: {
     selectors?: {

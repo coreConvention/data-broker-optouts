@@ -21,26 +21,279 @@
     "notes": "Email confirmation required."
   },
   {
-    "name": "Example Generic",
-    "removalUrl": "https://example.com/opt-out",
+    "name": "FastPeopleSearch",
+    "removalUrl": "https://www.fastpeoplesearch.com/removal",
+    "requirements": [
+      "online",
+      "captcha",
+      "email-verification"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "submit": "button[type='submit'], input[value*='removal'], button:has-text('Begin')"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Search for your listing first, then request removal. 72-hour removal time. Email verification required."
+  },
+  {
+    "name": "TruePeopleSearch",
+    "removalUrl": "https://www.truepeoplesearch.com/removal",
+    "requirements": [
+      "online",
+      "email-verification"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "submit": "button[type='submit'], button:has-text('Begin Removal')"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Search for your profile first at truepeoplesearch.com. Email verification required. 72-hour removal."
+  },
+  {
+    "name": "Nuwber",
+    "removalUrl": "https://nuwber.com/removal/link",
+    "requirements": [
+      "online",
+      "captcha",
+      "email-verification"
+    ],
+    "adapter": "Nuwber",
+    "notes": "Search for your profile at nuwber.com first, then use removal link. 24-hour removal. Email verification required."
+  },
+  {
+    "name": "Radaris",
+    "removalUrl": "https://radaris.com/control/privacy",
+    "requirements": [
+      "online",
+      "email-verification"
+    ],
+    "adapter": "Radaris",
+    "notes": "Search for your profile at radaris.com first. Email verification required. 24-48 hour removal."
+  },
+  {
+    "name": "CheckPeople",
+    "removalUrl": "https://www.checkpeople.com/opt-out",
+    "requirements": [
+      "online",
+      "captcha"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "name": "input[name='name'], input[placeholder*='Name']",
+        "email": "input[type='email']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Requires legal name and birthdate. Search first at checkpeople.com."
+  },
+  {
+    "name": "ThatsThem",
+    "removalUrl": "https://thatsthem.com/optout",
     "requirements": [
       "online"
     ],
     "adapter": "generic",
     "config": {
       "selectors": {
-        "name": "input[name='fullName']",
         "email": "input[type='email']",
-        "city": "input[name='city']",
-        "state": "select[name='state']",
-        "zip": "input[name='zip']",
-        "submit": "button[type='submit']"
+        "submit": "button[type='submit'], input[type='submit']"
       },
-      "checkboxes": [
-        "input[name='confirmAccuracy']",
-        "input[name='agreeTerms']"
-      ],
-      "postSubmitWaitMs": 5000
-    }
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Straightforward opt-out process. No email verification required."
+  },
+  {
+    "name": "SmartBackgroundChecks",
+    "removalUrl": "https://www.smartbackgroundchecks.com/optout",
+    "requirements": [
+      "online",
+      "email-verification"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "name": "input[name='name'], input[placeholder*='Name']",
+        "email": "input[type='email']",
+        "submit": "button[type='submit'], button:has-text('Submit')"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Email verification required for removal."
+  },
+  {
+    "name": "ClustrMaps",
+    "removalUrl": "https://clustrmaps.com/bl/opt-out",
+    "requirements": [
+      "online",
+      "email-verification"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "name": "input[name='name'], input[placeholder*='Name']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Email confirmation required for opt-out."
+  },
+  {
+    "name": "BeenVerified",
+    "removalUrl": "https://www.beenverified.com/app/optout/search",
+    "requirements": [
+      "online",
+      "email-verification",
+      "captcha"
+    ],
+    "adapter": "BeenVerified",
+    "notes": "Search for your record first, then submit opt-out. Email confirmation required. Can take several days."
+  },
+  {
+    "name": "Intelius",
+    "removalUrl": "https://suppression.peopleconnect.us/login",
+    "requirements": [
+      "online",
+      "email-verification"
+    ],
+    "adapter": "Intelius",
+    "notes": "Requires account creation. Search for your listings, then opt out. Part of PeopleConnect network."
+  },
+  {
+    "name": "MyLife",
+    "removalUrl": "https://www.mylife.com/ccpa/index.pubview",
+    "requirements": [
+      "online",
+      "email-verification"
+    ],
+    "adapter": "MyLife",
+    "notes": "Non-CA residents report mixed success. Email verification required."
+  },
+  {
+    "name": "FamilyTreeNow",
+    "removalUrl": "https://www.familytreenow.com/optout",
+    "requirements": [
+      "online"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "submit": "button[type='submit'], a:has-text('Opt Out')"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Search for your profile first at familytreenow.com, then use opt-out link on your profile page."
+  },
+  {
+    "name": "USPhoneBook",
+    "removalUrl": "https://www.usphonebook.com/opt-out",
+    "requirements": [
+      "online",
+      "captcha"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "phone": "input[type='tel'], input[name='phone']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Provide phone number or email to opt out. CAPTCHA required."
+  },
+  {
+    "name": "PeopleSearchNow",
+    "removalUrl": "https://www.peoplesearchnow.com/opt-out",
+    "requirements": [
+      "online",
+      "email-verification"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "submit": "button[type='submit'], button:has-text('Search')"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Search for your profile first, then submit opt-out. Email verification required."
+  },
+  {
+    "name": "AdvancedBackgroundChecks",
+    "removalUrl": "https://www.advancedbackgroundchecks.com/removal",
+    "requirements": [
+      "online",
+      "email-verification"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "name": "input[name='name'], input[placeholder*='Name']",
+        "email": "input[type='email']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Email verification required. May take several business days."
+  },
+  {
+    "name": "PublicDataUSA",
+    "removalUrl": "https://www.publicdatausa.com/remove.php",
+    "requirements": [
+      "online"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Requires profile URL. Search at publicdatausa.com first."
+  },
+  {
+    "name": "Dataveria",
+    "removalUrl": "https://dataveria.com/ng/control/privacy",
+    "requirements": [
+      "online",
+      "email-verification"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "name": "input[name='name'], input[placeholder*='Name']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Email confirmation required for removal."
+  },
+  {
+    "name": "NeighborReport",
+    "removalUrl": "https://neighbor.report/remove",
+    "requirements": [
+      "online",
+      "email-verification"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "submit": "button[type='submit'], button:has-text('Remove')"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Search for your address first at neighbor.report. Email verification required."
   }
 ]
