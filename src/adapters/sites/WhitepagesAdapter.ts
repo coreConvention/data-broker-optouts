@@ -142,17 +142,35 @@ export class WhitepagesAdapter extends BaseAdapter {
 
     console.log("[Whitepages] Form auto-fill completed.");
 
-    // Step 3: CAPTCHA and submission
+    // Step 3: Form completion and phone number entry
     await waitForEnter(
-      "\n[Whitepages] STEP 2: Complete the suppression request:\n" +
-      "  1. Review all form fields and fill any missing information\n" +
+      "\n[Whitepages] STEP 2: Complete the suppression request form:\n" +
+      "  1. Select a reason for opt-out from the dropdown (e.g., 'I want to keep my information private')\n" +
       "  2. Solve the CAPTCHA if present\n" +
       "  3. Agree to any terms/conditions checkboxes\n" +
-      "  4. Click the submit button\n" +
-      "Press Enter after you've submitted the form..."
+      "  4. Enter your phone number for verification\n" +
+      "  5. Click 'Call Now to Verify' button\n" +
+      "Press Enter AFTER you've clicked the call verification button..."
     );
 
-    // Wait for submission to process
+    // Step 4: Phone verification - CRITICAL STEP
+    console.log("\n[Whitepages] ========================================");
+    console.log("[Whitepages] 📞 PHONE VERIFICATION IN PROGRESS");
+    console.log("[Whitepages] ========================================");
+    console.log("[Whitepages] You should receive an automated phone call NOW.");
+    console.log("[Whitepages] A verification code is displayed on your screen.");
+    console.log("[Whitepages] When you answer the call, enter this code using your phone keypad.");
+
+    await waitForEnter(
+      "\n[Whitepages] STEP 3: Complete phone verification:\n" +
+      "  1. Answer the automated phone call from Whitepages\n" +
+      "  2. Look at the verification code displayed on your screen\n" +
+      "  3. Enter the code using your phone's keypad\n" +
+      "  4. Wait for the confirmation message\n" +
+      "Press Enter AFTER you've completed the phone verification..."
+    );
+
+    // Wait for verification to process
     await page.waitForTimeout(3000);
 
     // Try to detect success message
@@ -162,7 +180,9 @@ export class WhitepagesAdapter extends BaseAdapter {
       "text=/confirmation/i",
       "text=/received/i",
       "text=/thank you/i",
-      "text=/request.*processed/i"
+      "text=/request.*processed/i",
+      "text=/opt.*out.*complete/i",
+      "text=/removed/i"
     ];
 
     let successDetected = false;
@@ -180,16 +200,12 @@ export class WhitepagesAdapter extends BaseAdapter {
       console.log("[Whitepages] ⚠ Could not detect success message. Please verify manually.");
     }
 
-    // Step 4: Note about phone verification
-    console.log("\n[Whitepages] IMPORTANT: Whitepages may require phone verification.");
-    console.log("[Whitepages] If you receive a phone call, follow the instructions to complete verification.");
-
+    // Step 5: Final confirmation
     await waitForEnter(
-      "\n[Whitepages] STEP 3: Final verification (if required):\n" +
-      "  1. Check for email confirmation\n" +
-      "  2. Answer any phone calls for verification\n" +
-      "  3. Complete any additional steps requested\n" +
-      "Press Enter when you've completed all verification steps..."
+      "\n[Whitepages] STEP 4: Final confirmation:\n" +
+      "  1. Verify you see a success/confirmation message on screen\n" +
+      "  2. Check your email for any confirmation (optional for Whitepages)\n" +
+      "Press Enter when you've confirmed the opt-out was successful..."
     );
 
     console.log("[Whitepages] ✓ Suppression request completed.");

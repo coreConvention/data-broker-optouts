@@ -13,7 +13,15 @@
     "start:resume": "tsx src/run-refactored.ts --manifest ./data/manifest.json --profile ./data/profile.json --headful --resume",
     "extract:pdf": "tsx src/run.ts ./data/workbook.pdf > ./data/manifest.json",
     "help": "tsx src/run-refactored.ts --help",
-    "build": "tsc --noEmit"
+    "build": "tsc --noEmit",
+    "desktop:install": "cd desktop && npm install && cd renderer && npm install",
+    "desktop:dev": "cd desktop && npm run dev",
+    "desktop:build": "cd desktop && npm run build",
+    "desktop:package": "cd desktop && npm run package",
+    "desktop:package:win": "cd desktop && npm run package:win",
+    "desktop:package:mac": "cd desktop && npm run package:mac",
+    "desktop:package:linux": "cd desktop && npm run package:linux",
+    "desktop:package:all": "cd desktop && npm run package:all"
   },
   "dependencies": {
     "@playwright/test": "^1.46.0",

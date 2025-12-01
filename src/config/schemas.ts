@@ -25,7 +25,21 @@ export const BrokerEntrySchema = z.object({
   name: z.string(),
   removalUrl: z.string().url().optional().nullable(),
   requirements: z.array(
-    z.enum(["online", "email", "phone", "captcha", "email-verification", "id-upload", "unknown"])
+    z.enum([
+      "online",              // Has online opt-out form
+      "email",               // Legacy - prefer email-only or email-verification
+      "phone",               // Legacy - prefer phone-only or phone-verification
+      "captcha",             // Has CAPTCHA challenge
+      "email-verification",  // Requires clicking confirmation link in email
+      "phone-verification",  // Requires answering phone call with verification code
+      "id-upload",           // Requires uploading government ID
+      "id-verification",     // Requires third-party identity verification
+      "account-required",    // Must create account before opting out
+      "email-only",          // No online form - must email to request removal
+      "phone-only",          // No online form - must call to request removal
+      "profile-url-required", // Must find and include your profile URL
+      "unknown"              // Requirements not yet documented
+    ])
   ),
   adapter: z.enum([
     "generic",

@@ -10,6 +10,26 @@ export class GenericFormAdapter extends BaseAdapter {
 
   public name(): string { return "generic"; }
 
+  /**
+   * Fills a state field that could be either a <select> dropdown or a text <input>.
+   * Tries selectOption first, falls back to fill if that fails.
+   */
+  private async fillStateField(page: Page, selector: string, value: string): Promise<void> {
+    await this.ensureVisible(page, selector);
+    try {
+      // First try as a select dropdown (by label or value)
+      await page.selectOption(selector, { label: value });
+    } catch {
+      try {
+        // Try by value (e.g., state abbreviation like "CA")
+        await page.selectOption(selector, { value: value });
+      } catch {
+        // Fall back to filling as a text input
+        await page.fill(selector, value);
+      }
+    }
+  }
+
   protected async execute(page: Page, profile: PersonProfile): Promise<void> {
     const cfg = this.entry.config ?? {};
     const sel = cfg.selectors ?? {};
@@ -17,7 +37,7 @@ export class GenericFormAdapter extends BaseAdapter {
     if (sel.name)   { await this.ensureVisible(page, sel.name);   await page.fill(sel.name, profile.fullName); }
     if (sel.email)  { await this.ensureVisible(page, sel.email);  await page.fill(sel.email, profile.email); }
     if (sel.city && profile.city)   { await this.ensureVisible(page, sel.city);   await page.fill(sel.city, profile.city); }
-    if (sel.state && profile.state) { await this.ensureVisible(page, sel.state);  await page.selectOption(sel.state, { label: profile.state }); }
+    if (sel.state && profile.state) { await this.fillStateField(page, sel.state, profile.state); }
     if (sel.zip && profile.zip)     { await this.ensureVisible(page, sel.zip);    await page.fill(sel.zip, profile.zip); }
     if (sel.address && profile.address) { await this.ensureVisible(page, sel.address); await page.fill(sel.address, profile.address); }
     if (sel.phone && profile.phone) { await this.ensureVisible(page, sel.phone);  await page.fill(sel.phone, profile.phone); }

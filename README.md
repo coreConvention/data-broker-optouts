@@ -1,13 +1,13 @@
 # Data Broker Opt-Out Runner
 
-**Automate your privacy:** A Playwright-based tool that streamlines opt-out requests from **45+ data broker sites** using a **human-in-the-loop** approach for CAPTCHAs and verification steps.
+**Automate your privacy:** A Playwright-based tool that streamlines opt-out requests from **54+ data broker sites** using a **human-in-the-loop** approach for CAPTCHAs and verification steps.
 
 > ⚠️ **Privacy-Focused & Legal:** This tool only uses official opt-out pages and never bypasses CAPTCHAs. You handle verification steps manually, ensuring compliance with Terms of Service.
 
 ## 🎯 Features
 
 ### Core Capabilities
-- **45+ Data Brokers Supported** including Spokeo, Whitepages, BeenVerified, Radaris, Nuwber, and more
+- **54+ Data Brokers Supported** including Spokeo, Whitepages, BeenVerified, Radaris, Nuwber, and more
 - **Smart Adapters**: 7 site-specific adapters for complex flows + generic adapter for 38+ simple forms
 - **Human-in-the-Loop**: Pauses for CAPTCHA solving, email verification, and manual steps
 - **Progress Tracking**: Real-time progress indicators and detailed summary reports
@@ -23,7 +23,7 @@
 
 ## 📊 Coverage
 
-### Total: 45 Data Brokers
+### Total: 54 Data Brokers
 
 #### Tier 1: Major People Search Sites (7 custom adapters)
 - **Spokeo** - Multi-step opt-out with email verification
@@ -34,8 +34,10 @@
 - **Nuwber** - Email verification flow
 - **MyLife** - CCPA-compliant opt-out
 
-#### Tier 2: Popular Search Sites (38 generic adapters)
-FastPeopleSearch, TruePeopleSearch, CheckPeople, ThatsThem, SmartBackgroundChecks, ClustrMaps, PeopleSearchNow, AdvancedBackgroundChecks, PublicDataUSA, Dataveria, NeighborReport, FamilyTreeNow, USPhoneBook, PeopleFinders, PeekYou, InstantCheckmate, TruthFinder, USSearch, Zabasearch, AnyWho, Addresses, InfoTracer, PrivateEye, SearchQuarry, SearchBug, SpyFly, PeopleByName, OldFriends, PrivateRecords, PropertyRecords, Classmates, Acxiom, Epsilon, Experian, 411, YellowPages, VoterRecords
+#### Tier 2: Popular Search Sites (47 generic adapters)
+FastPeopleSearch, TruePeopleSearch, CheckPeople, ThatsThem, SmartBackgroundChecks, ClustrMaps, PeopleSearchNow, AdvancedBackgroundChecks, PublicDataUSA, Dataveria, NeighborReport, FamilyTreeNow, USPhoneBook, PeopleFinders, PeekYou, InstantCheckmate, TruthFinder, USSearch, Zabasearch, AnyWho, Addresses, InfoTracer, PrivateEye, SearchQuarry, SearchBug, SpyFly, PeopleByName, OldFriends, PrivateRecords, PropertyRecords, Classmates, Acxiom, PeopleConnect, Epsilon, Experian, 411, YellowPages, VoterRecords, CocoFinder, CyberBackgroundChecks, GladIKnow, PeopleWhiz, USAPeopleSearch, Verecor, Pub360
+
+> **Note:** Some brokers share opt-out systems. BeenVerified covers PeopleLooker, NeighborWho, NumberGuru, and Ownerly. Intelius/PeopleConnect covers TruthFinder and InstantCheckmate.
 
 ### Success Rate
 Based on Consumer Reports research, **manual opt-outs have 70% success rate** vs. only 27% for automated services like DeleteMe. This tool combines the best of both: automation where possible, human verification where needed.
@@ -81,7 +83,7 @@ npx playwright install chromium
 
 #### 2. Review Manifest (`data/manifest.json`)
 
-The manifest contains **45 pre-configured data brokers**. You can:
+The manifest contains **54 pre-configured data brokers**. You can:
 - Enable/disable specific brokers by removing entries
 - Add custom brokers using the generic adapter
 - Modify selectors for sites that have changed their forms
@@ -246,10 +248,10 @@ export class NewBrokerAdapter extends BaseAdapter {
 }
 ```
 
-2. Register in `src/run.ts`:
-   - Add import: `import { NewBrokerAdapter } from "./adapters/sites/NewBrokerAdapter.js";`
-   - Add to enum: `adapter: z.enum([..., "NewBroker"])`
-   - Add to switch: `case "NewBroker": return new NewBrokerAdapter(entry);`
+2. Register in `src/factories/AdapterFactory.ts`:
+   - Add import: `import { NewBrokerAdapter } from "../adapters/sites/NewBrokerAdapter.js";`
+   - Add to switch in `createAdapter()`: `case "NewBroker": return new NewBrokerAdapter(entry);`
+   - Update `src/config/schemas.ts` to add the adapter name to the enum
 
 ### Error Troubleshooting
 

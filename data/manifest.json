@@ -4,10 +4,11 @@
     "removalUrl": "https://www.whitepages.com/suppression-requests",
     "requirements": [
       "online",
-      "captcha"
+      "captcha",
+      "phone-verification"
     ],
     "adapter": "Whitepages",
-    "notes": "Requires locating your listing before suppression."
+    "notes": "Requires locating your listing before suppression. You will receive an automated phone call with a verification code that you must enter via keypad. Removal typically takes 24-72 hours."
   },
   {
     "name": "Spokeo",
@@ -155,17 +156,18 @@
       "captcha"
     ],
     "adapter": "BeenVerified",
-    "notes": "Search for your record first, then submit opt-out. Email confirmation required. Can take several days."
+    "notes": "NETWORK: Opting out of BeenVerified also removes you from PeopleLooker, NeighborWho, NumberGuru, and Ownerly. Search for your record first, then submit opt-out. Email confirmation required. Only allows ONE opt-out per email address - contact privacy@beenverified.com for additional removals. Processing takes 24-72 hours."
   },
   {
     "name": "Intelius",
     "removalUrl": "https://suppression.peopleconnect.us/login",
     "requirements": [
       "online",
-      "email-verification"
+      "email-verification",
+      "account-required"
     ],
     "adapter": "Intelius",
-    "notes": "Requires account creation. Search for your listings, then opt out. Part of PeopleConnect network."
+    "notes": "NETWORK: PeopleConnect suppression portal. Opting out here also removes you from TruthFinder, InstantCheckmate, and all other PeopleConnect sites. Requires account creation and email verification. Processing takes up to 72 hours. Alternative: call (877) 564-3253 or email privacy@peopleconnect.us"
   },
   {
     "name": "MyLife",
@@ -320,7 +322,7 @@
     "removalUrl": "https://www.peekyou.com/about/contact/optout/",
     "requirements": [
       "online",
-      "email"
+      "profile-url-required"
     ],
     "adapter": "generic",
     "config": {
@@ -331,7 +333,7 @@
       },
       "postSubmitWaitMs": 3000
     },
-    "notes": "Contact form for opt-out requests. Requires profile URL."
+    "notes": "Contact form for opt-out requests. You MUST first search for your profile at peekyou.com, copy your profile URL, and include it in the opt-out form."
   },
   {
     "name": "InstantCheckmate",
@@ -348,7 +350,7 @@
       },
       "postSubmitWaitMs": 3000
     },
-    "notes": "Background check service. Search for yourself first, then submit opt-out with profile URL."
+    "notes": "NETWORK: Part of PeopleConnect. If you've already opted out of Intelius/PeopleConnect, you're already covered. Background check service - search for yourself first, then submit opt-out with profile URL."
   },
   {
     "name": "TruthFinder",
@@ -365,7 +367,7 @@
       },
       "postSubmitWaitMs": 3000
     },
-    "notes": "Background check site. Search for record first, include profile URL in opt-out."
+    "notes": "NETWORK: Part of PeopleConnect. If you've already opted out of Intelius/PeopleConnect, you're already covered. Background check site - search for record first, include profile URL in opt-out."
   },
   {
     "name": "USSearch",
@@ -542,7 +544,7 @@
     "name": "OldFriends",
     "removalUrl": "https://www.oldfriends.com/privacy",
     "requirements": [
-      "email"
+      "email-only"
     ],
     "adapter": "generic",
     "config": {
@@ -552,13 +554,13 @@
       },
       "postSubmitWaitMs": 3000
     },
-    "notes": "Classmate finder. Contact privacy team for removal."
+    "notes": "Classmate finder. No online form - you must email their privacy team directly to request removal."
   },
   {
     "name": "PrivateRecords",
     "removalUrl": "https://www.privaterecords.net/help",
     "requirements": [
-      "email"
+      "email-only"
     ],
     "adapter": "generic",
     "config": {
@@ -568,13 +570,13 @@
       },
       "postSubmitWaitMs": 3000
     },
-    "notes": "Public records database. Email help desk for removal."
+    "notes": "Public records database. No dedicated opt-out form - you must email their help desk directly to request removal."
   },
   {
     "name": "PropertyRecords",
     "removalUrl": "https://www.propertyrecord.com/help.php",
     "requirements": [
-      "email"
+      "email-only"
     ],
     "adapter": "generic",
     "config": {
@@ -584,7 +586,7 @@
       },
       "postSubmitWaitMs": 3000
     },
-    "notes": "Property and owner information. Contact for removal."
+    "notes": "Property and owner information database. No dedicated opt-out form - you must contact them via help page to request removal."
   },
   {
     "name": "Classmates",
@@ -605,7 +607,8 @@
     "name": "Acxiom",
     "removalUrl": "https://isapps.acxiom.com/optout/optout.aspx",
     "requirements": [
-      "online"
+      "online",
+      "email-verification"
     ],
     "adapter": "generic",
     "config": {
@@ -620,7 +623,7 @@
       },
       "postSubmitWaitMs": 3000
     },
-    "notes": "Major data aggregator. Comprehensive form required."
+    "notes": "Major data aggregator ($2.7B revenue, 500M+ consumer profiles). Comprehensive form required. You must click the confirmation link in your email to complete the opt-out. Note: Does not remove data already shared with marketers prior to your request."
   },
   {
     "name": "PeopleConnect",
@@ -634,19 +637,22 @@
   },
   {
     "name": "Epsilon",
-    "removalUrl": "https://www.epsilon.com/privacy-policy",
+    "removalUrl": "https://legal.epsilon.com/dsr/",
     "requirements": [
-      "email"
+      "online",
+      "id-verification"
     ],
     "adapter": "generic",
     "config": {
       "selectors": {
+        "name": "input[name='name'], input[placeholder*='Name']",
         "email": "input[type='email']",
+        "address": "input[name='address'], input[placeholder*='Address']",
         "submit": "button[type='submit'], input[type='submit']"
       },
       "postSubmitWaitMs": 3000
     },
-    "notes": "Marketing data aggregator. Email privacy team at privacy@epsilon.com"
+    "notes": "Major marketing data aggregator ($2.9B revenue). Uses third-party identity verification. Alternative: email optout@epsilon.com with full name and mailing address. Processing takes up to 2 weeks."
   },
   {
     "name": "Experian",
@@ -698,7 +704,7 @@
     "name": "VoterRecords",
     "removalUrl": "https://voterrecords.com/contact",
     "requirements": [
-      "email"
+      "email-only"
     ],
     "adapter": "generic",
     "config": {
@@ -709,6 +715,130 @@
       },
       "postSubmitWaitMs": 3000
     },
-    "notes": "Voter registration data. Contact for removal."
+    "notes": "Voter registration data. Uses contact form - you must request removal through their contact page. Note: Voter records are public in most states, so removal may be limited."
+  },
+  {
+    "name": "CocoFinder",
+    "removalUrl": "https://cocofinder.com/optout",
+    "requirements": [
+      "online",
+      "email-verification",
+      "captcha"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "name": "input[name='name'], input[placeholder*='Name']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Growing people search site. Search for your profile first, then submit opt-out request. Email verification required. Processing takes 24-72 hours."
+  },
+  {
+    "name": "CyberBackgroundChecks",
+    "removalUrl": "https://www.cyberbackgroundchecks.com/removal",
+    "requirements": [
+      "online",
+      "email-verification"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "name": "input[name='name'], input[placeholder*='Name']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Background check service. Search for your record first at cyberbackgroundchecks.com. Email verification required."
+  },
+  {
+    "name": "GladIKnow",
+    "removalUrl": "https://gladiknow.com/opt-out",
+    "requirements": [
+      "online",
+      "profile-url-required"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "People search site. You MUST first search for your profile at gladiknow.com, copy the profile URL, and include it in your opt-out request."
+  },
+  {
+    "name": "PeopleWhiz",
+    "removalUrl": "https://www.peoplewhiz.com/remove-my-info",
+    "requirements": [
+      "online",
+      "email-verification"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "name": "input[name='name'], input[placeholder*='Name']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "People search and background check site. Search for your listing first. Email verification required."
+  },
+  {
+    "name": "USAPeopleSearch",
+    "removalUrl": "https://www.usa-people-search.com/manage",
+    "requirements": [
+      "online"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "phone": "input[type='tel'], input[name='phone']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Free people search directory. Manage/remove your listing using phone number or email."
+  },
+  {
+    "name": "Verecor",
+    "removalUrl": "https://verecor.com/ng/control/privacy",
+    "requirements": [
+      "online",
+      "email-verification"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "name": "input[name='name'], input[placeholder*='Name']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Background check and people search. Search for your profile first. Email verification required to complete removal."
+  },
+  {
+    "name": "Pub360",
+    "removalUrl": "https://pub360.com/ng/control/privacy",
+    "requirements": [
+      "online",
+      "email-verification"
+    ],
+    "adapter": "generic",
+    "config": {
+      "selectors": {
+        "email": "input[type='email']",
+        "submit": "button[type='submit'], input[type='submit']"
+      },
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Public records search. Email verification required. Similar process to Radaris/Dataveria."
   }
 ]
