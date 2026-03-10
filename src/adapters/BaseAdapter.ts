@@ -1,10 +1,17 @@
 import type { BrowserContext, Page } from "@playwright/test";
-import type { BrokerEntry, PersonProfile } from "../types.js";
+import type { BrokerEntry, PersonProfile, IOProvider, ExecutionContext } from "../types.js";
 import { promises as fs } from "fs";
 import { join } from "path";
 
 export abstract class BaseAdapter {
   protected readonly entry: BrokerEntry;
+  protected ioProvider: IOProvider = {
+    promptUser: async () => "",
+    waitForConfirmation: async () => {},
+    log: (_level, msg) => console.log(msg),
+    openExternal: async () => {},
+    shouldOpenInBrowser: () => false,
+  };
 
   public constructor(entry: BrokerEntry) {
     this.entry = entry;
@@ -12,7 +19,10 @@ export abstract class BaseAdapter {
 
   public abstract name(): string;
 
-  public async run(context: BrowserContext, profile: PersonProfile): Promise<void> {
+  public async run(context: BrowserContext, profile: PersonProfile, execContext?: ExecutionContext): Promise<void> {
+    if (execContext) {
+      this.ioProvider = execContext.ioProvider;
+    }
     const page = await context.newPage();
     try {
       if (!this.entry.removalUrl) throw new Error("No removalUrl provided.");
