@@ -176,44 +176,39 @@ import { ElectronService, Settings } from '../../core/services/electron.service'
   `,
   styles: [`
     .settings-page {
-      padding: 1.5rem;
-      max-width: 800px;
+      padding: 2rem;
+      max-width: 700px;
       margin: 0 auto;
     }
 
     .page-header {
       margin-bottom: 2rem;
-
-      h1 {
-        margin: 0 0 0.25rem 0;
-        font-size: 1.5rem;
-      }
-
-      .subtitle {
-        margin: 0;
-        color: var(--text-secondary);
-        font-size: 0.875rem;
-      }
+      h1 { margin: 0 0 0.25rem 0; font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+      .subtitle { margin: 0; color: var(--text-secondary); font-size: 0.8125rem; }
     }
 
     .settings-sections {
       display: flex;
       flex-direction: column;
-      gap: 1.5rem;
+      gap: 1rem;
     }
 
     .settings-section {
       background: var(--bg-card);
+      backdrop-filter: blur(12px);
       border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 1.5rem;
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      box-shadow: var(--shadow-card);
 
       h2 {
-        margin: 0 0 1rem 0;
-        font-size: 1rem;
+        margin: 0 0 0.75rem 0;
+        font-size: 0.6875rem;
         font-weight: 600;
-        color: var(--text-primary);
-        padding-bottom: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        padding-bottom: 0.625rem;
         border-bottom: 1px solid var(--border-color);
       }
     }
@@ -222,40 +217,21 @@ import { ElectronService, Settings } from '../../core/services/electron.service'
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0.75rem 0;
-      border-bottom: 1px solid var(--border-color);
+      padding: 0.625rem 0;
 
-      &:last-child {
-        border-bottom: none;
-        padding-bottom: 0;
-      }
-
-      &:first-of-type {
-        padding-top: 0;
-      }
+      &:first-of-type { padding-top: 0; }
 
       .setting-info {
         flex: 1;
-
-        label {
-          display: block;
-          font-weight: 500;
-          color: var(--text-primary);
-          margin-bottom: 0.25rem;
-        }
-
-        p {
-          margin: 0;
-          font-size: 0.75rem;
-          color: var(--text-secondary);
-        }
+        label { display: block; font-weight: 500; font-size: 0.8125rem; margin-bottom: 0.125rem; }
+        p { margin: 0; font-size: 0.6875rem; color: var(--text-muted); }
       }
 
       select {
-        padding: 0.5rem 0.75rem;
+        padding: 0.375rem 0.625rem;
         border: 1px solid var(--border-color);
-        border-radius: 6px;
-        font-size: 0.875rem;
+        border-radius: var(--radius-sm);
+        font-size: 0.8125rem;
         background: var(--bg-input);
         color: var(--text-primary);
       }
@@ -264,8 +240,8 @@ import { ElectronService, Settings } from '../../core/services/electron.service'
     .toggle {
       position: relative;
       display: inline-block;
-      width: 48px;
-      height: 26px;
+      width: 40px;
+      height: 22px;
       cursor: pointer;
 
       input {
@@ -275,10 +251,8 @@ import { ElectronService, Settings } from '../../core/services/electron.service'
 
         &:checked + .toggle-slider {
           background: var(--color-primary);
-
-          &::before {
-            transform: translateX(22px);
-          }
+          border-color: var(--color-primary);
+          &::before { transform: translateX(18px); }
         }
       }
 
@@ -286,131 +260,63 @@ import { ElectronService, Settings } from '../../core/services/electron.service'
         position: absolute;
         inset: 0;
         background: var(--bg-secondary);
-        border-radius: 26px;
-        transition: 0.2s;
+        border-radius: 22px;
+        transition: 0.25s ease;
         border: 1px solid var(--border-color);
 
         &::before {
           content: '';
           position: absolute;
-          height: 20px;
-          width: 20px;
+          height: 16px;
+          width: 16px;
           left: 2px;
           bottom: 2px;
-          background: white;
+          background: var(--text-primary);
           border-radius: 50%;
-          transition: 0.2s;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          transition: 0.25s ease;
         }
       }
     }
 
     .update-result {
-      margin-top: 1rem;
-      padding: 0.75rem;
-      border-radius: 6px;
-      font-size: 0.875rem;
+      margin-top: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.8125rem;
       background: var(--bg-secondary);
       color: var(--text-secondary);
-
-      &.has-update {
-        background: rgba(34, 197, 94, 0.1);
-        color: #22c55e;
-      }
+      &.has-update { background: var(--color-success-glow); color: var(--color-success); }
     }
 
-    .about-info {
-      margin-bottom: 1rem;
-    }
+    .about-info { margin-bottom: 0.75rem; }
 
     .about-row {
       display: flex;
       justify-content: space-between;
-      padding: 0.5rem 0;
-      font-size: 0.875rem;
-
-      .label {
-        color: var(--text-secondary);
-      }
-
-      .value {
-        color: var(--text-primary);
-        font-weight: 500;
-      }
+      padding: 0.375rem 0;
+      font-size: 0.8125rem;
+      .label { color: var(--text-muted); }
+      .value { color: var(--text-primary); font-weight: 500; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; }
     }
 
     .about-links {
-      font-size: 0.875rem;
-
-      a {
-        color: var(--color-primary);
-        text-decoration: none;
-
-        &:hover {
-          text-decoration: underline;
-        }
-      }
-
-      .separator {
-        margin: 0 0.5rem;
-        color: var(--text-muted);
-      }
+      font-size: 0.8125rem;
+      a { color: var(--text-accent); text-decoration: none; &:hover { text-decoration: underline; } }
+      .separator { margin: 0 0.5rem; color: var(--text-muted); }
     }
 
     .save-message {
       margin-top: 1rem;
-      padding: 0.75rem;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      background: rgba(34, 197, 94, 0.1);
-      color: #22c55e;
-
-      &.error {
-        background: rgba(239, 68, 68, 0.1);
-        color: #ef4444;
-      }
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.8125rem;
+      background: var(--color-success-glow);
+      color: var(--color-success);
+      &.error { background: var(--color-danger-glow); color: var(--color-danger); }
     }
 
-    .page-footer {
-      margin-top: 2rem;
-      padding-top: 1rem;
-      border-top: 1px solid var(--border-color);
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      font-weight: 500;
-      cursor: pointer;
-      text-decoration: none;
-      transition: all 0.2s;
-
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-    }
-
-    .btn-secondary {
-      background: var(--bg-secondary);
-      color: var(--text-primary);
-      border: 1px solid var(--border-color);
-
-      &:hover:not(:disabled) {
-        background: var(--bg-hover);
-      }
-    }
-
-    .loading {
-      text-align: center;
-      padding: 3rem;
-      color: var(--text-secondary);
-    }
+    .page-footer { display: none; }
+    .loading { text-align: center; padding: 3rem; color: var(--text-secondary); }
   `]
 })
 export class SettingsComponent implements OnInit {

@@ -5,11 +5,6 @@ import { registerRunHandlers } from './ipc/run.ipc';
 import { registerManifestHandlers } from './ipc/manifest.ipc';
 import { registerUtilsHandlers } from './ipc/utils.ipc';
 
-// Handle creating/removing shortcuts on Windows when installing/uninstalling
-if (require('electron-squirrel-startup')) {
-  app.quit();
-}
-
 let mainWindow: BrowserWindow | null = null;
 
 // Determine if we're in development mode
@@ -26,7 +21,7 @@ function createWindow(): void {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false, // Required for preload script to work properly
+      sandbox: true,
     },
     icon: path.join(__dirname, '../resources/icon.png'),
     show: false, // Don't show until ready
