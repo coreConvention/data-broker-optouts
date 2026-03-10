@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
 import { BaseAdapter } from "./BaseAdapter.js";
 import type { BrokerEntry, PersonProfile } from "../types.js";
-import { waitForEnter } from "../utils/human.js";
+
 
 export class GenericFormAdapter extends BaseAdapter {
   public constructor(entry: BrokerEntry) {
@@ -50,7 +50,7 @@ export class GenericFormAdapter extends BaseAdapter {
 
     if (this.entry.requirements.includes("captcha")
       || this.entry.requirements.includes("id-upload")) {
-      await waitForEnter(`Site: ${this.entry.name}\nIf needed, solve CAPTCHA or upload ID in the browser window.`);
+      await this.ioProvider.waitForConfirmation(`Site: ${this.entry.name}\nIf needed, solve CAPTCHA or upload ID in the browser window.`, { broker: this.entry.name, ...(this.entry.removalUrl ? { url: this.entry.removalUrl } : {}) });
     }
 
     if (sel.submit) {
@@ -63,7 +63,7 @@ export class GenericFormAdapter extends BaseAdapter {
     }
 
     if (this.entry.requirements.includes("email-verification")) {
-      await waitForEnter(`Site: ${this.entry.name}\nComplete any email verification (click the link in your inbox). When done, return here.`);
+      await this.ioProvider.waitForConfirmation(`Site: ${this.entry.name}\nComplete any email verification (click the link in your inbox). When done, return here.`, { broker: this.entry.name });
     }
   }
 }
