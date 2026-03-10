@@ -1,5 +1,5 @@
 import type { BrowserContext } from "@playwright/test";
-import type { BrokerEntry, PersonProfile, OptOutResult } from "../types.js";
+import type { BrokerEntry, PersonProfile, OptOutResult, IOProvider, ExecutionContext } from "../types.js";
 import { Logger } from "../utils/logger.js";
 import { AdapterFactory } from "../factories/AdapterFactory.js";
 import { StatisticsTracker } from "./StatisticsTracker.js";
@@ -22,11 +22,47 @@ export class ExecutionOrchestrator {
   private logger: Logger;
   private statistics: StatisticsTracker;
   private options: ExecutionOptions;
+  private ioProvider: IOProvider;
+  private shouldStop = false;
+  private isPaused = false;
 
-  constructor(logger: Logger, options: ExecutionOptions) {
+  constructor(logger: Logger, options: ExecutionOptions, ioProvider: IOProvider) {
     this.logger = logger;
     this.statistics = new StatisticsTracker();
     this.options = options;
+    this.ioProvider = ioProvider;
+  }
+
+  /**
+   * Request the orchestrator to stop processing after the current broker
+   */
+  public requestStop(): void {
+    this.shouldStop = true;
+  }
+
+  /**
+   * Request the orchestrator to pause between brokers
+   */
+  public requestPause(): void {
+    this.isPaused = true;
+  }
+
+  /**
+   * Resume processing after a pause
+   */
+  public requestResume(): void {
+    this.isPaused = false;
+  }
+
+  /**
+   * Check if paused, waiting until resumed or stopped.
+   * Returns true if the run should stop.
+   */
+  private async checkPauseAndStop(): Promise<boolean> {
+    while (this.isPaused && !this.shouldStop) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    return this.shouldStop;
   }
 
   /**
@@ -44,6 +80,11 @@ export class ExecutionOrchestrator {
     const totalBrokers = brokers.length;
 
     for (let i = 0; i < brokers.length; i++) {
+      if (await this.checkPauseAndStop()) {
+        this.ioProvider.log("warn", "Run stopped by user.");
+        break;
+      }
+
       const entry = brokers[i]!;
       const brokerNum = i + 1;
 
@@ -126,7 +167,7 @@ export class ExecutionOrchestrator {
     result.message = "No online/email/phone path defined.";
     await this.logger.append(result);
     this.statistics.recordSkipped();
-    console.log(`    ⊘ Skipped: ${result.message}`);
+    this.ioProvider.log("warn", `Skipped: ${result.message}`);
   }
 
   /**
@@ -138,7 +179,7 @@ export class ExecutionOrchestrator {
     result.message = `${method}-only removal. See notes/website.`;
     await this.logger.append(result);
     this.statistics.recordManualNeeded();
-    console.log(`    ⚠ Manual needed: ${result.message}`);
+    this.ioProvider.log("warn", `Manual needed: ${result.message}`);
   }
 
   /**
@@ -149,15 +190,15 @@ export class ExecutionOrchestrator {
     profile: PersonProfile,
     result: OptOutResult
   ): Promise<void> {
-    console.log(`    🧪 [DRY RUN] Would run ${entry.adapter} adapter`);
-    console.log(`    🧪 [DRY RUN] Would navigate to: ${entry.removalUrl}`);
-    console.log(`    🧪 [DRY RUN] Would fill profile data: ${profile.fullName}, ${profile.email}`);
+    this.ioProvider.log("info", `[DRY RUN] Would run ${entry.adapter} adapter`);
+    this.ioProvider.log("info", `[DRY RUN] Would navigate to: ${entry.removalUrl}`);
+    this.ioProvider.log("info", `[DRY RUN] Would fill profile data: ${profile.fullName}, ${profile.email}`);
 
     result.status = "success";
     result.message = "[DRY RUN] Simulated successful submission";
     await this.logger.append(result);
     this.statistics.recordSuccess();
-    console.log(`    ✓ Dry run completed`);
+    this.ioProvider.log("info", "Dry run completed");
   }
 
   /**
@@ -170,13 +211,14 @@ export class ExecutionOrchestrator {
     result: OptOutResult
   ): Promise<void> {
     const adapter = AdapterFactory.createAdapter(entry);
-    await adapter.run(context, profile);
+    const execContext: ExecutionContext = { ioProvider: this.ioProvider };
+    await adapter.run(context, profile, execContext);
 
     result.status = "success";
     result.message = "Submitted (some steps may have been manual).";
     await this.logger.append(result);
     this.statistics.recordSuccess();
-    console.log(`    ✓ Success: ${result.message}`);
+    this.ioProvider.log("success", `${entry.name}: ${result.message}`);
   }
 
   /**
@@ -187,7 +229,7 @@ export class ExecutionOrchestrator {
     result.message = error instanceof Error ? error.message : "Unknown error";
     await this.logger.append(result);
     this.statistics.recordFailure();
-    console.log(`    ✗ Failed: ${result.message}`);
+    this.ioProvider.log("error", `Failed: ${result.message}`);
   }
 
   /**
@@ -206,17 +248,17 @@ export class ExecutionOrchestrator {
    * Print broker processing header
    */
   private printBrokerHeader(entry: BrokerEntry, brokerNum: number, total: number): void {
-    console.log(`\n[${brokerNum}/${total}] Processing: ${entry.name}`);
-    console.log(`    URL: ${entry.removalUrl || "N/A"}`);
-    console.log(`    Adapter: ${entry.adapter}`);
-    console.log(`    Requirements: ${entry.requirements.join(", ")}`);
+    this.ioProvider.log("info", `\n[${brokerNum}/${total}] Processing: ${entry.name}`);
+    this.ioProvider.log("info", `    URL: ${entry.removalUrl || "N/A"}`);
+    this.ioProvider.log("info", `    Adapter: ${entry.adapter}`);
+    this.ioProvider.log("info", `    Requirements: ${entry.requirements.join(", ")}`);
   }
 
   /**
    * Add delay between brokers
    */
   private async delayBetweenBrokers(): Promise<void> {
-    console.log(`    ⏱  Waiting ${this.options.delayBetweenBrokers / 1000} seconds before next site...`);
+    this.ioProvider.log("info", `Waiting ${this.options.delayBetweenBrokers / 1000} seconds before next site...`);
     await new Promise(resolve => setTimeout(resolve, this.options.delayBetweenBrokers));
   }
 
