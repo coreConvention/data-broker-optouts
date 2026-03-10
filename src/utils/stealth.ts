@@ -1,4 +1,4 @@
-import type { Browser, BrowserContext, Page } from "@playwright/test";
+import type { BrowserContext, Page } from "@playwright/test";
 
 /**
  * Anti-detection configurations for Playwright
@@ -34,9 +34,21 @@ export async function applyStealthToContext(context: BrowserContext, config: Ste
       get: () => undefined,
     });
 
-    // Mock plugins
+    // Mock plugins with realistic Plugin-like objects
     Object.defineProperty(navigator, 'plugins', {
-      get: () => [1, 2, 3, 4, 5],
+      get: () => {
+        const makePlugin = (name: string, description: string, filename: string) => ({
+          name, description, filename, length: 1,
+          item: () => ({ type: 'application/pdf', suffixes: 'pdf', description: '', enabledPlugin: null }),
+          namedItem: () => null,
+          [Symbol.iterator]: function* () { yield this.item(); },
+        });
+        return [
+          makePlugin('Chrome PDF Plugin', 'Portable Document Format', 'internal-pdf-viewer'),
+          makePlugin('Chrome PDF Viewer', '', 'mhjfbmdgcfjbbpaeojofohoefgiehjai'),
+          makePlugin('Native Client', '', 'internal-nacl-plugin'),
+        ];
+      },
     });
 
     // Mock languages
@@ -71,8 +83,8 @@ export async function applyStealthToContext(context: BrowserContext, config: Ste
 /**
  * Apply stealth configurations to a specific page
  */
-export async function applyStealthToPage(page: Page, config: StealthConfig = defaultStealthConfig): Promise<void> {
-  // Set extra HTTP headers
+export async function applyStealthToPage(page: Page, _config: StealthConfig = defaultStealthConfig): Promise<void> {
+  // Set extra HTTP headers to match a real browser
   await page.setExtraHTTPHeaders({
     'Accept-Language': 'en-US,en;q=0.9',
     'Accept-Encoding': 'gzip, deflate, br',
@@ -83,26 +95,13 @@ export async function applyStealthToPage(page: Page, config: StealthConfig = def
     'Sec-Fetch-Dest': 'document',
     'Upgrade-Insecure-Requests': '1',
   });
-
-  // Add realistic timing for page interactions
-  await page.addInitScript(() => {
-    // Make mouse movements more human-like
-    const originalEvaluate = window.eval;
-    window.eval = function(script: string) {
-      // Block common bot detection scripts
-      if (script.includes('webdriver') || script.includes('__playwright')) {
-        return undefined;
-      }
-      return originalEvaluate(script);
-    };
-  });
 }
 
 /**
  * Get a realistic user agent string
  */
 export function getRealisticUserAgent(): string {
-  const chromeVersion = 120 + Math.floor(Math.random() * 10); // Chrome 120-129
+  const chromeVersion = 130 + Math.floor(Math.random() * 7); // Chrome 130-136
   const osVersions = [
     'Windows NT 10.0; Win64; x64',
     'Macintosh; Intel Mac OS X 10_15_7',
@@ -135,11 +134,6 @@ export function getStealthLaunchArgs(): string[] {
   return [
     '--disable-blink-features=AutomationControlled',
     '--disable-dev-shm-usage',
-    '--disable-setuid-sandbox',
-    '--no-sandbox',
-    '--disable-web-security',
-    '--disable-features=IsolateOrigins,site-per-process',
-    '--allow-running-insecure-content',
     '--disable-background-timer-throttling',
     '--disable-backgrounding-occluded-windows',
     '--disable-breakpad',
@@ -150,7 +144,6 @@ export function getStealthLaunchArgs(): string[] {
     '--disable-renderer-backgrounding',
     '--enable-features=NetworkService,NetworkServiceInProcess',
     '--force-color-profile=srgb',
-    '--hide-scrollbars',
     '--metrics-recording-only',
     '--mute-audio',
     '--no-first-run',

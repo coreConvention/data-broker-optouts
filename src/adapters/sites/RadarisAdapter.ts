@@ -10,7 +10,6 @@ export class RadarisAdapter extends BaseAdapter {
     console.log("\n[Radaris] Starting opt-out process...");
     console.log("[Radaris] Note: You need to find your profile first at radaris.com");
 
-    // Step 1: User searches for their profile
     await waitForEnter(
       "[Radaris] STEP 1: Search for your profile:\n" +
       "  1. Go to radaris.com and search for your name and location\n" +
@@ -21,77 +20,9 @@ export class RadarisAdapter extends BaseAdapter {
       "Press Enter when you're ready to fill the opt-out form..."
     );
 
-    // Step 2: Auto-fill form fields
-    console.log("[Radaris] Attempting to auto-fill form fields...");
-
-    // Try to fill name
-    const nameSelectors = [
-      "input[name='name']",
-      "input[name='fullName']",
-      "input[name='full_name']",
-      "input[id*='name']",
-      "input[placeholder*='name' i]"
-    ];
-
-    for (const selector of nameSelectors) {
-      try {
-        const nameInput = page.locator(selector).first();
-        if (await nameInput.isVisible({ timeout: 1500 })) {
-          await nameInput.fill(profile.fullName);
-          console.log(`[Radaris] ✓ Name filled: ${profile.fullName}`);
-          break;
-        }
-      } catch {}
-    }
-
-    // Try to fill email
-    const emailSelectors = [
-      "input[type='email']",
-      "input[name='email']",
-      "input[id*='email']",
-      "input[placeholder*='email' i]"
-    ];
-
-    for (const selector of emailSelectors) {
-      try {
-        const emailInput = page.locator(selector).first();
-        if (await emailInput.isVisible({ timeout: 1500 })) {
-          await emailInput.fill(profile.email);
-          console.log(`[Radaris] ✓ Email filled: ${profile.email}`);
-          break;
-        }
-      } catch {}
-    }
-
-    // Try to fill city if available
-    if (profile.city) {
-      try {
-        const cityInput = page.locator("input[name='city'], input[placeholder*='city' i]").first();
-        if (await cityInput.isVisible({ timeout: 1000 })) {
-          await cityInput.fill(profile.city);
-          console.log(`[Radaris] ✓ City filled: ${profile.city}`);
-        }
-      } catch {}
-    }
-
-    // Try to fill state if available
-    if (profile.state) {
-      try {
-        const stateInput = page.locator("select[name='state'], input[name='state']").first();
-        if (await stateInput.isVisible({ timeout: 1000 })) {
-          await stateInput.selectOption({ label: profile.state }).catch(async () => {
-            if (profile.state) {
-              await stateInput.fill(profile.state);
-            }
-          });
-          console.log(`[Radaris] ✓ State filled: ${profile.state}`);
-        }
-      } catch {}
-    }
-
+    await this.autoFillProfile(page, profile);
     console.log("[Radaris] Form fields filled. You may need to provide additional details.");
 
-    // Step 3: Manual completion
     await waitForEnter(
       "\n[Radaris] STEP 2: Complete the opt-out request:\n" +
       "  1. Verify all form fields are correct\n" +
@@ -102,34 +33,9 @@ export class RadarisAdapter extends BaseAdapter {
       "Press Enter after you've submitted the form..."
     );
 
-    // Wait for submission
     await page.waitForTimeout(3000);
+    await this.detectAndLogSuccess(page, ["text=/verification/i"]);
 
-    // Try to detect success message
-    const successIndicators = [
-      "text=/success/i",
-      "text=/submitted/i",
-      "text=/confirmation/i",
-      "text=/email.*sent/i",
-      "text=/verification/i"
-    ];
-
-    let successDetected = false;
-    for (const indicator of successIndicators) {
-      try {
-        if (await page.locator(indicator).isVisible({ timeout: 2000 })) {
-          console.log("[Radaris] ✓ Success message detected!");
-          successDetected = true;
-          break;
-        }
-      } catch {}
-    }
-
-    if (!successDetected) {
-      console.log("[Radaris] ⚠ Could not detect success message. Please verify manually.");
-    }
-
-    // Step 4: Email verification
     await waitForEnter(
       "\n[Radaris] STEP 3: Email verification required:\n" +
       "  1. Check your email for a verification message from Radaris\n" +

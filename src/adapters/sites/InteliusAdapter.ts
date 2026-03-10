@@ -11,7 +11,6 @@ export class InteliusAdapter extends BaseAdapter {
     console.log("[Intelius] Note: Intelius is part of the PeopleConnect network.");
     console.log("[Intelius] The suppression page may require account creation.");
 
-    // Step 1: Check if login/signup is needed
     await waitForEnter(
       "[Intelius] STEP 1: Account setup (if needed):\n" +
       "  1. You're on the PeopleConnect suppression portal\n" +
@@ -21,28 +20,9 @@ export class InteliusAdapter extends BaseAdapter {
       "Press Enter when you're logged in or on the suppression form..."
     );
 
-    // Step 2: Auto-fill email if on login/signup page
     console.log("[Intelius] Attempting to auto-fill email field...");
+    await this.tryFillField(page, BaseAdapter.EMAIL_SELECTORS, profile.email, "Email", 2000);
 
-    const emailSelectors = [
-      "input[type='email']",
-      "input[name='email']",
-      "input[id*='email']",
-      "input[placeholder*='email' i]"
-    ];
-
-    for (const selector of emailSelectors) {
-      try {
-        const emailInput = page.locator(selector).first();
-        if (await emailInput.isVisible({ timeout: 2000 })) {
-          await emailInput.fill(profile.email);
-          console.log(`[Intelius] ✓ Email filled: ${profile.email}`);
-          break;
-        }
-      } catch {}
-    }
-
-    // Step 3: Search for records
     await waitForEnter(
       "\n[Intelius] STEP 2: Search for your records:\n" +
       "  1. Use the search form to find your listings\n" +
@@ -52,51 +32,14 @@ export class InteliusAdapter extends BaseAdapter {
       "Press Enter when you can see your records..."
     );
 
-    // Try to help with name search
-    const nameSelectors = [
-      "input[name='name']",
-      "input[name='fullName']",
-      "input[placeholder*='name' i]"
-    ];
-
-    for (const selector of nameSelectors) {
-      try {
-        const nameInput = page.locator(selector).first();
-        if (await nameInput.isVisible({ timeout: 1500 })) {
-          await nameInput.fill(profile.fullName);
-          console.log(`[Intelius] ✓ Name filled: ${profile.fullName}`);
-          break;
-        }
-      } catch {}
-    }
-
-    // Try to fill city
+    await this.tryFillField(page, BaseAdapter.NAME_SELECTORS, profile.fullName, "Name");
     if (profile.city) {
-      try {
-        const cityInput = page.locator("input[name='city'], input[placeholder*='city' i]").first();
-        if (await cityInput.isVisible({ timeout: 1000 })) {
-          await cityInput.fill(profile.city);
-          console.log(`[Intelius] ✓ City filled: ${profile.city}`);
-        }
-      } catch {}
+      await this.tryFillField(page, BaseAdapter.CITY_SELECTORS, profile.city, "City", 1000);
     }
-
-    // Try to fill state
     if (profile.state) {
-      try {
-        const stateInput = page.locator("select[name='state'], input[name='state']").first();
-        if (await stateInput.isVisible({ timeout: 1000 })) {
-          await stateInput.selectOption({ label: profile.state }).catch(async () => {
-            if (profile.state) {
-              await stateInput.fill(profile.state);
-            }
-          });
-          console.log(`[Intelius] ✓ State filled: ${profile.state}`);
-        }
-      } catch {}
+      await this.tryFillStateField(page, BaseAdapter.STATE_SELECTORS, profile.state);
     }
 
-    // Step 4: Select records to remove
     await waitForEnter(
       "\n[Intelius] STEP 3: Select records to suppress:\n" +
       "  1. Check the box next to each record you want removed\n" +
@@ -106,34 +49,9 @@ export class InteliusAdapter extends BaseAdapter {
       "Press Enter after you've submitted your suppression request..."
     );
 
-    // Wait for submission
     await page.waitForTimeout(3000);
+    await this.detectAndLogSuccess(page, ["text=/suppression.*request/i"]);
 
-    // Try to detect success
-    const successIndicators = [
-      "text=/success/i",
-      "text=/submitted/i",
-      "text=/suppression.*request/i",
-      "text=/confirmation/i",
-      "text=/email.*sent/i"
-    ];
-
-    let successDetected = false;
-    for (const indicator of successIndicators) {
-      try {
-        if (await page.locator(indicator).isVisible({ timeout: 2000 })) {
-          console.log("[Intelius] ✓ Success message detected!");
-          successDetected = true;
-          break;
-        }
-      } catch {}
-    }
-
-    if (!successDetected) {
-      console.log("[Intelius] ⚠ Could not detect success message. Please verify manually.");
-    }
-
-    // Step 5: Email verification
     await waitForEnter(
       "\n[Intelius] STEP 4: Email verification:\n" +
       "  1. Check your email for confirmation from PeopleConnect/Intelius\n" +

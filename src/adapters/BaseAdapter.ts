@@ -108,4 +108,181 @@ export abstract class BaseAdapter {
     }
     return false;
   }
+
+  /** Common success indicator selectors used across most adapters */
+  protected static readonly DEFAULT_SUCCESS_INDICATORS = [
+    "text=/success/i",
+    "text=/submitted/i",
+    "text=/confirmation/i",
+    "text=/email.*sent/i",
+    "text=/request.*received/i",
+    "text=/thank you/i",
+    "text=/opt.*out.*complete/i",
+    "text=/removed/i",
+    "text=/request.*processed/i",
+  ];
+
+  /**
+   * Detect success using default indicators and log the result.
+   * Returns true if any success indicator was found.
+   */
+  protected async detectAndLogSuccess(page: Page, extraIndicators: string[] = []): Promise<boolean> {
+    const indicators = [...BaseAdapter.DEFAULT_SUCCESS_INDICATORS, ...extraIndicators];
+    const detected = await this.detectSuccess(page, indicators);
+    if (detected) {
+      console.log(`[${this.name()}] ✓ Success message detected!`);
+    } else {
+      console.log(`[${this.name()}] ⚠ Could not detect success message. Please verify manually.`);
+    }
+    return detected;
+  }
+
+  /**
+   * Try to fill a field by probing multiple selectors in order.
+   * Returns true if a field was filled.
+   */
+  protected async tryFillField(
+    page: Page,
+    selectors: string[],
+    value: string,
+    fieldLabel: string,
+    timeoutMs: number = 1500
+  ): Promise<boolean> {
+    for (const selector of selectors) {
+      try {
+        const locator = page.locator(selector).first();
+        if (await locator.isVisible({ timeout: timeoutMs })) {
+          await locator.fill(value);
+          console.log(`[${this.name()}] ✓ ${fieldLabel} filled: ${value}`);
+          return true;
+        }
+      } catch {}
+    }
+    return false;
+  }
+
+  /**
+   * Try to fill a state field that could be a <select> or text <input>.
+   */
+  protected async tryFillStateField(
+    page: Page,
+    selectors: string[],
+    value: string,
+    timeoutMs: number = 1000
+  ): Promise<boolean> {
+    for (const selector of selectors) {
+      try {
+        const locator = page.locator(selector).first();
+        if (await locator.isVisible({ timeout: timeoutMs })) {
+          try {
+            await page.selectOption(selector, { label: value });
+          } catch {
+            try {
+              await page.selectOption(selector, { value });
+            } catch {
+              await locator.fill(value);
+            }
+          }
+          console.log(`[${this.name()}] ✓ State filled: ${value}`);
+          return true;
+        }
+      } catch {}
+    }
+    return false;
+  }
+
+  /** Common selectors for email fields */
+  protected static readonly EMAIL_SELECTORS = [
+    "input[type='email']",
+    "input[name='email']",
+    "input[id*='email']",
+    "input[placeholder*='email' i]",
+  ];
+
+  /** Common selectors for full name fields */
+  protected static readonly NAME_SELECTORS = [
+    "input[name='name']",
+    "input[name='fullName']",
+    "input[name='full_name']",
+    "input[id*='name']",
+    "input[placeholder*='name' i]",
+  ];
+
+  /** Common selectors for phone fields */
+  protected static readonly PHONE_SELECTORS = [
+    "input[type='tel']",
+    "input[name='phone']",
+    "input[name='phoneNumber']",
+    "input[id*='phone']",
+    "input[placeholder*='phone' i]",
+  ];
+
+  /** Common selectors for address fields */
+  protected static readonly ADDRESS_SELECTORS = [
+    "input[name='address']",
+    "input[id*='address']",
+    "input[placeholder*='address' i]",
+  ];
+
+  /** Common selectors for city fields */
+  protected static readonly CITY_SELECTORS = [
+    "input[name='city']",
+    "input[placeholder*='city' i]",
+  ];
+
+  /** Common selectors for state fields */
+  protected static readonly STATE_SELECTORS = [
+    "select[name='state']",
+    "input[name='state']",
+  ];
+
+  /** Common selectors for zip fields */
+  protected static readonly ZIP_SELECTORS = [
+    "input[name='zip']",
+    "input[name='zipcode']",
+    "input[placeholder*='zip' i]",
+  ];
+
+  /** Common selectors for first name fields */
+  protected static readonly FIRST_NAME_SELECTORS = [
+    "input[name='firstName']",
+    "input[name='first_name']",
+    "input[id*='firstName']",
+    "input[placeholder*='first name' i]",
+  ];
+
+  /** Common selectors for last name fields */
+  protected static readonly LAST_NAME_SELECTORS = [
+    "input[name='lastName']",
+    "input[name='last_name']",
+    "input[id*='lastName']",
+    "input[placeholder*='last name' i]",
+  ];
+
+  /**
+   * Auto-fill common profile fields on a page.
+   * Tries email, name, phone, address, city, state, zip in order.
+   */
+  protected async autoFillProfile(page: Page, profile: PersonProfile): Promise<void> {
+    console.log(`[${this.name()}] Attempting to auto-fill form fields...`);
+
+    await this.tryFillField(page, BaseAdapter.EMAIL_SELECTORS, profile.email, "Email", 2000);
+    await this.tryFillField(page, BaseAdapter.NAME_SELECTORS, profile.fullName, "Name");
+
+    if (profile.phone) {
+      await this.tryFillField(page, BaseAdapter.PHONE_SELECTORS, profile.phone, "Phone");
+    }
+    if (profile.address) {
+      await this.tryFillField(page, BaseAdapter.ADDRESS_SELECTORS, profile.address, "Address");
+    }
+    if (profile.city) {
+      await this.tryFillField(page, BaseAdapter.CITY_SELECTORS, profile.city, "City", 1000);
+    }
+    if (profile.state) {
+      await this.tryFillStateField(page, BaseAdapter.STATE_SELECTORS, profile.state);
+    }
+    if (profile.zip) {
+      await this.tryFillField(page, BaseAdapter.ZIP_SELECTORS, profile.zip, "ZIP", 1000);
+    }
+  }
 }

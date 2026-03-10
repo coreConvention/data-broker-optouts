@@ -4,7 +4,13 @@ export type BrokerRequirement =
   | "phone"
   | "captcha"
   | "email-verification"
+  | "phone-verification"
   | "id-upload"
+  | "id-verification"
+  | "account-required"
+  | "email-only"
+  | "phone-only"
+  | "profile-url-required"
   | "unknown";
 
 export interface BrokerEntry {
@@ -38,12 +44,6 @@ export interface PersonProfile {
   altEmails?: string[];
   phone?: string | null;
   address?: string | null;
-}
-
-export interface RunOptions {
-  manifestPath: string;
-  profilePath: string;
-  headful: boolean;
 }
 
 export interface OptOutResult {

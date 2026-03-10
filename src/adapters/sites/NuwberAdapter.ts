@@ -10,7 +10,6 @@ export class NuwberAdapter extends BaseAdapter {
     console.log("\n[Nuwber] Starting opt-out process...");
     console.log("[Nuwber] Note: You need to search for your profile first at nuwber.com");
 
-    // Step 1: User searches for their profile
     await waitForEnter(
       "[Nuwber] STEP 1: Search for your profile:\n" +
       "  1. Search for your name and location at nuwber.com\n" +
@@ -20,35 +19,15 @@ export class NuwberAdapter extends BaseAdapter {
       "Press Enter when you're on the opt-out page..."
     );
 
-    // Step 2: Fill form fields
     console.log("[Nuwber] Attempting to auto-fill form fields...");
-
-    // Try to fill email
-    const emailSelectors = [
-      "input[type='email']",
-      "input[name='email']",
-      "input[id*='email']",
-      "input[placeholder*='email' i]"
-    ];
-
-    for (const selector of emailSelectors) {
-      try {
-        const emailInput = page.locator(selector).first();
-        if (await emailInput.isVisible({ timeout: 2000 })) {
-          await emailInput.fill(profile.email);
-          console.log(`[Nuwber] ✓ Email filled: ${profile.email}`);
-          break;
-        }
-      } catch {}
-    }
+    await this.tryFillField(page, BaseAdapter.EMAIL_SELECTORS, profile.email, "Email", 2000);
 
     // Check for agreement checkbox
     const checkboxSelectors = [
       "input[type='checkbox'][name*='agree']",
       "input[type='checkbox'][name*='confirm']",
-      "input[type='checkbox'][id*='agree']"
+      "input[type='checkbox'][id*='agree']",
     ];
-
     for (const selector of checkboxSelectors) {
       try {
         const checkbox = page.locator(selector).first();
@@ -63,7 +42,6 @@ export class NuwberAdapter extends BaseAdapter {
       } catch {}
     }
 
-    // Step 3: CAPTCHA and submission
     await waitForEnter(
       "\n[Nuwber] STEP 2: Complete the opt-out request:\n" +
       "  1. Verify the email address is correct\n" +
@@ -73,34 +51,9 @@ export class NuwberAdapter extends BaseAdapter {
       "Press Enter after you've clicked the submit button..."
     );
 
-    // Wait for submission
     await page.waitForTimeout(3000);
+    await this.detectAndLogSuccess(page, ["text=/check.*email/i"]);
 
-    // Try to detect success message
-    const successIndicators = [
-      "text=/success/i",
-      "text=/submitted/i",
-      "text=/confirmation/i",
-      "text=/email.*sent/i",
-      "text=/check.*email/i"
-    ];
-
-    let successDetected = false;
-    for (const indicator of successIndicators) {
-      try {
-        if (await page.locator(indicator).isVisible({ timeout: 2000 })) {
-          console.log("[Nuwber] ✓ Success message detected!");
-          successDetected = true;
-          break;
-        }
-      } catch {}
-    }
-
-    if (!successDetected) {
-      console.log("[Nuwber] ⚠ Could not detect success message. Please verify manually.");
-    }
-
-    // Step 4: Email verification
     await waitForEnter(
       "\n[Nuwber] STEP 3: Email verification required:\n" +
       "  1. Check your email inbox for a message from Nuwber\n" +

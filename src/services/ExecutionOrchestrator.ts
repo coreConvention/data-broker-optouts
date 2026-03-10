@@ -121,10 +121,10 @@ export class ExecutionOrchestrator {
   /**
    * Handle skipped broker
    */
-  private handleSkippedBroker(entry: BrokerEntry, result: OptOutResult): void {
+  private async handleSkippedBroker(entry: BrokerEntry, result: OptOutResult): Promise<void> {
     result.status = "skipped";
     result.message = "No online/email/phone path defined.";
-    this.logger.append(result);
+    await this.logger.append(result);
     this.statistics.recordSkipped();
     console.log(`    ⊘ Skipped: ${result.message}`);
   }
@@ -132,11 +132,11 @@ export class ExecutionOrchestrator {
   /**
    * Handle manual-only broker
    */
-  private handleManualOnlyBroker(entry: BrokerEntry, result: OptOutResult): void {
+  private async handleManualOnlyBroker(entry: BrokerEntry, result: OptOutResult): Promise<void> {
     const method = entry.requirements.includes("email") ? "Email" : "Phone";
     result.status = "manual-needed";
     result.message = `${method}-only removal. See notes/website.`;
-    this.logger.append(result);
+    await this.logger.append(result);
     this.statistics.recordManualNeeded();
     console.log(`    ⚠ Manual needed: ${result.message}`);
   }
@@ -144,18 +144,18 @@ export class ExecutionOrchestrator {
   /**
    * Handle dry-run execution
    */
-  private handleDryRun(
+  private async handleDryRun(
     entry: BrokerEntry,
     profile: PersonProfile,
     result: OptOutResult
-  ): void {
+  ): Promise<void> {
     console.log(`    🧪 [DRY RUN] Would run ${entry.adapter} adapter`);
     console.log(`    🧪 [DRY RUN] Would navigate to: ${entry.removalUrl}`);
     console.log(`    🧪 [DRY RUN] Would fill profile data: ${profile.fullName}, ${profile.email}`);
 
     result.status = "success";
     result.message = "[DRY RUN] Simulated successful submission";
-    this.logger.append(result);
+    await this.logger.append(result);
     this.statistics.recordSuccess();
     console.log(`    ✓ Dry run completed`);
   }
@@ -174,7 +174,7 @@ export class ExecutionOrchestrator {
 
     result.status = "success";
     result.message = "Submitted (some steps may have been manual).";
-    this.logger.append(result);
+    await this.logger.append(result);
     this.statistics.recordSuccess();
     console.log(`    ✓ Success: ${result.message}`);
   }
@@ -182,10 +182,10 @@ export class ExecutionOrchestrator {
   /**
    * Handle execution error
    */
-  private handleExecutionError(error: unknown, result: OptOutResult): void {
+  private async handleExecutionError(error: unknown, result: OptOutResult): Promise<void> {
     result.status = "failed";
     result.message = error instanceof Error ? error.message : "Unknown error";
-    this.logger.append(result);
+    await this.logger.append(result);
     this.statistics.recordFailure();
     console.log(`    ✗ Failed: ${result.message}`);
   }
