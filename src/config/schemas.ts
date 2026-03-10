@@ -52,6 +52,7 @@ export const BrokerEntrySchema = z.object({
     "MyLife"
   ]),
   notes: z.string().optional().nullable(),
+  humanInteraction: z.enum(["modal", "browser"]).optional(),
   config: z.object({
     selectors: z.object({
       name: z.string().optional(),
