@@ -79,7 +79,7 @@ interface ElectronAPI {
     onProgress: (callback: (data: ProgressData) => void) => () => void;
     onComplete: (callback: (data: CompleteData) => void) => () => void;
     onLog: (callback: (message: string) => void) => () => void;
-    onHumanInput: (callback: (prompt: string) => void) => () => void;
+    onHumanInput: (callback: (prompt: string | Record<string, unknown>) => void) => () => void;
     submitHumanInput: (response: string) => Promise<void>;
   };
   config: {
@@ -130,7 +130,7 @@ export class ElectronService implements OnDestroy {
   readonly progress = signal<ProgressData | null>(null);
   readonly logs = signal<string[]>([]);
   readonly manifestUpdateAvailable = signal<ManifestUpdateInfo | null>(null);
-  readonly humanInputPrompt = signal<string | null>(null);
+  readonly humanInputPrompt = signal<string | Record<string, unknown> | null>(null);
 
   // Computed values
   readonly progressPercent = computed(() => {

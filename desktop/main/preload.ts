@@ -97,8 +97,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.on('run:log', listener);
       return () => ipcRenderer.removeListener('run:log', listener);
     },
-    onHumanInput: (callback: (prompt: string) => void): (() => void) => {
-      const listener = (_event: IpcRendererEvent, prompt: string) => callback(prompt);
+    onHumanInput: (callback: (prompt: string | Record<string, unknown>) => void): (() => void) => {
+      const listener = (_event: IpcRendererEvent, prompt: string | Record<string, unknown>) => callback(prompt);
       ipcRenderer.on('run:human-input', listener);
       return () => ipcRenderer.removeListener('run:human-input', listener);
     },
@@ -185,7 +185,7 @@ declare global {
         onProgress: (callback: (data: ProgressData) => void) => () => void;
         onComplete: (callback: (data: CompleteData) => void) => () => void;
         onLog: (callback: (message: string) => void) => () => void;
-        onHumanInput: (callback: (prompt: string) => void) => () => void;
+        onHumanInput: (callback: (prompt: string | Record<string, unknown>) => void) => () => void;
         submitHumanInput: (response: string) => Promise<void>;
       };
       config: {
