@@ -4,6 +4,10 @@
 
 > ⚠️ **Privacy-Focused & Legal:** This tool only uses official opt-out pages and never bypasses CAPTCHAs. You handle verification steps manually, ensuring compliance with Terms of Service.
 
+## Why This Matters
+
+Data brokers collect and sell personal information — home addresses, phone numbers, family members, employment history — making it trivially easy for anyone to find details about you online. For stalking victims, domestic abuse survivors, and anyone concerned about their privacy, this exposure is dangerous. The opt-out process is deliberately tedious: dozens of different sites, each with their own forms, CAPTCHAs, and verification steps. Most people give up. This tool automates that process so you don't have to.
+
 ## 🎯 Features
 
 ### Core Capabilities
