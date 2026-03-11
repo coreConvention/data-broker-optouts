@@ -39,7 +39,7 @@ function getDataPath(): string {
   // In development, use project data folder
   // In production, use app resources or user data
   if (!app.isPackaged) {
-    return path.join(__dirname, '../../..', 'data');
+    return path.join(__dirname, '../../../..', 'data');
   }
   // Check if data exists in resources (bundled with app)
   const resourcePath = path.join(process.resourcesPath, 'data');

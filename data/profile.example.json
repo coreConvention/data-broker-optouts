@@ -1,0 +1,9 @@
+{
+  "fullName": "Jane Doe",
+  "city": "Anytown",
+  "state": "CA",
+  "zip": "90210",
+  "email": "janedoe@example.com",
+  "phone": "555-555-0100",
+  "address": "123 Privacy Lane"
+}

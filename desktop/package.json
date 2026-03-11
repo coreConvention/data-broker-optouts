@@ -8,10 +8,11 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"npm run dev:renderer\" \"npm run dev:electron\"",
-    "dev:renderer": "cd renderer && ng serve --port 4200",
-    "dev:electron": "wait-on http://localhost:4200 && npm run build:main && electron .",
-    "build": "npm run build:renderer && npm run build:main",
-    "build:renderer": "cd renderer && ng build --configuration production",
+    "dev:renderer": "cd renderer && npx ng serve --port 4201",
+    "dev:electron": "npm run build:engine && npx wait-on http://localhost:4201 && npm run build:main && npx electron .",
+    "build": "npm run build:engine && npm run build:renderer && npm run build:main",
+    "build:engine": "cd .. && npx tsc -p tsconfig.engine.json",
+    "build:renderer": "cd renderer && npx ng build --configuration production",
     "build:main": "tsc -p tsconfig.main.json",
     "package": "npm run build && electron-builder",
     "package:win": "npm run build && electron-builder --win",
@@ -20,7 +21,9 @@
     "package:all": "npm run build && electron-builder --win --mac --linux"
   },
   "dependencies": {
-    "electron-updater": "^6.3.9"
+    "@playwright/test": "^1.46.0",
+    "electron-updater": "^6.3.9",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "electron": "^33.2.0",

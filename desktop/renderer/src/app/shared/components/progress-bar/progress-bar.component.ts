@@ -6,8 +6,8 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="progress-bar-container">
-      <div class="progress-bar">
+    <div class="progress-wrap">
+      <div class="progress-track">
         <div
           class="progress-fill"
           [style.width.%]="value"
@@ -15,30 +15,29 @@ import { CommonModule } from '@angular/common';
         ></div>
       </div>
       @if (label) {
-        <div class="progress-label">
-          <span>{{ label }}</span>
-          <span class="progress-percent">{{ value }}%</span>
+        <div class="progress-meta">
+          <span class="mono">{{ label }}</span>
+          <span class="percent mono">{{ value }}%</span>
         </div>
       }
     </div>
   `,
   styles: [`
-    .progress-bar-container {
-      width: 100%;
-    }
+    .progress-wrap { width: 100%; }
 
-    .progress-bar {
-      height: 8px;
+    .progress-track {
+      height: 6px;
       background: var(--bg-secondary);
-      border-radius: 4px;
+      border-radius: 3px;
       overflow: hidden;
     }
 
     .progress-fill {
       height: 100%;
       background: var(--color-primary);
-      border-radius: 4px;
-      transition: width 0.3s ease;
+      border-radius: 3px;
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
 
       &.animated {
         background: linear-gradient(
@@ -48,21 +47,21 @@ import { CommonModule } from '@angular/common';
           var(--color-primary) 100%
         );
         background-size: 200% 100%;
-        animation: shimmer 1.5s infinite;
+        animation: shimmer 2s infinite;
       }
     }
 
-    .progress-label {
+    .progress-meta {
       display: flex;
       justify-content: space-between;
       margin-top: 0.5rem;
-      font-size: 0.875rem;
+      font-size: 0.75rem;
       color: var(--text-secondary);
     }
 
-    .progress-percent {
-      font-weight: 500;
-      color: var(--text-primary);
+    .percent {
+      color: var(--color-primary);
+      font-weight: 600;
     }
 
     @keyframes shimmer {

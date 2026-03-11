@@ -97,12 +97,12 @@ import { ElectronService } from '../../core/services/electron.service';
   `,
   styles: [`
     .log-viewer-page {
-      padding: 1.5rem;
-      max-width: 1200px;
+      padding: 2rem;
+      max-width: 1000px;
       margin: 0 auto;
       display: flex;
       flex-direction: column;
-      height: calc(100vh - 3rem);
+      height: calc(100vh - 4rem);
     }
 
     .page-header {
@@ -114,53 +114,64 @@ import { ElectronService } from '../../core/services/electron.service';
       gap: 1rem;
 
       .header-content {
-        h1 {
-          margin: 0 0 0.25rem 0;
-          font-size: 1.5rem;
-        }
-
-        .subtitle {
-          margin: 0;
-          color: var(--text-secondary);
-          font-size: 0.875rem;
-        }
+        h1 { margin: 0 0 0.25rem 0; font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+        .subtitle { margin: 0; color: var(--text-secondary); font-size: 0.8125rem; }
       }
-
-      .header-actions {
-        display: flex;
-        gap: 0.5rem;
-      }
+      .header-actions { display: flex; gap: 0.5rem; }
     }
 
     .log-controls {
       display: flex;
-      gap: 1.5rem;
-      margin-bottom: 1rem;
+      gap: 1.25rem;
+      margin-bottom: 0.75rem;
     }
 
     .checkbox-label {
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      font-size: 0.875rem;
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
       cursor: pointer;
 
       input {
-        width: 1rem;
-        height: 1rem;
+        appearance: none;
+        width: 0.875rem;
+        height: 0.875rem;
+        border: 1.5px solid var(--border-color);
+        border-radius: 3px;
+        background: var(--bg-input);
+        cursor: pointer;
+        display: grid;
+        place-content: center;
+
+        &::before {
+          content: '';
+          width: 0.5rem;
+          height: 0.5rem;
+          border-radius: 1.5px;
+          background: var(--color-primary);
+          transform: scale(0);
+          transition: transform 0.15s;
+        }
+        &:checked {
+          border-color: var(--color-primary);
+          &::before { transform: scale(1); }
+        }
       }
     }
 
     .log-container {
       flex: 1;
       background: var(--bg-card);
+      backdrop-filter: blur(12px);
       border: 1px solid var(--border-color);
-      border-radius: 8px;
+      border-radius: var(--radius-lg);
       padding: 1rem;
       overflow-y: auto;
-      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-      font-size: 0.8125rem;
-      line-height: 1.6;
+      font-family: 'JetBrains Mono', 'Consolas', monospace;
+      font-size: 0.75rem;
+      line-height: 1.7;
 
       &.empty {
         display: flex;
@@ -170,135 +181,61 @@ import { ElectronService } from '../../core/services/electron.service';
     }
 
     .log-entry {
-      padding: 0.25rem 0;
-      border-bottom: 1px solid var(--border-color);
+      padding: 0.2rem 0;
 
-      &:last-child {
-        border-bottom: none;
-      }
-
-      &.log-error {
-        color: #ef4444;
-        background: rgba(239, 68, 68, 0.05);
-        margin: 0 -1rem;
-        padding: 0.25rem 1rem;
-      }
-
-      &.log-success {
-        color: #22c55e;
-      }
-
-      &.log-warning {
-        color: #f97316;
-      }
-
-      &.log-info {
-        color: var(--text-primary);
-      }
+      &.log-error { color: #ef4444; }
+      &.log-success { color: #10b981; }
+      &.log-warning { color: #f59e0b; }
+      &.log-info { color: var(--text-primary); }
     }
 
-    .log-timestamp {
-      color: var(--text-secondary);
-      margin-right: 0.75rem;
-    }
+    .log-timestamp { color: var(--text-muted); margin-right: 0.75rem; }
 
-    .log-message {
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
+    .log-message { white-space: pre-wrap; word-break: break-word; }
 
     .empty-state {
       text-align: center;
       color: var(--text-secondary);
-
-      p {
-        margin-bottom: 1rem;
-      }
+      p { margin-bottom: 1rem; }
     }
 
     .status-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0.75rem 1rem;
+      padding: 0.5rem 0.75rem;
       background: var(--bg-card);
       border: 1px solid var(--border-color);
-      border-radius: 8px;
-      margin-top: 1rem;
-      font-size: 0.875rem;
+      border-radius: var(--radius-sm);
+      margin-top: 0.75rem;
+      font-size: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
 
       .status {
         display: flex;
         align-items: center;
         gap: 0.5rem;
 
-        &.running {
-          color: var(--color-success);
-        }
-
-        &.idle {
-          color: var(--text-secondary);
-        }
+        &.running { color: var(--color-success); }
+        &.idle { color: var(--text-muted); }
       }
 
       .pulse {
-        width: 8px;
-        height: 8px;
+        width: 6px;
+        height: 6px;
         border-radius: 50%;
         background: var(--color-success);
         animation: pulse 1.5s infinite;
       }
 
-      .log-count {
-        color: var(--text-secondary);
-      }
+      .log-count { color: var(--text-muted); }
     }
 
-    .page-footer {
-      margin-top: 1rem;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      font-weight: 500;
-      cursor: pointer;
-      text-decoration: none;
-      transition: all 0.2s;
-
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-    }
-
-    .btn-primary {
-      background: var(--color-primary);
-      color: white;
-
-      &:hover:not(:disabled) {
-        background: var(--color-primary-dark);
-      }
-    }
-
-    .btn-secondary {
-      background: var(--bg-secondary);
-      color: var(--text-primary);
-      border: 1px solid var(--border-color);
-
-      &:hover:not(:disabled) {
-        background: var(--bg-hover);
-      }
-    }
+    .page-footer { display: none; }
 
     @keyframes pulse {
       0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
+      50% { opacity: 0.3; }
     }
   `]
 })

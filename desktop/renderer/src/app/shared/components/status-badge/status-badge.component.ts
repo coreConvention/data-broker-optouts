@@ -9,65 +9,39 @@ export type StatusType = 'pending' | 'processing' | 'captcha' | 'manual' | 'succ
   imports: [CommonModule],
   template: `
     <span
-      class="status-badge"
-      [class]="'status-' + status"
+      class="badge"
+      [class]="'badge-' + status"
       [title]="statusTitle()"
     >
-      <span class="status-icon">{{ statusIcon() }}</span>
+      <span class="icon">{{ statusIcon() }}</span>
       @if (showLabel) {
-        <span class="status-label">{{ statusLabel() }}</span>
+        <span class="label">{{ statusLabel() }}</span>
       }
     </span>
   `,
   styles: [`
-    .status-badge {
+    .badge {
       display: inline-flex;
       align-items: center;
-      gap: 0.375rem;
-      padding: 0.25rem 0.5rem;
+      gap: 0.3rem;
+      padding: 0.2rem 0.5rem;
       border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 500;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-family: 'JetBrains Mono', monospace;
     }
 
-    .status-icon {
-      font-size: 0.875rem;
-    }
+    .icon { font-size: 0.75rem; }
 
-    .status-pending {
-      background: var(--bg-secondary);
-      color: var(--text-secondary);
-    }
-
-    .status-processing {
-      background: rgba(59, 130, 246, 0.1);
-      color: #3b82f6;
-    }
-
-    .status-captcha {
-      background: rgba(249, 115, 22, 0.1);
-      color: #f97316;
-    }
-
-    .status-manual {
-      background: rgba(234, 179, 8, 0.1);
-      color: #eab308;
-    }
-
-    .status-success {
-      background: rgba(34, 197, 94, 0.1);
-      color: #22c55e;
-    }
-
-    .status-failed {
-      background: rgba(239, 68, 68, 0.1);
-      color: #ef4444;
-    }
-
-    .status-skipped {
-      background: rgba(107, 114, 128, 0.1);
-      color: #6b7280;
-    }
+    .badge-pending   { background: rgba(136,146,176,0.1); color: var(--text-muted); }
+    .badge-processing{ background: rgba(14,165,233,0.12);  color: #38bdf8; }
+    .badge-captcha   { background: rgba(245,158,11,0.12);  color: #f59e0b; }
+    .badge-manual    { background: rgba(139,92,246,0.12);   color: #a78bfa; }
+    .badge-success   { background: rgba(16,185,129,0.12);   color: #10b981; }
+    .badge-failed    { background: rgba(239,68,68,0.12);    color: #ef4444; }
+    .badge-skipped   { background: rgba(136,146,176,0.1);  color: var(--text-secondary); }
   `]
 })
 export class StatusBadgeComponent {
@@ -76,39 +50,25 @@ export class StatusBadgeComponent {
 
   protected statusIcon = computed(() => {
     const icons: Record<StatusType, string> = {
-      pending: '○',
-      processing: '⏳',
-      captcha: '🔐',
-      manual: '👆',
-      success: '✓',
-      failed: '✗',
-      skipped: '⊘'
+      pending: '○', processing: '◌', captcha: '◈',
+      manual: '◇', success: '●', failed: '✕', skipped: '⊘'
     };
     return icons[this.status];
   });
 
   protected statusLabel = computed(() => {
     const labels: Record<StatusType, string> = {
-      pending: 'Pending',
-      processing: 'Processing',
-      captcha: 'CAPTCHA',
-      manual: 'Manual',
-      success: 'Success',
-      failed: 'Failed',
-      skipped: 'Skipped'
+      pending: 'Pending', processing: 'Processing', captcha: 'CAPTCHA',
+      manual: 'Manual', success: 'Success', failed: 'Failed', skipped: 'Skipped'
     };
     return labels[this.status];
   });
 
   protected statusTitle = computed(() => {
     const titles: Record<StatusType, string> = {
-      pending: 'Waiting to be processed',
-      processing: 'Currently being processed',
-      captcha: 'Waiting for CAPTCHA to be solved',
-      manual: 'Requires manual intervention',
-      success: 'Completed successfully',
-      failed: 'Failed to complete',
-      skipped: 'Skipped'
+      pending: 'Waiting to be processed', processing: 'Currently being processed',
+      captcha: 'Waiting for CAPTCHA', manual: 'Requires manual intervention',
+      success: 'Completed successfully', failed: 'Failed to complete', skipped: 'Skipped'
     };
     return titles[this.status];
   });

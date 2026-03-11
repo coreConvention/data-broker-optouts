@@ -16,6 +16,15 @@ import { Profile } from '../../core/services/electron.service';
         <p class="subtitle">Your information is used to fill opt-out forms</p>
       </header>
 
+      <div class="privacy-notice">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 2L3 7v10l9 5 9-5V7l-9-5z"/>
+          <path d="M12 8a2 2 0 100 4 2 2 0 000-4z"/>
+          <path d="M12 12v5"/>
+        </svg>
+        <p>Your data stays on your machine. This app does not collect, store, or transmit your personal information to any server. It is only used locally to auto-fill opt-out forms.</p>
+      </div>
+
       @if (isLoading()) {
         <div class="loading">Loading profile...</div>
       } @else {
@@ -138,95 +147,76 @@ import { Profile } from '../../core/services/electron.service';
   `,
   styles: [`
     .profile-editor {
-      padding: 1.5rem;
+      padding: 2rem;
       max-width: 600px;
       margin: 0 auto;
     }
 
     .page-header {
       margin-bottom: 2rem;
-
-      h1 {
-        margin: 0 0 0.5rem 0;
-        font-size: 1.5rem;
-        color: var(--text-primary);
-      }
-
-      .subtitle {
-        margin: 0;
-        color: var(--text-secondary);
-      }
+      h1 { margin: 0 0 0.25rem 0; font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+      .subtitle { margin: 0; color: var(--text-secondary); font-size: 0.8125rem; }
     }
 
     .profile-form {
       background: var(--bg-card);
-      border-radius: 8px;
+      backdrop-filter: blur(12px);
+      border-radius: var(--radius-lg);
       border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-card);
     }
 
     .form-section {
       padding: 1.5rem;
       border-bottom: 1px solid var(--border-color);
-
-      &:last-of-type {
-        border-bottom: none;
-      }
+      &:last-of-type { border-bottom: none; }
 
       h2 {
         margin: 0 0 1rem 0;
-        font-size: 1rem;
+        font-size: 0.75rem;
         font-weight: 600;
-        color: var(--text-primary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
       }
     }
 
     .form-group {
       margin-bottom: 1rem;
-
-      &:last-child {
-        margin-bottom: 0;
-      }
+      &:last-child { margin-bottom: 0; }
 
       label {
         display: block;
         margin-bottom: 0.375rem;
-        font-size: 0.875rem;
+        font-size: 0.8125rem;
         font-weight: 500;
         color: var(--text-primary);
       }
 
       input, select {
         width: 100%;
-        padding: 0.625rem 0.75rem;
+        padding: 0.5rem 0.75rem;
         border: 1px solid var(--border-color);
-        border-radius: 6px;
+        border-radius: var(--radius-sm);
         font-size: 0.875rem;
         background: var(--bg-input);
         color: var(--text-primary);
+        transition: border-color 0.2s, box-shadow 0.2s;
 
         &:focus {
           outline: none;
           border-color: var(--color-primary);
-          box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+          box-shadow: 0 0 0 3px var(--color-primary-glow);
         }
-
-        &::placeholder {
-          color: var(--text-muted);
-        }
+        &::placeholder { color: var(--text-muted); }
       }
 
-      small {
-        display: block;
-        margin-top: 0.25rem;
-        font-size: 0.75rem;
-        color: var(--text-secondary);
-      }
+      small { display: block; margin-top: 0.25rem; font-size: 0.6875rem; color: var(--text-muted); }
     }
 
     .form-row {
       display: flex;
-      gap: 1rem;
-
+      gap: 0.75rem;
       .flex-1 { flex: 1; }
       .flex-2 { flex: 2; }
     }
@@ -238,61 +228,42 @@ import { Profile } from '../../core/services/electron.service';
       padding: 1rem 1.5rem;
       background: var(--bg-secondary);
       border-top: 1px solid var(--border-color);
-    }
-
-    .btn {
-      padding: 0.625rem 1.25rem;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-    }
-
-    .btn-primary {
-      background: var(--color-primary);
-      color: white;
-
-      &:hover:not(:disabled) {
-        background: var(--color-primary-dark);
-      }
-    }
-
-    .btn-secondary {
-      background: var(--bg-secondary);
-      color: var(--text-primary);
-      border: 1px solid var(--border-color);
-
-      &:hover:not(:disabled) {
-        background: var(--bg-hover);
-      }
+      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
     }
 
     .save-message {
       margin: 1rem 1.5rem;
-      padding: 0.75rem;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      background: rgba(34, 197, 94, 0.1);
-      color: #22c55e;
-
-      &.error {
-        background: rgba(239, 68, 68, 0.1);
-        color: #ef4444;
-      }
+      padding: 0.625rem 0.75rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.8125rem;
+      background: var(--color-success-glow);
+      color: var(--color-success);
+      &.error { background: var(--color-danger-glow); color: var(--color-danger); }
     }
 
-    .loading {
-      text-align: center;
-      padding: 3rem;
+    .privacy-notice {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1.5rem;
+      background: var(--color-primary-glow);
+      border: 1px solid var(--border-active);
+      border-radius: var(--radius-md);
+      font-size: 0.75rem;
       color: var(--text-secondary);
+      line-height: 1.5;
+
+      svg {
+        flex-shrink: 0;
+        color: var(--color-primary);
+        margin-top: 0.125rem;
+      }
+
+      p { margin: 0; }
     }
+
+    .loading { text-align: center; padding: 3rem; color: var(--text-secondary); }
   `]
 })
 export class ProfileEditorComponent implements OnInit {

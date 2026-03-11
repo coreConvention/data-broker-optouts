@@ -1,14 +1,18 @@
 # Data Broker Opt-Out Runner
 
-**Automate your privacy:** A Playwright-based tool that streamlines opt-out requests from **54+ data broker sites** using a **human-in-the-loop** approach for CAPTCHAs and verification steps.
+**Automate your privacy:** A Playwright-based tool that streamlines opt-out requests from **113 data broker sites** using a **human-in-the-loop** approach for CAPTCHAs and verification steps.
 
 > ⚠️ **Privacy-Focused & Legal:** This tool only uses official opt-out pages and never bypasses CAPTCHAs. You handle verification steps manually, ensuring compliance with Terms of Service.
+
+## Why This Matters
+
+Data brokers collect and sell personal information — home addresses, phone numbers, family members, employment history — making it trivially easy for anyone to find details about you online. For stalking victims, domestic abuse survivors, and anyone concerned about their privacy, this exposure is dangerous. The opt-out process is deliberately tedious: dozens of different sites, each with their own forms, CAPTCHAs, and verification steps. Most people give up. This tool automates that process so you don't have to.
 
 ## 🎯 Features
 
 ### Core Capabilities
-- **54+ Data Brokers Supported** including Spokeo, Whitepages, BeenVerified, Radaris, Nuwber, and more
-- **Smart Adapters**: 7 site-specific adapters for complex flows + generic adapter for 38+ simple forms
+- **113 Data Brokers Supported** including Spokeo, Whitepages, BeenVerified, Radaris, Nuwber, and more
+- **Smart Adapters**: 7 site-specific adapters for complex flows + generic adapter for 106 simple forms
 - **Human-in-the-Loop**: Pauses for CAPTCHA solving, email verification, and manual steps
 - **Progress Tracking**: Real-time progress indicators and detailed summary reports
 - **Error Handling**: Automatic retry with exponential backoff + screenshot capture on failures
@@ -23,7 +27,7 @@
 
 ## 📊 Coverage
 
-### Total: 54 Data Brokers
+### Total: 113 Data Brokers
 
 #### Tier 1: Major People Search Sites (7 custom adapters)
 - **Spokeo** - Multi-step opt-out with email verification
@@ -34,8 +38,26 @@
 - **Nuwber** - Email verification flow
 - **MyLife** - CCPA-compliant opt-out
 
-#### Tier 2: Popular Search Sites (47 generic adapters)
-FastPeopleSearch, TruePeopleSearch, CheckPeople, ThatsThem, SmartBackgroundChecks, ClustrMaps, PeopleSearchNow, AdvancedBackgroundChecks, PublicDataUSA, Dataveria, NeighborReport, FamilyTreeNow, USPhoneBook, PeopleFinders, PeekYou, InstantCheckmate, TruthFinder, USSearch, Zabasearch, AnyWho, Addresses, InfoTracer, PrivateEye, SearchQuarry, SearchBug, SpyFly, PeopleByName, OldFriends, PrivateRecords, PropertyRecords, Classmates, Acxiom, PeopleConnect, Epsilon, Experian, 411, YellowPages, VoterRecords, CocoFinder, CyberBackgroundChecks, GladIKnow, PeopleWhiz, USAPeopleSearch, Verecor, Pub360
+#### Tier 2: People Search & Public Records (53 generic adapters)
+FastPeopleSearch, TruePeopleSearch, CheckPeople, ThatsThem, SmartBackgroundChecks, ClustrMaps, PeopleSearchNow, AdvancedBackgroundChecks, PublicDataUSA, Dataveria, NeighborReport, FamilyTreeNow, USPhoneBook, PeopleFinders, PeekYou, InstantCheckmate, TruthFinder, USSearch, Zabasearch, AnyWho, Addresses, InfoTracer, PrivateEye, SearchQuarry, SearchBug, SpyFly, PeopleByName, OldFriends, PrivateRecords, PropertyRecords, Classmates, PeopleConnect, 411, YellowPages, VoterRecords, CocoFinder, CyberBackgroundChecks, GladIKnow, PeopleWhiz, USAPeopleSearch, Verecor, Pub360, Spokeo (Profile URL), PeopleSmart, Veromi, RealPeopleSearch, FastBackgroundCheck, SocialCatfish, OfficialUSA, PeopleSearchExpert, PublicRecords360, NumLooker, Revealname
+
+#### Tier 3: B2B Data Brokers & Identity Resolution (12 generic adapters)
+ZoomInfo, Lusha, Apollo.io, RocketReach, Hunter.io, ContactOut, FullContact, TowerData, LiveRamp, Pipl, Melissa Data, Gravy Analytics
+
+#### Tier 4: Data Aggregators & Marketing (14 generic adapters)
+Acxiom, Acxiom (AboutTheData), Epsilon, Experian, LexisNexis, Oracle Data Cloud (BlueKai), DataAxle (InfoUSA/Donnelley), Equifax Marketing Opt-Out, TransUnion Marketing Opt-Out, Precise Leads (NumLookup), DMAChoice (Direct Marketing Association), National Do Not Call Registry, Catalog Choice, Clearview AI
+
+#### Tier 5: Phone ID & Caller Lookup (6 generic adapters)
+TrueCaller, Hiya, CallerSmart, Numberville, ValidNumber, Tapad
+
+#### Tier 6: Credit Bureaus & Financial (3 generic adapters)
+Innovis, CoreLogic, ChexSystems
+
+#### Tier 7: Ad Tech & Tracking (3 generic adapters)
+Lotame, ShareThis, Tapad
+
+#### Tier 8: Emerging & Niche Brokers (16 generic adapters)
+IDTrue, Persopo, Unmask, Xlek, NewEnglandFacts, Cubib, Centeda, Verispy, Ownerly, PeopleLooker, LocatePeople, PublicRecordsNow, RecordsFinder, Instant People Finder, AncestryFree (RootsWeb), Spokeo (Direct Removal)
 
 > **Note:** Some brokers share opt-out systems. BeenVerified covers PeopleLooker, NeighborWho, NumberGuru, and Ownerly. Intelius/PeopleConnect covers TruthFinder and InstantCheckmate.
 
@@ -83,7 +105,7 @@ npx playwright install chromium
 
 #### 2. Review Manifest (`data/manifest.json`)
 
-The manifest contains **54 pre-configured data brokers**. You can:
+The manifest contains **113 pre-configured data brokers**. You can:
 - Enable/disable specific brokers by removing entries
 - Add custom brokers using the generic adapter
 - Modify selectors for sites that have changed their forms
@@ -310,18 +332,49 @@ Total brokers processed: 20
 
 ## 🤝 Contributing
 
-Want to add more data brokers or improve adapters?
+Contributions welcome! Here's how you can help:
 
+### Add a New Data Broker (Easiest)
+1. Find the broker's official opt-out page
+2. Add an entry to `data/manifest.json` with CSS selectors for form fields
+3. Run `npm test` to verify manifest validates
+4. Submit a PR
+
+### Improve an Existing Adapter
+1. Check if selectors are outdated (sites change their forms)
+2. Update selectors in `data/manifest.json` or adapter code in `src/adapters/sites/`
+3. Test with `npm start -- --filter "BrokerName" --dry-run`
+
+### Report Broken Opt-Outs
+Open an issue with the broker name and what's broken — even just "Spokeo form changed" helps.
+
+### General Guidelines
 1. Fork the repository
-2. Add new broker configurations or adapters
-3. Test thoroughly with your own data
-4. Submit a pull request with documentation
+2. Run `npm test` before submitting
+3. Include the broker's opt-out URL in your PR description
+4. One broker per PR is fine — small PRs merge faster
+
+## ⚖️ Your Legal Rights
+
+Data broker opt-outs are backed by strong legal frameworks:
+
+- **CCPA/CPRA (California)**: Right to delete personal info and opt out of data sales. Brokers must comply within 45 days.
+- **VCDPA (Virginia)**, **CPA (Colorado)**, **CTDPA (Connecticut)**, **UCPA (Utah)**: Similar deletion and opt-out rights for state residents.
+- **GDPR (EU/EEA)**: Right to erasure ("right to be forgotten") and right to object to processing.
+- **Federal**: The FTC regulates data brokers under "unfair or deceptive practices." The National Do Not Call Registry covers telemarketing.
+
+**Tips for leveraging your rights:**
+- Mention the specific law (e.g., "pursuant to CCPA Section 1798.105") in opt-out requests for faster compliance
+- Re-submit opt-outs every 3-6 months — brokers often re-acquire your data
+- Keep audit logs (this tool generates them automatically) as proof of your requests
 
 ## 📚 Resources
 
 - [Privacy Rights Clearinghouse Data Broker Database](https://privacyrights.org/data-brokers) - 750+ data brokers
 - [Big-Ass-Data-Broker-Opt-Out-List](https://github.com/yaelwrites/Big-Ass-Data-Broker-Opt-Out-List) - Comprehensive guide
 - [Consumer Reports Study](https://www.consumerreports.org/) - Manual opt-outs vs. paid services
+- [EFF Surveillance Self-Defense](https://ssd.eff.org/) - Digital privacy best practices
+- [CCPA Official Text](https://oag.ca.gov/privacy/ccpa) - California Consumer Privacy Act
 
 ## 📄 License
 

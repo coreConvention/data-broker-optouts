@@ -68,9 +68,53 @@ export interface AppUpdateInfo {
   releaseDate?: string;
 }
 
+// Type for the preload-exposed API
+interface ElectronAPI {
+  run: {
+    start: (options: RunOptions) => Promise<void>;
+    stop: () => Promise<void>;
+    pause: () => Promise<void>;
+    resume: () => Promise<void>;
+    getStatus: () => Promise<{ isRunning: boolean; isPaused: boolean }>;
+    onProgress: (callback: (data: ProgressData) => void) => () => void;
+    onComplete: (callback: (data: CompleteData) => void) => () => void;
+    onLog: (callback: (message: string) => void) => () => void;
+    onHumanInput: (callback: (prompt: string | Record<string, unknown>) => void) => () => void;
+    submitHumanInput: (response: string) => Promise<void>;
+  };
+  config: {
+    loadProfile: () => Promise<Profile>;
+    saveProfile: (profile: Profile) => Promise<void>;
+    loadManifest: () => Promise<Broker[]>;
+    getSettings: () => Promise<Settings>;
+    saveSettings: (settings: Settings) => Promise<void>;
+    getDataPath: () => Promise<string>;
+  };
+  manifest: {
+    checkForUpdates: () => Promise<ManifestUpdateInfo>;
+    applyUpdate: () => Promise<void>;
+    getLastChecked: () => Promise<string | null>;
+    onUpdateAvailable: (callback: (info: ManifestUpdateInfo) => void) => () => void;
+  };
+  app: {
+    checkForUpdates: () => Promise<AppUpdateInfo | null>;
+    downloadUpdate: () => Promise<void>;
+    installUpdate: () => Promise<void>;
+    getVersion: () => Promise<string>;
+    onUpdateAvailable: (callback: (info: AppUpdateInfo) => void) => () => void;
+    onUpdateDownloaded: (callback: (info: AppUpdateInfo) => void) => () => void;
+  };
+  utils: {
+    openExternal: (url: string) => Promise<void>;
+    showItemInFolder: (path: string) => Promise<void>;
+    selectFile: (options?: { filters?: { name: string; extensions: string[] }[] }) => Promise<string | null>;
+    selectDirectory: () => Promise<string | null>;
+  };
+}
+
 // Check if running in Electron
 function isElectron(): boolean {
-  return !!(window as { electronAPI?: unknown }).electronAPI;
+  return !!(window as unknown as { electronAPI?: unknown }).electronAPI;
 }
 
 @Injectable({
@@ -86,7 +130,7 @@ export class ElectronService implements OnDestroy {
   readonly progress = signal<ProgressData | null>(null);
   readonly logs = signal<string[]>([]);
   readonly manifestUpdateAvailable = signal<ManifestUpdateInfo | null>(null);
-  readonly humanInputPrompt = signal<string | null>(null);
+  readonly humanInputPrompt = signal<string | Record<string, unknown> | null>(null);
 
   // Computed values
   readonly progressPercent = computed(() => {
@@ -106,8 +150,8 @@ export class ElectronService implements OnDestroy {
     this.cleanupFns.forEach(fn => fn());
   }
 
-  private get api() {
-    return (window as { electronAPI: Window['electronAPI'] }).electronAPI;
+  private get api(): ElectronAPI {
+    return (window as unknown as { electronAPI: ElectronAPI }).electronAPI;
   }
 
   private setupListeners(): void {

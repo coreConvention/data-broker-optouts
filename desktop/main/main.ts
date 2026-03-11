@@ -5,11 +5,6 @@ import { registerRunHandlers } from './ipc/run.ipc';
 import { registerManifestHandlers } from './ipc/manifest.ipc';
 import { registerUtilsHandlers } from './ipc/utils.ipc';
 
-// Handle creating/removing shortcuts on Windows when installing/uninstalling
-if (require('electron-squirrel-startup')) {
-  app.quit();
-}
-
 let mainWindow: BrowserWindow | null = null;
 
 // Determine if we're in development mode
@@ -26,7 +21,7 @@ function createWindow(): void {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false, // Required for preload script to work properly
+      sandbox: true,
     },
     icon: path.join(__dirname, '../resources/icon.png'),
     show: false, // Don't show until ready
@@ -42,7 +37,7 @@ function createWindow(): void {
   // Load the Angular app
   if (isDev) {
     // Development: load from Angular dev server
-    mainWindow.loadURL('http://localhost:4200');
+    mainWindow.loadURL('http://localhost:4201');
     // Open DevTools in development
     mainWindow.webContents.openDevTools();
   } else {
@@ -94,7 +89,7 @@ app.on('window-all-closed', () => {
 app.on('web-contents-created', (_, contents) => {
   contents.on('will-navigate', (event, url) => {
     // Allow navigation only to our app URLs
-    const appUrl = isDev ? 'http://localhost:4200' : 'file://';
+    const appUrl = isDev ? 'http://localhost:4201' : 'file://';
     if (!url.startsWith(appUrl)) {
       event.preventDefault();
       shell.openExternal(url);

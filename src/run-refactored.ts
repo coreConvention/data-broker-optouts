@@ -18,6 +18,7 @@ import { parseCliArguments } from "./config/index.js";
 import { ConfigLoader, BrokerFilter, ResumeService, ExecutionOrchestrator } from "./services/index.js";
 import { BrowserFactory } from "./factories/index.js";
 import { Logger } from "./utils/logger.js";
+import { CliIOProvider } from "./providers/index.js";
 
 /**
  * Main application function
@@ -86,10 +87,11 @@ async function main(): Promise<void> {
     }
 
     // Step 12: Execute opt-outs
+    const ioProvider = new CliIOProvider();
     const orchestrator = new ExecutionOrchestrator(logger, {
       dryRun: cliOptions.dryRun,
       delayBetweenBrokers: 2000
-    });
+    }, ioProvider);
 
     await orchestrator.executeAll(filteredBrokers, profile, context);
 

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, computed } from '@angular/core';
+import { Component, inject, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { RunService } from '../../core/services/run.service';
@@ -13,111 +13,119 @@ import { StatusBadgeComponent } from '../../shared/components/status-badge/statu
   imports: [CommonModule, RouterLink, ProgressBarComponent, StatusBadgeComponent],
   template: `
     <div class="dashboard">
-      <header class="dashboard-header">
-        <h1>Data Broker Opt-Outs</h1>
-        <span class="version">v{{ appVersion() }}</span>
+      <!-- Hero Header -->
+      <header class="hero animate-in">
+        <div class="hero-text">
+          <h1>Privacy<span class="accent">Shield</span></h1>
+          <p class="tagline">Data Broker Opt-Out Engine</p>
+        </div>
+        <span class="version mono">v{{ appVersion() }}</span>
       </header>
 
-      <!-- Quick Stats -->
+      <!-- Stat Cards -->
       <section class="stats-grid">
-        <div class="stat-card">
+        <div class="stat-card animate-in stagger-1">
+          <div class="stat-icon total">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+              <rect x="9" y="3" width="6" height="4" rx="1"/>
+            </svg>
+          </div>
           <span class="stat-value">{{ configService.brokerCount() }}</span>
           <span class="stat-label">Total Brokers</span>
         </div>
-        <div class="stat-card">
+
+        <div class="stat-card animate-in stagger-2">
+          <div class="stat-icon selected">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M9 11l3 3L22 4"/>
+              <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+            </svg>
+          </div>
           <span class="stat-value">{{ runService.getSelectedCount() }}</span>
           <span class="stat-label">Selected</span>
         </div>
-        <div class="stat-card success">
+
+        <div class="stat-card animate-in stagger-3">
+          <div class="stat-icon success">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M8 12l3 3 5-5"/>
+            </svg>
+          </div>
           <span class="stat-value">{{ stats().success }}</span>
           <span class="stat-label">Completed</span>
         </div>
-        <div class="stat-card warning">
+
+        <div class="stat-card animate-in stagger-4">
+          <div class="stat-icon manual">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 9v4M12 17h.01"/>
+              <circle cx="12" cy="12" r="10"/>
+            </svg>
+          </div>
           <span class="stat-value">{{ stats().manual }}</span>
           <span class="stat-label">Manual</span>
         </div>
       </section>
 
-      <!-- Progress Section -->
+      <!-- Progress Panel -->
       @if (isRunning()) {
-        <section class="progress-section">
+        <section class="progress-panel card animate-in">
           <h2>Progress</h2>
           <app-progress-bar
             [value]="progressPercent()"
             [label]="progressLabel()"
           />
-
           <div class="current-broker">
             @if (currentBroker()) {
               <app-status-badge [status]="currentStatus() ?? 'pending'" />
-              <span class="broker-name">{{ currentBroker() }}</span>
+              <span class="broker-name mono">{{ currentBroker() }}</span>
               @if (currentMessage()) {
-                <span class="broker-message">{{ currentMessage() }}</span>
+                <span class="broker-msg">{{ currentMessage() }}</span>
               }
             }
           </div>
         </section>
       }
 
-      <!-- Run Controls -->
-      <section class="controls-section">
+      <!-- Controls -->
+      <section class="controls-panel card animate-in stagger-3">
         <h2>Controls</h2>
-        <div class="controls">
+        <div class="controls-row">
           @if (!isRunning()) {
             <button
-              class="btn btn-primary"
+              class="btn btn-primary btn-run"
               (click)="startRun()"
               [disabled]="!canStart()"
             >
-              <span class="icon">▶</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="6,3 20,12 6,21"/>
+              </svg>
               Start Opt-Out Process
             </button>
           } @else {
             @if (!isPaused()) {
-              <button class="btn btn-warning" (click)="pauseRun()">
-                <span class="icon">⏸</span>
-                Pause
-              </button>
+              <button class="btn btn-warning" (click)="pauseRun()">Pause</button>
             } @else {
-              <button class="btn btn-success" (click)="resumeRun()">
-                <span class="icon">▶</span>
-                Resume
-              </button>
+              <button class="btn btn-success" (click)="resumeRun()">Resume</button>
             }
-            <button class="btn btn-danger" (click)="stopRun()">
-              <span class="icon">⏹</span>
-              Stop
-            </button>
+            <button class="btn btn-danger" (click)="stopRun()">Stop</button>
           }
         </div>
 
-        <div class="run-options">
-          <label class="checkbox-label">
-            <input
-              type="checkbox"
-              [checked]="headful()"
-              (change)="toggleHeadful()"
-              [disabled]="isRunning()"
-            />
-            Show browser window
+        <div class="toggles">
+          <label class="toggle-label">
+            <input type="checkbox" [checked]="headful()" (change)="toggleHeadful()" [disabled]="isRunning()"/>
+            <span class="toggle-text">Show browser</span>
           </label>
-          <label class="checkbox-label">
-            <input
-              type="checkbox"
-              [checked]="stealth()"
-              (change)="toggleStealth()"
-              [disabled]="isRunning()"
-            />
-            Stealth mode
+          <label class="toggle-label">
+            <input type="checkbox" [checked]="stealth()" (change)="toggleStealth()" [disabled]="isRunning()"/>
+            <span class="toggle-text">Stealth mode</span>
           </label>
-          <label class="checkbox-label">
-            <input
-              type="checkbox"
-              [checked]="dryRun()"
-              (change)="toggleDryRun()"
-              [disabled]="isRunning()"
-            />
-            Dry run (no submissions)
+          <label class="toggle-label">
+            <input type="checkbox" [checked]="dryRun()" (change)="toggleDryRun()" [disabled]="isRunning()"/>
+            <span class="toggle-text">Dry run</span>
           </label>
         </div>
       </section>
@@ -125,122 +133,168 @@ import { StatusBadgeComponent } from '../../shared/components/status-badge/statu
       <!-- Human Input Modal -->
       @if (humanInputPrompt()) {
         <div class="modal-overlay">
-          <div class="modal">
+          <div class="modal card">
+            <div class="modal-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="1.5">
+                <path d="M12 9v4M12 17h.01"/>
+                <circle cx="12" cy="12" r="10"/>
+              </svg>
+            </div>
             <h3>Action Required</h3>
             <p>{{ humanInputPrompt() }}</p>
-            <div class="modal-actions">
-              <button class="btn btn-primary" (click)="submitHumanInput()">
-                Continue
-              </button>
-            </div>
+            <button class="btn btn-primary" (click)="submitHumanInput()">Continue</button>
           </div>
         </div>
       }
 
-      <!-- Quick Links -->
-      <section class="quick-links">
-        <a routerLink="/brokers" class="quick-link">
-          <span class="icon">📋</span>
+      <!-- Quick Nav -->
+      <section class="quick-nav animate-in stagger-4">
+        <a routerLink="/brokers" class="nav-card card">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+            <rect x="9" y="3" width="6" height="4" rx="1"/>
+          </svg>
           <span>Manage Brokers</span>
         </a>
-        <a routerLink="/profile" class="quick-link">
-          <span class="icon">👤</span>
+        <a routerLink="/profile" class="nav-card card">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M5 20c0-3.5 3.1-6 7-6s7 2.5 7 6"/>
+          </svg>
           <span>Edit Profile</span>
         </a>
-        <a routerLink="/logs" class="quick-link">
-          <span class="icon">📝</span>
+        <a routerLink="/logs" class="nav-card card">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M4 6h16M4 10h16M4 14h10M4 18h7"/>
+          </svg>
           <span>View Logs</span>
         </a>
-        <a routerLink="/settings" class="quick-link">
-          <span class="icon">⚙️</span>
+        <a routerLink="/settings" class="nav-card card">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
           <span>Settings</span>
         </a>
       </section>
 
       <!-- Manifest Update Banner -->
       @if (manifestUpdate()) {
-        <div class="update-banner">
-          <span>
-            New broker list available!
-            {{ manifestUpdate()!.added.length }} added,
-            {{ manifestUpdate()!.removed.length }} removed
-          </span>
-          <button class="btn btn-sm" (click)="applyUpdate()">
-            Update Now
-          </button>
+        <div class="update-banner animate-in">
+          <span>New broker list available! {{ manifestUpdate()!.added.length }} added</span>
+          <button class="btn btn-sm btn-primary" (click)="applyUpdate()">Update</button>
         </div>
       }
     </div>
   `,
   styles: [`
     .dashboard {
-      padding: 1.5rem;
-      max-width: 1200px;
+      padding: 2rem;
+      max-width: 960px;
       margin: 0 auto;
     }
 
-    .dashboard-header {
+    /* ── Hero ── */
+    .hero {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-end;
       margin-bottom: 2rem;
-
-      h1 {
-        margin: 0;
-        font-size: 1.75rem;
-        color: var(--text-primary);
-      }
-
-      .version {
-        color: var(--text-secondary);
-        font-size: 0.875rem;
-      }
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
     }
 
+    .hero h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--text-primary);
+    }
+
+    .hero .accent {
+      color: var(--color-primary);
+    }
+
+    .hero .tagline {
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      margin-top: 0.125rem;
+    }
+
+    .hero .version {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      background: var(--bg-secondary);
+      padding: 0.25rem 0.5rem;
+      border-radius: var(--radius-sm);
+    }
+
+    /* ── Stats ── */
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2rem;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
     }
 
     .stat-card {
       background: var(--bg-card);
-      border-radius: 8px;
-      padding: 1.25rem;
-      text-align: center;
+      backdrop-filter: blur(12px);
       border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1rem;
+      text-align: center;
+      transition: border-color 0.25s, box-shadow 0.25s;
 
-      .stat-value {
-        display: block;
-        font-size: 2rem;
-        font-weight: 600;
-        color: var(--text-primary);
+      &:hover {
+        border-color: var(--border-active);
+        box-shadow: var(--shadow-glow);
       }
-
-      .stat-label {
-        display: block;
-        font-size: 0.875rem;
-        color: var(--text-secondary);
-        margin-top: 0.25rem;
-      }
-
-      &.success .stat-value { color: var(--color-success); }
-      &.warning .stat-value { color: var(--color-warning); }
-      &.danger .stat-value { color: var(--color-danger); }
     }
 
-    .progress-section, .controls-section {
-      background: var(--bg-card);
-      border-radius: 8px;
-      padding: 1.5rem;
+    .stat-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 0.75rem;
+
+      &.total { background: var(--color-primary-glow); color: var(--color-primary); }
+      &.selected { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
+      &.success { background: var(--color-success-glow); color: var(--color-success); }
+      &.manual { background: var(--color-warning-glow); color: var(--color-warning); }
+    }
+
+    .stat-value {
+      display: block;
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+
+    .stat-label {
+      display: block;
+      font-size: 0.6875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    /* ── Progress ── */
+    .progress-panel, .controls-panel {
+      padding: 1.25rem;
       margin-bottom: 1.5rem;
-      border: 1px solid var(--border-color);
 
       h2 {
-        margin: 0 0 1rem 0;
-        font-size: 1.125rem;
-        color: var(--text-primary);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        margin-bottom: 1rem;
       }
     }
 
@@ -249,91 +303,106 @@ import { StatusBadgeComponent } from '../../shared/components/status-badge/statu
       align-items: center;
       gap: 0.75rem;
       margin-top: 1rem;
-      padding: 0.75rem;
+      padding: 0.625rem 0.75rem;
       background: var(--bg-secondary);
-      border-radius: 4px;
+      border-radius: var(--radius-sm);
 
-      .broker-name {
-        font-weight: 500;
-      }
-
-      .broker-message {
-        color: var(--text-secondary);
-        font-size: 0.875rem;
-      }
+      .broker-name { font-weight: 500; font-size: 0.875rem; }
+      .broker-msg { color: var(--text-secondary); font-size: 0.8125rem; }
     }
 
-    .controls {
+    /* ── Controls ── */
+    .controls-row {
       display: flex;
-      gap: 0.75rem;
+      gap: 0.625rem;
       margin-bottom: 1rem;
     }
 
-    .run-options {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
+    .btn-run {
+      padding: 0.625rem 1.5rem;
+      font-size: 0.875rem;
     }
 
-    .checkbox-label {
+    .toggles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+    }
+
+    .toggle-label {
       display: flex;
       align-items: center;
       gap: 0.5rem;
       cursor: pointer;
-      font-size: 0.875rem;
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
 
       input[type="checkbox"] {
+        appearance: none;
         width: 1rem;
         height: 1rem;
+        border: 1.5px solid var(--border-color);
+        border-radius: 3px;
+        background: var(--bg-input);
+        cursor: pointer;
+        transition: all 0.15s;
+        display: grid;
+        place-content: center;
+
+        &::before {
+          content: '';
+          width: 0.55rem;
+          height: 0.55rem;
+          border-radius: 1.5px;
+          background: var(--color-primary);
+          transform: scale(0);
+          transition: transform 0.15s;
+        }
+
+        &:checked {
+          border-color: var(--color-primary);
+          &::before { transform: scale(1); }
+        }
       }
     }
 
-    .quick-links {
+    /* ── Quick Nav ── */
+    .quick-nav {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 1rem;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
     }
 
-    .quick-link {
+    .nav-card {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 0.75rem;
-      padding: 1rem;
-      background: var(--bg-card);
-      border-radius: 8px;
+      gap: 0.625rem;
+      padding: 1.25rem 0.75rem;
       text-decoration: none;
-      color: var(--text-primary);
-      border: 1px solid var(--border-color);
-      transition: all 0.2s;
+      color: var(--text-secondary);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      transition: all 0.25s;
+
+      svg { color: var(--text-muted); transition: color 0.25s; }
 
       &:hover {
-        border-color: var(--color-primary);
+        color: var(--color-primary);
+        text-decoration: none;
+        border-color: var(--border-active);
         transform: translateY(-2px);
-      }
-
-      .icon {
-        font-size: 1.5rem;
+        box-shadow: var(--shadow-glow);
+        svg { color: var(--color-primary); }
       }
     }
 
-    .update-banner {
-      position: fixed;
-      bottom: 1rem;
-      right: 1rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 1rem 1.5rem;
-      background: var(--color-primary);
-      color: white;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
+    /* ── Modal ── */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -341,77 +410,31 @@ import { StatusBadgeComponent } from '../../shared/components/status-badge/statu
     }
 
     .modal {
-      background: var(--bg-card);
-      border-radius: 12px;
       padding: 2rem;
-      max-width: 400px;
+      max-width: 380px;
       width: 90%;
+      text-align: center;
 
-      h3 {
-        margin: 0 0 1rem 0;
-      }
-
-      p {
-        margin: 0 0 1.5rem 0;
-        color: var(--text-secondary);
-      }
+      .modal-icon { margin-bottom: 1rem; }
+      h3 { margin-bottom: 0.75rem; font-size: 1.125rem; }
+      p { margin-bottom: 1.5rem; color: var(--text-secondary); font-size: 0.875rem; }
     }
 
-    .modal-actions {
+    /* ── Update Banner ── */
+    .update-banner {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
       display: flex;
-      justify-content: flex-end;
-      gap: 0.75rem;
-    }
-
-    .btn {
-      display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
-      padding: 0.625rem 1.25rem;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-
-      .icon {
-        font-size: 0.875rem;
-      }
-    }
-
-    .btn-primary {
-      background: var(--color-primary);
-      color: white;
-
-      &:hover:not(:disabled) {
-        background: var(--color-primary-dark);
-      }
-    }
-
-    .btn-success {
-      background: var(--color-success);
-      color: white;
-    }
-
-    .btn-warning {
-      background: var(--color-warning);
-      color: white;
-    }
-
-    .btn-danger {
-      background: var(--color-danger);
-      color: white;
-    }
-
-    .btn-sm {
-      padding: 0.375rem 0.75rem;
-      font-size: 0.75rem;
+      gap: 1rem;
+      padding: 0.75rem 1.25rem;
+      background: var(--bg-card-solid);
+      border: 1px solid var(--border-active);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-elevated);
+      font-size: 0.8125rem;
+      color: var(--text-primary);
     }
   `]
 })
@@ -420,13 +443,11 @@ export class DashboardComponent implements OnInit {
   protected configService = inject(ConfigService);
   private electronService = inject(ElectronService);
 
-  // State
   protected appVersion = signal('1.0.0');
   protected headful = signal(true);
   protected stealth = signal(true);
   protected dryRun = signal(false);
 
-  // Computed from services
   protected isRunning = this.runService.isRunning;
   protected isPaused = this.runService.isPaused;
   protected progressPercent = this.runService.progressPercent;
@@ -449,36 +470,21 @@ export class DashboardComponent implements OnInit {
   });
 
   async ngOnInit(): Promise<void> {
-    // Load configuration
     await this.configService.loadAll();
-
-    // Load settings into local state
     const settings = this.configService.settings();
     if (settings) {
       this.headful.set(settings.headful);
       this.stealth.set(settings.stealth);
     }
-
-    // Get app version
     this.appVersion.set(await this.electronService.getAppVersion());
-
-    // Check for manifest updates
     if (this.configService.settings()?.autoCheckManifestUpdates) {
       await this.configService.checkForUpdates();
     }
   }
 
-  toggleHeadful(): void {
-    this.headful.update(v => !v);
-  }
-
-  toggleStealth(): void {
-    this.stealth.update(v => !v);
-  }
-
-  toggleDryRun(): void {
-    this.dryRun.update(v => !v);
-  }
+  toggleHeadful(): void { this.headful.update((v: boolean) => !v); }
+  toggleStealth(): void { this.stealth.update((v: boolean) => !v); }
+  toggleDryRun(): void { this.dryRun.update((v: boolean) => !v); }
 
   async startRun(): Promise<void> {
     await this.runService.start({
@@ -488,23 +494,9 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  async pauseRun(): Promise<void> {
-    await this.runService.pause();
-  }
-
-  async resumeRun(): Promise<void> {
-    await this.runService.resume();
-  }
-
-  async stopRun(): Promise<void> {
-    await this.runService.stop();
-  }
-
-  async submitHumanInput(): Promise<void> {
-    await this.runService.submitHumanInput('continue');
-  }
-
-  async applyUpdate(): Promise<void> {
-    await this.configService.applyUpdate();
-  }
+  async pauseRun(): Promise<void> { await this.runService.pause(); }
+  async resumeRun(): Promise<void> { await this.runService.resume(); }
+  async stopRun(): Promise<void> { await this.runService.stop(); }
+  async submitHumanInput(): Promise<void> { await this.runService.submitHumanInput('continue'); }
+  async applyUpdate(): Promise<void> { await this.configService.applyUpdate(); }
 }

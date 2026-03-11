@@ -11,8 +11,9 @@
     "start:limited": "tsx src/run-refactored.ts --manifest ./data/manifest.json --profile ./data/profile.json --headful --limit 5",
     "start:stealth": "tsx src/run-refactored.ts --manifest ./data/manifest.json --profile ./data/profile.json --headful --stealth",
     "start:resume": "tsx src/run-refactored.ts --manifest ./data/manifest.json --profile ./data/profile.json --headful --resume",
-    "extract:pdf": "tsx src/run.ts ./data/workbook.pdf > ./data/manifest.json",
     "help": "tsx src/run-refactored.ts --help",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "build": "tsc --noEmit",
     "desktop:install": "cd desktop && npm install && cd renderer && npm install",
     "desktop:dev": "cd desktop && npm run dev",
@@ -25,13 +26,14 @@
   },
   "dependencies": {
     "@playwright/test": "^1.46.0",
-    "zod": "^3.23.8",
-    "yargs": "^17.7.2"
+    "yargs": "^17.7.2",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/yargs": "^17.0.32",
     "ts-node": "^10.9.2",
     "tsx": "^4.16.0",
     "typescript": "^5.5.4",
-    "@types/yargs": "^17.0.32"
+    "vitest": "^4.0.18"
   }
 }

@@ -10,6 +10,9 @@ dist-electron/
 .env.local
 *.local
 
+# Personal profile data (contains PII)
+data/profile.json
+
 # Claude Code local settings
 .claude/settings.local.json
 
