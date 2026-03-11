@@ -9,12 +9,14 @@ Playwright-based tool that automates opt-out requests from 113+ data broker site
 - **Services**: `src/services/` - ConfigLoader, BrokerFilter, ResumeService, ExecutionOrchestrator, StatisticsTracker
 - **Factories**: `src/factories/` - AdapterFactory, BrowserFactory
 - **Config**: `src/config/` - CLI parsing (yargs), Zod schemas for validation
-- **Desktop**: `desktop/` - Electron main process + Angular 19 renderer (Phase 3 integration incomplete)
+- **Desktop**: `desktop/` - Electron main process + Angular 19 renderer with real engine integration
+- **IOProvider**: `src/providers/` - Pluggable interface for human interaction (CliIOProvider, ElectronIOProvider)
 
 ## Key Patterns
 - **Adapter Pattern**: Each data broker gets a BaseAdapter subclass. Generic brokers use manifest-driven selectors.
 - **Factory Pattern**: AdapterFactory creates the right adapter based on `entry.adapter` field. BrowserFactory handles Chromium setup.
-- **Human-in-the-Loop**: `waitForEnter()` pauses for CAPTCHAs, email verification, manual steps
+- **IOProvider Pattern**: Pluggable `IOProvider` interface abstracts human interaction — CLI uses readline, Electron uses IPC. Adapters call `ioProvider.waitForConfirmation()` / `ioProvider.promptUser()` instead of direct readline.
+- **CJS/ESM Bridge**: Desktop main process (CJS) loads engine (ESM) via dynamic `await import()` from `desktop/dist/engine/`
 - **BaseAdapter helpers**: `tryFillField()`, `autoFillProfile()`, `detectAndLogSuccess()` reduce duplication across site adapters
 
 ## Tech Stack
@@ -41,7 +43,12 @@ Playwright-based tool that automates opt-out requests from 113+ data broker site
 3. Register in `src/factories/AdapterFactory.ts`
 4. Add adapter name to enum in `src/config/schemas.ts` and `src/types.ts`
 
+## Temporary Files
+- Use `.temp/` for screenshots, test artifacts, and any generated temp files
+- `.temp/` is gitignored — never commit temp files to the repo
+
 ## Testing
-- Tests in `src/__tests__/` using vitest
+- Tests in `src/__tests__/` using vitest (87 tests)
 - Schema validation tests verify manifest.json integrity
 - Service tests cover BrokerFilter, ResumeService, StatisticsTracker, AdapterFactory
+- IOProvider tests cover interface contract and CliIOProvider implementation

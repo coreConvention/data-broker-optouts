@@ -87,7 +87,11 @@ npx playwright install chromium
 
 ### Configuration
 
-#### 1. Edit Your Profile (`data/profile.json`)
+#### 1. Configure Your Profile
+
+**Desktop App (Recommended):** Open the app and navigate to the **Profile** page to enter your information through a secure form. Your data never leaves your machine.
+
+**CLI Users:** Copy `data/profile.example.json` to `data/profile.json` and fill in your details:
 
 ```json
 {
