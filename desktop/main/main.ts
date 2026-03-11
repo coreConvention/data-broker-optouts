@@ -37,7 +37,7 @@ function createWindow(): void {
   // Load the Angular app
   if (isDev) {
     // Development: load from Angular dev server
-    mainWindow.loadURL('http://localhost:4200');
+    mainWindow.loadURL('http://localhost:4201');
     // Open DevTools in development
     mainWindow.webContents.openDevTools();
   } else {
@@ -89,7 +89,7 @@ app.on('window-all-closed', () => {
 app.on('web-contents-created', (_, contents) => {
   contents.on('will-navigate', (event, url) => {
     // Allow navigation only to our app URLs
-    const appUrl = isDev ? 'http://localhost:4200' : 'file://';
+    const appUrl = isDev ? 'http://localhost:4201' : 'file://';
     if (!url.startsWith(appUrl)) {
       event.preventDefault();
       shell.openExternal(url);

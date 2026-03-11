@@ -2,6 +2,7 @@ import { IpcMain, BrowserWindow } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import { getDataPath } from './config.ipc';
+import { ElectronIOProvider } from '../providers/ElectronIOProvider';
 
 interface RunOptions {
   headful?: boolean;
@@ -29,14 +30,13 @@ interface CompleteData {
   logFile: string;
 }
 
-// State management for the current run
+// State
 let isRunning = false;
 let isPaused = false;
 let shouldStop = false;
-let currentOrchestrator: unknown = null;
-let humanInputResolver: ((value: string) => void) | null = null;
+let electronIOProvider: ElectronIOProvider | null = null;
+let currentOrchestrator: { requestStop: () => void; requestPause: () => void; requestResume: () => void } | null = null;
 
-// Helper to send events to renderer
 function sendToWindow(
   getWindow: () => BrowserWindow | null,
   channel: string,
@@ -52,7 +52,7 @@ export function registerRunHandlers(
   ipcMain: IpcMain,
   getMainWindow: () => BrowserWindow | null
 ): void {
-  // Start opt-out run
+
   ipcMain.handle('run:start', async (_event, options: RunOptions): Promise<void> => {
     if (isRunning) {
       throw new Error('A run is already in progress');
@@ -62,14 +62,30 @@ export function registerRunHandlers(
     isPaused = false;
     shouldStop = false;
 
+    // Resolve compiled engine path (from dist/main/ipc/ -> dist/engine/)
+    const engineBase = path.join(__dirname, '../../engine');
+
+    let browser: { close: () => Promise<void> } | null = null;
+    let context: { close: () => Promise<void> } | null = null;
+
     try {
-      // Dynamic import of the execution module
-      // This will import from the shared src directory
+      // Dynamic import of compiled ESM engine modules
+      const browserFactoryMod = await import(path.join(engineBase, 'factories/BrowserFactory.js'));
+      const orchestratorMod = await import(path.join(engineBase, 'services/ExecutionOrchestrator.js'));
+      const loggerMod = await import(path.join(engineBase, 'utils/logger.js'));
+      const configLoaderMod = await import(path.join(engineBase, 'services/ConfigLoader.js'));
+      const brokerFilterMod = await import(path.join(engineBase, 'services/BrokerFilter.js'));
+
+      const BrowserFactory = browserFactoryMod.BrowserFactory;
+      const ExecutionOrchestrator = orchestratorMod.ExecutionOrchestrator;
+      const Logger = loggerMod.Logger;
+      const ConfigLoader = configLoaderMod.ConfigLoader;
+      const BrokerFilter = brokerFilterMod.BrokerFilter;
+
       const dataPath = getDataPath();
       const manifestPath = path.join(dataPath, 'manifest.json');
       const profilePath = path.join(dataPath, 'profile.json');
 
-      // Validate files exist
       if (!fs.existsSync(manifestPath)) {
         throw new Error('Manifest file not found. Please check your data directory.');
       }
@@ -77,210 +93,108 @@ export function registerRunHandlers(
         throw new Error('Profile file not found. Please create a profile first.');
       }
 
-      // Load manifest and profile
-      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
-      const profile = JSON.parse(fs.readFileSync(profilePath, 'utf-8'));
+      // Load and validate config via Zod schemas
+      const { manifest, profile } = await ConfigLoader.loadAll(manifestPath, profilePath);
 
-      // Filter brokers based on options
-      let brokers = [...manifest];
-
-      if (options.filter && options.filter.length > 0) {
-        const filterSet = new Set(options.filter.map((f) => f.toLowerCase()));
-        brokers = brokers.filter((b: { name: string }) =>
-          filterSet.has(b.name.toLowerCase())
-        );
-      }
-
-      if (options.exclude && options.exclude.length > 0) {
-        const excludeSet = new Set(options.exclude.map((e) => e.toLowerCase()));
-        brokers = brokers.filter(
-          (b: { name: string }) => !excludeSet.has(b.name.toLowerCase())
-        );
-      }
-
+      // Apply filters (BrokerFilter.filter takes comma-separated strings)
+      let brokers = BrokerFilter.filter(
+        manifest,
+        options.filter ? options.filter.join(',') : undefined,
+        options.exclude ? options.exclude.join(',') : undefined
+      );
       if (options.limit && options.limit > 0) {
-        brokers = brokers.slice(0, options.limit);
+        brokers = BrokerFilter.limit(brokers, options.limit);
       }
 
       const total = brokers.length;
-      let current = 0;
-      let successCount = 0;
-      let failedCount = 0;
-      let skippedCount = 0;
-      let manualCount = 0;
+      if (total === 0) {
+        throw new Error('No brokers to process after filtering.');
+      }
 
-      // Generate log file name
+      // Setup logger
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const logFile = path.join(dataPath, `optouts-${timestamp}.jsonl`);
+      const logger = new Logger(dataPath, `optouts-${timestamp}.jsonl`);
 
-      // Log function
-      const appendLog = (entry: Record<string, unknown>): void => {
-        fs.appendFileSync(logFile, JSON.stringify(entry) + '\n');
-      };
+      // Create IO provider that bridges engine events to the renderer
+      electronIOProvider = new ElectronIOProvider(getMainWindow);
 
       sendToWindow(getMainWindow, 'run:log', `Starting opt-out process for ${total} brokers...`);
 
-      // Process each broker
-      // NOTE: This is a simplified implementation
-      // The actual integration with ExecutionOrchestrator will be done in Phase 3
-      for (const broker of brokers) {
-        if (shouldStop) {
-          sendToWindow(getMainWindow, 'run:log', 'Run stopped by user.');
-          break;
-        }
+      // Create browser via real BrowserFactory
+      const browserResult = await BrowserFactory.createBrowserWithContext({
+        headful: options.headful ?? true,
+        stealth: options.stealth ?? true,
+      });
+      browser = browserResult.browser;
+      context = browserResult.context;
 
-        // Wait while paused
-        while (isPaused && !shouldStop) {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        }
+      // Create orchestrator with ElectronIOProvider for human-in-the-loop
+      const orchestrator = new ExecutionOrchestrator(logger, {
+        dryRun: options.dryRun ?? false,
+        delayBetweenBrokers: 2000,
+      }, electronIOProvider);
+      currentOrchestrator = orchestrator;
 
-        if (shouldStop) break;
+      // Execute all broker opt-outs
+      await orchestrator.executeAll(brokers, profile, context);
 
-        current++;
-        const brokerData = broker as { name: string; removalUrl: string; requirements: string[] };
+      // Get statistics from the orchestrator
+      const stats = orchestrator.getStatistics().getStatistics();
 
-        // Send progress update
-        const progressData: ProgressData = {
-          current,
-          total,
-          broker: brokerData.name,
-          status: 'processing',
-          message: `Processing ${brokerData.name}...`,
-        };
-        sendToWindow(getMainWindow, 'run:progress', progressData);
-        sendToWindow(getMainWindow, 'run:log', `[${current}/${total}] Processing: ${brokerData.name}`);
-
-        try {
-          // Check if this broker requires manual steps
-          const requirements = brokerData.requirements || [];
-          const needsManual =
-            requirements.includes('captcha') ||
-            requirements.includes('email-verification') ||
-            requirements.includes('phone-verification');
-
-          if (options.dryRun) {
-            // Dry run - just simulate
-            await new Promise((resolve) => setTimeout(resolve, 500));
-            skippedCount++;
-
-            progressData.status = 'skipped';
-            progressData.message = 'Dry run - skipped';
-            sendToWindow(getMainWindow, 'run:progress', progressData);
-
-            appendLog({
-              site: brokerData.name,
-              status: 'skipped',
-              ts: new Date().toISOString(),
-              url: brokerData.removalUrl,
-              message: 'Dry run mode',
-            });
-          } else if (needsManual) {
-            // Mark as manual - actual execution will be in Phase 3
-            manualCount++;
-
-            progressData.status = 'manual';
-            progressData.message = 'Requires manual intervention';
-            sendToWindow(getMainWindow, 'run:progress', progressData);
-
-            appendLog({
-              site: brokerData.name,
-              status: 'manual',
-              ts: new Date().toISOString(),
-              url: brokerData.removalUrl,
-              message: 'Requires manual steps: ' + requirements.join(', '),
-            });
-          } else {
-            // Simulate success for now - actual execution in Phase 3
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            successCount++;
-
-            progressData.status = 'success';
-            progressData.message = 'Completed successfully';
-            sendToWindow(getMainWindow, 'run:progress', progressData);
-
-            appendLog({
-              site: brokerData.name,
-              status: 'success',
-              ts: new Date().toISOString(),
-              url: brokerData.removalUrl,
-              message: 'Opt-out request submitted',
-            });
-          }
-        } catch (error) {
-          failedCount++;
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-
-          progressData.status = 'failed';
-          progressData.message = errorMessage;
-          sendToWindow(getMainWindow, 'run:progress', progressData);
-          sendToWindow(getMainWindow, 'run:log', `  Error: ${errorMessage}`);
-
-          appendLog({
-            site: brokerData.name,
-            status: 'failed',
-            ts: new Date().toISOString(),
-            url: brokerData.removalUrl,
-            error: errorMessage,
-          });
-        }
-
-        // Small delay between brokers
-        if (current < total && !shouldStop) {
-          await new Promise((resolve) => setTimeout(resolve, 500));
-        }
-      }
-
-      // Send completion event
       const completeData: CompleteData = {
-        success: successCount,
-        failed: failedCount,
-        skipped: skippedCount,
-        manual: manualCount,
+        success: stats.success,
+        failed: stats.failed,
+        skipped: stats.skipped,
+        manual: stats.manualNeeded,
         total,
-        logFile,
+        logFile: logger.path(),
       };
       sendToWindow(getMainWindow, 'run:complete', completeData);
-      sendToWindow(
-        getMainWindow,
-        'run:log',
-        `\nCompleted: ${successCount} success, ${failedCount} failed, ${skippedCount} skipped, ${manualCount} manual`
-      );
+
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       sendToWindow(getMainWindow, 'run:log', `Fatal error: ${errorMessage}`);
+      sendToWindow(getMainWindow, 'run:complete', {
+        success: 0, failed: 0, skipped: 0, manual: 0, total: 0, logFile: '',
+      });
       throw error;
     } finally {
+      try {
+        if (context && typeof context.close === 'function') await context.close();
+        if (browser && typeof browser.close === 'function') await browser.close();
+      } catch {
+        // Ignore cleanup errors
+      }
+
       isRunning = false;
       isPaused = false;
       shouldStop = false;
+      electronIOProvider = null;
       currentOrchestrator = null;
     }
   });
 
   // Stop the current run
   ipcMain.handle('run:stop', async (): Promise<void> => {
-    if (!isRunning) {
-      return;
-    }
+    if (!isRunning) return;
     shouldStop = true;
+    if (currentOrchestrator) currentOrchestrator.requestStop();
     sendToWindow(getMainWindow, 'run:log', 'Stopping run...');
   });
 
   // Pause the current run
   ipcMain.handle('run:pause', async (): Promise<void> => {
-    if (!isRunning || isPaused) {
-      return;
-    }
+    if (!isRunning || isPaused) return;
     isPaused = true;
+    if (currentOrchestrator) currentOrchestrator.requestPause();
     sendToWindow(getMainWindow, 'run:log', 'Run paused.');
   });
 
   // Resume a paused run
   ipcMain.handle('run:resume', async (): Promise<void> => {
-    if (!isRunning || !isPaused) {
-      return;
-    }
+    if (!isRunning || !isPaused) return;
     isPaused = false;
+    if (currentOrchestrator) currentOrchestrator.requestResume();
     sendToWindow(getMainWindow, 'run:log', 'Run resumed.');
   });
 
@@ -289,22 +203,10 @@ export function registerRunHandlers(
     return { isRunning, isPaused };
   });
 
-  // Handle human input response (for CAPTCHA prompts, etc.)
+  // Handle human input response (for CAPTCHA prompts, email verification, etc.)
   ipcMain.handle('run:human-input-response', async (_event, response: string): Promise<void> => {
-    if (humanInputResolver) {
-      humanInputResolver(response);
-      humanInputResolver = null;
+    if (electronIOProvider) {
+      electronIOProvider.resolveHumanInput(response);
     }
-  });
-}
-
-// Export function to request human input from renderer
-export function requestHumanInput(
-  getWindow: () => BrowserWindow | null,
-  prompt: string
-): Promise<string> {
-  return new Promise((resolve) => {
-    humanInputResolver = resolve;
-    sendToWindow(getWindow, 'run:human-input', prompt);
   });
 }
