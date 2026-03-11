@@ -72,13 +72,13 @@ export abstract class BaseAdapter {
 
         if (attempt < maxRetries) {
           const backoffDelay = delayMs * Math.pow(2, attempt - 1);
-          console.log(`[${this.name()}] ⚠ Retry ${attempt}/${maxRetries} for ${operationName} failed. Retrying in ${backoffDelay}ms...`);
+          this.ioProvider.log("warn", `[${this.name()}] Retry ${attempt}/${maxRetries} for ${operationName} failed. Retrying in ${backoffDelay}ms...`);
           await new Promise(resolve => setTimeout(resolve, backoffDelay));
         }
       }
     }
 
-    console.log(`[${this.name()}] ✗ All ${maxRetries} attempts failed for ${operationName}`);
+    this.ioProvider.log("error", `[${this.name()}] All ${maxRetries} attempts failed for ${operationName}`);
     throw lastError;
   }
 
@@ -99,9 +99,9 @@ export abstract class BaseAdapter {
       const filepath = join(logsDir, filename);
 
       await page.screenshot({ path: filepath, fullPage: true });
-      console.log(`[${this.name()}] 📸 Screenshot saved: ${filepath}`);
+      this.ioProvider.log("info", `[${this.name()}] Screenshot saved: ${filepath}`);
     } catch (screenshotError) {
-      console.log(`[${this.name()}] ⚠ Could not capture screenshot:`, screenshotError);
+      this.ioProvider.log("warn", `[${this.name()}] Could not capture screenshot: ${screenshotError}`);
     }
   }
 
@@ -140,9 +140,9 @@ export abstract class BaseAdapter {
     const indicators = [...BaseAdapter.DEFAULT_SUCCESS_INDICATORS, ...extraIndicators];
     const detected = await this.detectSuccess(page, indicators);
     if (detected) {
-      console.log(`[${this.name()}] ✓ Success message detected!`);
+      this.ioProvider.log("success", `[${this.name()}] Success message detected!`);
     } else {
-      console.log(`[${this.name()}] ⚠ Could not detect success message. Please verify manually.`);
+      this.ioProvider.log("warn", `[${this.name()}] Could not detect success message. Please verify manually.`);
     }
     return detected;
   }
@@ -163,7 +163,7 @@ export abstract class BaseAdapter {
         const locator = page.locator(selector).first();
         if (await locator.isVisible({ timeout: timeoutMs })) {
           await locator.fill(value);
-          console.log(`[${this.name()}] ✓ ${fieldLabel} filled: ${value}`);
+          this.ioProvider.log("info", `[${this.name()}] ${fieldLabel} filled: ${value}`);
           return true;
         }
       } catch {}
@@ -193,7 +193,7 @@ export abstract class BaseAdapter {
               await locator.fill(value);
             }
           }
-          console.log(`[${this.name()}] ✓ State filled: ${value}`);
+          this.ioProvider.log("info", `[${this.name()}] State filled: ${value}`);
           return true;
         }
       } catch {}
@@ -274,7 +274,7 @@ export abstract class BaseAdapter {
    * Tries email, name, phone, address, city, state, zip in order.
    */
   protected async autoFillProfile(page: Page, profile: PersonProfile): Promise<void> {
-    console.log(`[${this.name()}] Attempting to auto-fill form fields...`);
+    this.ioProvider.log("info", `[${this.name()}] Attempting to auto-fill form fields...`);
 
     await this.tryFillField(page, BaseAdapter.EMAIL_SELECTORS, profile.email, "Email", 2000);
     await this.tryFillField(page, BaseAdapter.NAME_SELECTORS, profile.fullName, "Name");
