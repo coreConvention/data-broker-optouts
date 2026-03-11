@@ -98,12 +98,16 @@ import { StatusBadgeComponent } from '../../shared/components/status-badge/statu
               class="btn btn-primary btn-run"
               (click)="startRun()"
               [disabled]="!canStart()"
+              [title]="startDisabledReason()"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                 <polygon points="6,3 20,12 6,21"/>
               </svg>
               Start Opt-Out Process
             </button>
+            @if (!canStart() && !isRunning()) {
+              <span class="start-hint">{{ startDisabledReason() }}</span>
+            }
           } @else {
             @if (!isPaused()) {
               <button class="btn btn-warning" (click)="pauseRun()">Pause</button>
@@ -323,6 +327,13 @@ import { StatusBadgeComponent } from '../../shared/components/status-badge/statu
       font-size: 0.875rem;
     }
 
+    .start-hint {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--color-warning);
+      margin-top: 0.375rem;
+    }
+
     .toggles {
       display: flex;
       flex-wrap: wrap;
@@ -467,6 +478,14 @@ export class DashboardComponent implements OnInit {
   protected canStart = computed(() => {
     return this.configService.profileComplete() &&
            this.configService.brokerCount() > 0;
+  });
+
+  protected startDisabledReason = computed(() => {
+    const reasons: string[] = [];
+    if (!this.configService.profileComplete()) reasons.push('complete your profile');
+    if (this.configService.brokerCount() === 0) reasons.push('load broker manifest');
+    if (reasons.length === 0) return '';
+    return 'To start, ' + reasons.join(' and ');
   });
 
   async ngOnInit(): Promise<void> {
