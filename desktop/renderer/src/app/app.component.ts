@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { HumanInputModalComponent } from './shared/components/human-input-modal/human-input-modal.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, HumanInputModalComponent],
   template: `
     <div class="app-shell">
       <!-- Sidebar Navigation -->
@@ -67,6 +68,7 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
         <router-outlet />
       </main>
     </div>
+    <app-human-input-modal />
   `,
   styles: [`
     .app-shell {
