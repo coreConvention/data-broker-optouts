@@ -150,6 +150,17 @@ describe("BrokerEntrySchema", () => {
     };
     expect(() => BrokerEntrySchema.parse(entry)).not.toThrow();
   });
+
+  it("accepts a verified flag and leaves it absent when not given", () => {
+    const entry = { name: "TestBroker", requirements: ["online"], adapter: "generic" };
+    expect(BrokerEntrySchema.parse({ ...entry, verified: true }).verified).toBe(true);
+    expect(BrokerEntrySchema.parse(entry).verified).toBeUndefined();
+  });
+
+  it("rejects a verified flag that is not a boolean", () => {
+    const entry = { name: "TestBroker", requirements: ["online"], adapter: "generic", verified: "yes" };
+    expect(() => BrokerEntrySchema.parse(entry)).toThrow();
+  });
 });
 
 describe("ManifestSchema", () => {

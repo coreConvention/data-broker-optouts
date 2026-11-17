@@ -17,6 +17,8 @@ Playwright-based tool that automates opt-out requests from 113+ data broker site
 - **Factory Pattern**: AdapterFactory creates the right adapter based on `entry.adapter` field. BrowserFactory handles Chromium setup.
 - **IOProvider Pattern**: Pluggable `IOProvider` interface abstracts human interaction — CLI uses readline, Electron uses IPC. Adapters call `ioProvider.waitForConfirmation()` / `ioProvider.promptUser()` instead of direct readline.
 - **CJS/ESM Bridge**: Desktop main process (CJS) loads engine (ESM) via dynamic `await import()` from `desktop/dist/engine/`
+- **Safe-by-default generic adapter**: `GenericFormAdapter` types and clicks only when the manifest entry has `verified: true` (absent means false) AND the live page passes its checks: the page text mentions opt-out/removal/suppression/deletion, and one single `<form>` holds every configured field plus a submit control whose label is not another form's (subscribe, search, sign in). Otherwise it types nothing, clicks nothing, and hands over through `ioProvider.waitForConfirmation` (find your listing first, finish by hand, plus the entry's `notes`). No manifest entry is verified yet, so every generic broker is guided-manual.
+- **Adapter outcome**: `BaseAdapter.run` returns `"submitted" | "manual"` (`AdapterOutcome`); `execute` returning nothing means submitted. `ExecutionOrchestrator` records `manual` as `manual-needed`, never `success`, and a dry run does the same for an unverified generic entry.
 - **BaseAdapter helpers**: `tryFillField()`, `autoFillProfile()`, `detectAndLogSuccess()` reduce duplication across site adapters
 
 ## Tech Stack
@@ -38,7 +40,7 @@ Playwright-based tool that automates opt-out requests from 113+ data broker site
 - `npm run start:dry-run` - test without submitting
 
 ## Adding a New Broker
-1. Add entry to `data/manifest.json` with selectors for generic adapter, OR
+1. Add entry to `data/manifest.json` with selectors for generic adapter (set `verified: true` only after checking the selectors against the live opt-out page), OR
 2. Create `src/adapters/sites/NewBrokerAdapter.ts` extending BaseAdapter
 3. Register in `src/factories/AdapterFactory.ts`
 4. Add adapter name to enum in `src/config/schemas.ts` and `src/types.ts`
@@ -48,7 +50,8 @@ Playwright-based tool that automates opt-out requests from 113+ data broker site
 - `.temp/` is gitignored — never commit temp files to the repo
 
 ## Testing
-- Tests in `src/__tests__/` using vitest (92 tests)
+- Tests in `src/__tests__/` using vitest (104 tests)
 - Schema validation tests verify manifest.json integrity
 - Service tests cover BrokerFilter, ResumeService, StatisticsTracker, AdapterFactory, ExecutionOrchestrator
 - IOProvider tests cover interface contract and CliIOProvider implementation
+- `GenericFormAdapter.test.ts` drives headless Chromium against local HTML fixtures (`page.setContent` / `data:` URLs), never a real site; it needs Playwright's Chromium installed (`npx playwright install chromium`)
