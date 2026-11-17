@@ -166,6 +166,8 @@ What it records for each listing:
 - **Still published**, with how many removal requests that listing has now had, so a broker that ignores you is visible. Run the tool again without `--verify` to ask again.
 - **Could not tell** (the site refused the page or showed a bot check). The request stays outstanding and the next verify pass looks again. A look that could not tell is never recorded as gone.
 
+A listing can also move to a new address. The tool cannot tell whether a listing it has never shown you is yours, so when the repeat search shows one, it does not call the broker clear: it tells you how many such listings there are, and the next ordinary run shows them to you to choose from.
+
 A request still inside its waiting period is not loaded; the tool tells you the day it can be checked. A request you could not finish (the verification call never came, the emailed link was not clicked) is not a request yet: the listing stays `listed`, and the verify pass says so instead of checking it. `--verify --dry-run` names what would be checked and contacts no broker. Today only Whitepages has a verify pass, and its page selectors are not yet confirmed against the live site.
 
 <a id="evidence"></a>

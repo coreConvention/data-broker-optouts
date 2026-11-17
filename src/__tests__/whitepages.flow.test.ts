@@ -333,7 +333,7 @@ describe("Whitepages flow against local fixtures", () => {
     scenario.search = "none";
     const result = await verify();
 
-    expect(result).toEqual({ kind: "verified", state: "removed", removed: 1, listed: 0, unknown: 0, attempts: 0 });
+    expect(result).toEqual({ kind: "verified", state: "removed", removed: 1, listed: 0, unknown: 0, attempts: 0, others: 0 });
     const record = await saved();
     expect(record.state).toBe("removed");
     expect(record.lastVerifiedAt).toBe(clock.toISOString());
@@ -455,8 +455,29 @@ describe("Whitepages flow against local fixtures", () => {
     scenario.listing = "present";
     const result = await verify();
 
-    expect(result).toEqual({ kind: "verified", state: "listed", removed: 0, listed: 1, unknown: 0, attempts: 1 });
+    expect(result).toEqual({ kind: "verified", state: "listed", removed: 0, listed: 1, unknown: 0, attempts: 1, others: 0 });
     expect((await saved()).listings[0]).toMatchObject({ state: "listed", requestAttempts: 1 });
+  });
+
+  // A listing can move to a new address (issue #68).
+  it("after the window, a gone address with a different listing in the search is unknown, not removed", async () => {
+    scenario.search = "two";
+    await run(["1", "done"]);
+    expect((await saved()).listings[0]).toMatchObject({ id: baseUrl + FIRST, state: "requested" });
+
+    clock = new Date(T0.getTime() + 4 * DAY);
+    scenario.listing = "gone";
+    scenario.search = "one";
+    const result = await verify();
+
+    // The requested address is gone; the search shows the other listing,
+    // which the person has never been asked about.
+    expect(result).toEqual({ kind: "verified", state: "unknown", removed: 1, listed: 0, unknown: 0, attempts: 0, others: 1 });
+    const record = await saved();
+    expect(record.state).toBe("unknown");
+    expect(record.listings).toEqual([
+      { id: baseUrl + FIRST, url: baseUrl + FIRST, state: "removed", requestAttempts: 1, pending: null },
+    ]);
   });
 
   it("the verify command checks Whitepages through the orchestrator and submits nothing", async () => {

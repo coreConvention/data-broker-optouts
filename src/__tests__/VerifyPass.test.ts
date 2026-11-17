@@ -354,6 +354,84 @@ describe("verify pass across brokers (fake adapter, fake clock)", () => {
       expect(shown).not.toContain("Quillfeather");
     });
 
+    // A listing can move to a new address. The tool cannot know whether a
+    // listing it has never shown the person is theirs, so it cannot say the
+    // person is gone from the broker.
+    it("when the address is gone but the repeat scan shows a listing the person was never asked about", async () => {
+      await request("1");
+
+      clock = new Date(T0.getTime() + 4 * DAY);
+      script.verify = { kind: "removed" };
+      script.scan = { kind: "found", listings: [second] };
+      await verify();
+
+      const record = await saved();
+      // The old address is gone, and that much is recorded for the listing...
+      expect(record.listings).toEqual([
+        { id: first.id, url: first.url, state: "removed", requestAttempts: 1, pending: null },
+      ]);
+      // ...but the broker is not "removed": it is looked at again on the next run.
+      expect(record.state).toBe("unknown");
+      expect(written[0]).toMatchObject({ status: "unknown" });
+      expect(written[0]!.message).toContain("1 listing(s) not found when checked on");
+      expect(written[0]!.message).toContain("still shows 1 other listing(s) you have not been asked about");
+      expect(everythingShown()).not.toContain(second.url);
+      expect(everythingShown()).not.toContain(second.summary);
+    });
+
+    it("then the next run shows that listing to the person, whose 'none' settles it", async () => {
+      await request("1");
+      clock = new Date(T0.getTime() + 4 * DAY);
+      script.verify = { kind: "removed" };
+      script.scan = { kind: "found", listings: [second] };
+      await verify();
+
+      clock = new Date(clock.getTime() + DAY);
+      await request("none");
+
+      const record = await saved();
+      expect(record.state).toBe("removed");
+      expect(record.listings.map((l) => [l.id, l.state])).toEqual([[first.id, "removed"]]);
+      expect(adapter.requestRemoval).not.toHaveBeenCalled();
+    });
+
+    it("and choosing it instead makes the broker relisted", async () => {
+      await request("1");
+      clock = new Date(T0.getTime() + 4 * DAY);
+      script.verify = { kind: "removed" };
+      script.scan = { kind: "found", listings: [second] };
+      await verify();
+
+      clock = new Date(clock.getTime() + DAY);
+      script.removal = { kind: "not-completed", reason: "left for later" };
+      await request("1");
+
+      const record = await saved();
+      expect(record.state).toBe("relisted");
+      expect(record.timesRelisted).toBe(1);
+    });
+
+    it.each([
+      ["the listing that cannot be told is checked first", [first.id, second.id]],
+      ["the listing that cannot be told is checked last", [second.id, first.id]],
+    ])("when one of two listings cannot be told and %s", async (_name, order) => {
+      await request("1,2");
+
+      clock = new Date(T0.getTime() + 4 * DAY);
+      const cannotTell = order[0]!;
+      script.verify = (listing) =>
+        listing.id === cannotTell ? { kind: "unknown", reason: "blocked" } : { kind: "removed" };
+      script.scan = { kind: "not-found" };
+      await verify();
+
+      const record = await saved();
+      // Whichever listing was checked first, the broker's state is the same.
+      expect(record.state).toBe("unknown");
+      expect(record.listings.find((l) => l.id === cannotTell)).toMatchObject({ state: "requested" });
+      expect(record.listings.find((l) => l.id !== cannotTell)).toMatchObject({ state: "removed" });
+      expect(written[0]).toMatchObject({ status: "unknown" });
+    });
+
     it("a later pass that finds it gone records removed then, not before", async () => {
       await request("1");
       clock = new Date(T0.getTime() + 4 * DAY);
@@ -466,6 +544,20 @@ describe("verify pass across brokers (fake adapter, fake clock)", () => {
       await request("1");
 
       expect(await filesOnDisk()).toEqual([`evidence/fakebroker/${STAMP_T0}-scan.png`, "state.json"]);
+    });
+
+    it("keeps the page of a check that threw", async () => {
+      await request("1");
+      clock = new Date(T0.getTime() + 4 * DAY);
+      script.verify = new Error("the page crashed half way");
+      await verify();
+
+      expect(await filesOnDisk()).toContain(`evidence/fakebroker/${STAMP_DAY4}-verify.png`);
+      expect((await saved()).history.at(-1)).toMatchObject({
+        event: "verify",
+        result: "unknown",
+        evidence: `evidence/fakebroker/${STAMP_DAY4}-verify.png`,
+      });
     });
 
     it("a screenshot that cannot be saved does not change the outcome", async () => {

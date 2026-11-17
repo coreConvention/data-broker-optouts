@@ -21,6 +21,11 @@ export type VerifyPassResult =
       unknown: number;
       /** The most removal requests made for any listing that is still published. */
       attempts: number;
+      /**
+       * Listings the repeat scan showed that the person has never been asked
+       * about. Any of them could be a listing that moved.
+       */
+      others: number;
     };
 
 /**
@@ -49,10 +54,12 @@ export function verifyStatus(record: BrokerRecord, now: Date): "none" | "waiting
  * the results. Anything that cannot be told is "unknown", and its request
  * stays outstanding so the next pass looks again.
  *
- * A listing that came back under a different address is not recognised here;
- * the next scan shows it to the person, who decides whether it is theirs.
+ * A listing that came back under a different address cannot be recognised
+ * here: only the person can say whether a listing is theirs. When the repeat
+ * scan shows a listing they have never been asked about, the broker is left
+ * "unknown" instead of "removed", so the next run shows it to them.
  *
- * A screenshot of each listing page as the check found it goes to the
+ * A screenshot of each listing page as the check left it goes to the
  * evidence folder, and its path into the state file's history.
  *
  * `ExecutionOrchestrator.verifyAll` calls this for every broker that is due
@@ -84,8 +91,8 @@ export async function verifyBroker(args: {
     } catch (error) {
       // Only the kind of error is kept: its text can quote the listing address.
       results.set(listing.id, { kind: "unknown", reason: describeFailure("the check", error) });
-      continue;
     }
+    // Whatever the check made of it, the page it was looking at is kept.
     if (evidence) {
       const saved = await evidence.capture(page, adapter.brokerId, "verify");
       if (saved) {
@@ -105,9 +112,7 @@ export async function verifyBroker(args: {
     }
   }
 
-  const counts = { removed: 0, listed: 0, unknown: 0 };
-  let attempts = 0;
-  for (const listing of outstanding) {
+  const outcomes = outstanding.map((listing) => {
     let kind = results.get(listing.id)!.kind;
     if (kind === "removed" && rescan) {
       if (rescan.kind === "unknown") {
@@ -116,6 +121,19 @@ export async function verifyBroker(args: {
         kind = "listed";
       }
     }
+    return { listing, kind };
+  });
+
+  // Outcomes that could not tell are written last. The store works a
+  // broker's state out again on every conclusive outcome, so an "unknown"
+  // written first would be lost, and the state would depend on the order the
+  // listings happened to be checked in (issue #68).
+  const counts = { removed: 0, listed: 0, unknown: 0 };
+  let attempts = 0;
+  for (const { listing, kind } of [
+    ...outcomes.filter((outcome) => outcome.kind !== "unknown"),
+    ...outcomes.filter((outcome) => outcome.kind === "unknown")
+  ]) {
     counts[kind]++;
     if (kind === "listed") {
       attempts = Math.max(attempts, listing.requestAttempts);
@@ -123,7 +141,19 @@ export async function verifyBroker(args: {
     const screenshot = screenshots.get(listing.id);
     store.recordVerify(adapter.brokerId, listing.id, { kind }, screenshot ? { evidence: screenshot } : {});
   }
+
+  // A listing can move to a new address, and the tool cannot know whether a
+  // listing it has never shown the person is theirs. So when the repeat scan
+  // shows one, the broker is not "removed": the scan is recorded as one that
+  // could not tell, which makes the broker due straight away, and the next
+  // run shows those listings to the person (issue #68).
+  const recorded = new Set(record.listings.map((listing) => listing.id));
+  const others =
+    rescan?.kind === "found" ? rescan.listings.filter((found) => !recorded.has(found.id)).length : 0;
+  if (others > 0 && store.getBroker(adapter.brokerId).state === "removed") {
+    store.recordScan(adapter.brokerId, { kind: "unknown" });
+  }
   await store.save();
 
-  return { kind: "verified", state: store.getBroker(adapter.brokerId).state, ...counts, attempts };
+  return { kind: "verified", state: store.getBroker(adapter.brokerId).state, ...counts, attempts, others };
 }

@@ -331,6 +331,13 @@ export class ExecutionOrchestrator {
             `Could not tell for ${outcome.unknown} listing(s) on ${day}; they will be checked again next time.`
           );
         }
+        if (outcome.others > 0) {
+          // A count only: those listings' addresses and summaries stay out of the output.
+          parts.push(
+            `The search still shows ${outcome.others} other listing(s) you have not been asked about. ` +
+              "A listing can move to a new address, so run the tool without --verify to see whether one is yours."
+          );
+        }
         await this.finishBroker(result, outcome.state, parts.join(" "), outcome.state === "removed" ? "success" : "warn");
       } finally {
         await page.close().catch(() => undefined);
