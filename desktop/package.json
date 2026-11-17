@@ -21,7 +21,7 @@
     "package:all": "npm run build && electron-builder --win --mac --linux"
   },
   "dependencies": {
-    "@playwright/test": "^1.46.0",
+    "@playwright/test": "^1.65.1",
     "electron-updater": "^6.3.9",
     "zod": "^3.23.8"
   },
