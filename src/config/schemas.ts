@@ -66,7 +66,6 @@ export const BrokerEntrySchema = z.object({
     "Spokeo",
     "Whitepages",
     "Nuwber",
-    "Radaris",
     "BeenVerified",
     "Intelius",
     "MyLife"
