@@ -208,6 +208,19 @@ export class ExecutionOrchestrator {
   ): Promise<void> {
     this.ioProvider.log("info", `[DRY RUN] Would run ${entry.adapter} adapter`);
     this.ioProvider.log("info", `[DRY RUN] Would navigate to: ${entry.removalUrl}`);
+
+    // Mirror the real run: an unverified generic entry is never auto-filled,
+    // so a dry run must not report it as a simulated submission.
+    if (entry.adapter === "generic" && entry.verified !== true) {
+      result.status = "manual-needed";
+      result.message = "[DRY RUN] Form automation unverified: would open the page for you to finish by hand";
+      await this.recordResult(result);
+      this.statistics.recordManualNeeded();
+      this.ioProvider.log("warn", result.message);
+      this.ioProvider.log("info", "Dry run completed");
+      return;
+    }
+
     this.ioProvider.log("info", `[DRY RUN] Would fill profile data: ${profile.fullName}, ${profile.email}`);
 
     result.status = "success";
@@ -228,7 +241,18 @@ export class ExecutionOrchestrator {
   ): Promise<void> {
     const adapter = AdapterFactory.createAdapter(entry);
     const execContext: ExecutionContext = { ioProvider: this.ioProvider };
-    await adapter.run(context, profile, execContext);
+    const outcome = await adapter.run(context, profile, execContext);
+
+    // The adapter opened the page but did not submit anything itself
+    // (unverified entry, or the page did not look like the opt-out form).
+    if (outcome === "manual") {
+      result.status = "manual-needed";
+      result.message = "Opened for you to finish by hand; nothing was submitted automatically.";
+      await this.recordResult(result);
+      this.statistics.recordManualNeeded();
+      this.ioProvider.log("warn", `${entry.name}: ${result.message}`);
+      return;
+    }
 
     result.status = "success";
     result.message = "Submitted (some steps may have been manual).";

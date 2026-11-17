@@ -1,5 +1,5 @@
 import type { BrowserContext, Page } from "@playwright/test";
-import type { BrokerEntry, PersonProfile, IOProvider, ExecutionContext } from "../types.js";
+import type { AdapterOutcome, BrokerEntry, PersonProfile, IOProvider, ExecutionContext } from "../types.js";
 import { promises as fs } from "fs";
 import { join } from "path";
 
@@ -19,7 +19,14 @@ export abstract class BaseAdapter {
 
   public abstract name(): string;
 
-  public async run(context: BrowserContext, profile: PersonProfile, execContext?: ExecutionContext): Promise<void> {
+  /**
+   * Opens the broker's page and runs the adapter on it.
+   *
+   * @returns "submitted" when the adapter sent the opt-out itself, "manual"
+   * when it left the opt-out to the person. The orchestrator records the
+   * broker's status from this, so an adapter that did not submit must say so.
+   */
+  public async run(context: BrowserContext, profile: PersonProfile, execContext?: ExecutionContext): Promise<AdapterOutcome> {
     if (execContext) {
       this.ioProvider = execContext.ioProvider;
     }
@@ -37,7 +44,7 @@ export abstract class BaseAdapter {
         `navigating to ${this.entry.removalUrl}`
       );
 
-      await this.execute(page, profile);
+      return (await this.execute(page, profile)) ?? "submitted";
     } catch (error) {
       // Capture screenshot on error
       await this.captureErrorScreenshot(page, this.entry.name);
@@ -47,7 +54,11 @@ export abstract class BaseAdapter {
     }
   }
 
-  protected abstract execute(page: Page, profile: PersonProfile): Promise<void>;
+  /**
+   * Site-specific steps. Returning nothing means "submitted", which is what
+   * the hand-written site adapters do; return "manual" when nothing was sent.
+   */
+  protected abstract execute(page: Page, profile: PersonProfile): Promise<AdapterOutcome | void>;
 
   protected async ensureVisible(page: Page, selector: string): Promise<void> {
     await page.waitForSelector(selector, { state: "visible", timeout: 30_000 });

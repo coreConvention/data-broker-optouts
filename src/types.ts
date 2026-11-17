@@ -20,6 +20,13 @@ export interface BrokerEntry {
   adapter: "generic" | "Spokeo" | "Whitepages" | "Nuwber" | "Radaris" | "BeenVerified" | "Intelius" | "MyLife";
   notes?: string | null;
   humanInteraction?: HumanInteractionMode;
+  /**
+   * True only when a person has checked this entry's selectors against the
+   * broker's live opt-out page. Absent means false. The generic adapter types
+   * and clicks nothing for an unverified entry: it opens the page and hands
+   * over to the person (issue #25).
+   */
+  verified?: boolean;
   config?: {
     selectors?: {
       name?: string;
@@ -54,6 +61,12 @@ export interface OptOutResult {
   url?: string;
   ts: string;
 }
+
+/**
+ * What an adapter did for a broker: "submitted" when it sent the opt-out
+ * itself, "manual" when it opened the page and left the opt-out to the person.
+ */
+export type AdapterOutcome = "submitted" | "manual";
 
 export type HumanInteractionMode = "modal" | "browser";
 

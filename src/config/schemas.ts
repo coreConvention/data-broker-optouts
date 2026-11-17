@@ -19,6 +19,9 @@ import { z } from "zod";
  * - requirements: Array of what's needed to complete opt-out
  * - adapter: Which automation adapter to use
  * - notes: Additional information for manual steps
+ * - verified: true once a person has checked the selectors against the live
+ *   opt-out page; absent means false, and the generic adapter then only opens
+ *   the page for the person to finish by hand
  * - config: Optional selectors and configuration for form filling
  */
 export const BrokerEntrySchema = z.object({
@@ -53,6 +56,7 @@ export const BrokerEntrySchema = z.object({
   ]),
   notes: z.string().optional().nullable(),
   humanInteraction: z.enum(["modal", "browser"]).optional(),
+  verified: z.boolean().optional(),
   config: z.object({
     selectors: z.object({
       name: z.string().optional(),
