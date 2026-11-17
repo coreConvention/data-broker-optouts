@@ -1,7 +1,6 @@
 import type { BrowserContext, Locator, Page } from "@playwright/test";
 import type { AdapterOutcome, BrokerEntry, PersonProfile, IOProvider, ExecutionContext } from "../types.js";
-import { promises as fs } from "fs";
-import { join } from "path";
+import type { EvidenceStore } from "../services/EvidenceStore.js";
 
 export abstract class BaseAdapter {
   protected readonly entry: BrokerEntry;
@@ -12,6 +11,8 @@ export abstract class BaseAdapter {
     openExternal: async () => {},
     shouldOpenInBrowser: () => false,
   };
+  /** Where an error screenshot goes. Set from the execution context; none is taken without it. */
+  private evidence: EvidenceStore | undefined;
 
   public constructor(entry: BrokerEntry) {
     this.entry = entry;
@@ -29,6 +30,7 @@ export abstract class BaseAdapter {
   public async run(context: BrowserContext, profile: PersonProfile, execContext?: ExecutionContext): Promise<AdapterOutcome> {
     if (execContext) {
       this.ioProvider = execContext.ioProvider;
+      this.evidence = execContext.evidence;
     }
     const page = await context.newPage();
     try {
@@ -47,7 +49,7 @@ export abstract class BaseAdapter {
       return (await this.execute(page, profile)) ?? "submitted";
     } catch (error) {
       // Capture screenshot on error
-      await this.captureErrorScreenshot(page, this.entry.name);
+      await this.captureErrorScreenshot(page);
       throw error;
     } finally {
       await page.close();
@@ -94,25 +96,21 @@ export abstract class BaseAdapter {
   }
 
   /**
-   * Capture screenshot on error for debugging
+   * Capture a screenshot of the page an error happened on, for debugging.
+   *
+   * It goes to the evidence folder with every other image that can show the
+   * person's details (design plan section 5.3), never to `./logs`. The log
+   * line gives the path inside the data folder and nothing from the error.
    */
-  protected async captureErrorScreenshot(page: Page, siteName: string): Promise<void> {
-    try {
-      const logsDir = "./logs";
-
-      // Create logs directory if it doesn't exist
-      try {
-        await fs.mkdir(logsDir, { recursive: true });
-      } catch {}
-
-      const timestamp = new Date().toISOString().replace(/[:]/g, "-").replace(/\..+/, "");
-      const filename = `error-${siteName}-${timestamp}.png`;
-      const filepath = join(logsDir, filename);
-
-      await page.screenshot({ path: filepath, fullPage: true });
-      this.ioProvider.log("info", `[${this.name()}] Screenshot saved: ${filepath}`);
-    } catch (screenshotError) {
-      this.ioProvider.log("warn", `[${this.name()}] Could not capture screenshot: ${screenshotError}`);
+  protected async captureErrorScreenshot(page: Page): Promise<void> {
+    if (!this.evidence) {
+      return;
+    }
+    const saved: string | null = await this.evidence.capture(page, this.entry.name, "error");
+    if (saved) {
+      this.ioProvider.log("info", `[${this.name()}] Screenshot saved in your data folder: ${saved}`);
+    } else {
+      this.ioProvider.log("warn", `[${this.name()}] Could not capture screenshot`);
     }
   }
 

@@ -5,6 +5,8 @@ export interface RunOptions {
   headful?: boolean;
   stealth?: boolean;
   dryRun?: boolean;
+  /** Run the verify pass instead of the scan-and-request run. */
+  verify?: boolean;
   filter?: string[];
   exclude?: string[];
   limit?: number;

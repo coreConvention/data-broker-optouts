@@ -51,7 +51,7 @@ describe("AdapterFactory", () => {
 
   describe("createListingAdapter", () => {
     it("creates the Whitepages listing adapter", () => {
-      const adapter = AdapterFactory.createListingAdapter(makeEntry("Whitepages"), { evidenceDir: "data/evidence" });
+      const adapter = AdapterFactory.createListingAdapter(makeEntry("Whitepages"));
       expect(adapter).toBeInstanceOf(WhitepagesListingAdapter);
       expect(adapter).toMatchObject({
         brokerId: "whitepages",
