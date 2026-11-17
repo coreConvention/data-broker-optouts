@@ -28,13 +28,12 @@ export class BrowserFactory {
    * @returns Configured browser instance
    */
   public static async createBrowser(config: BrowserConfig): Promise<Browser> {
-    const launchArgs = config.stealth
-      ? getStealthLaunchArgs()
-      : ["--disable-blink-features=AutomationControlled"];
-
+    // Stealth off means an undisguised browser: no launch flags at all, so
+    // Chromium keeps reporting itself as automated (navigator.webdriver).
+    // People turn stealth off to stay inside a site's terms of service (#32).
     const browser = await chromium.launch({
       headless: !config.headful,
-      args: launchArgs
+      ...(config.stealth ? { args: getStealthLaunchArgs() } : {})
     });
 
     return browser;
@@ -55,13 +54,11 @@ export class BrowserFactory {
       ? getRealisticViewport()
       : { width: 1280, height: 900 };
 
-    const userAgent = config.stealth
-      ? getRealisticUserAgent()
-      : "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome Safari";
-
     const context = await browser.newContext({
       viewport,
-      userAgent,
+      // With stealth off the user agent is left unset, so the browser sends
+      // Playwright's default (Chromium's own) and not a made-up string (#32).
+      ...(config.stealth ? { userAgent: getRealisticUserAgent() } : {}),
       locale: 'en-US',
       timezoneId: 'America/New_York',
       permissions: [],
