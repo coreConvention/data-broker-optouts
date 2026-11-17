@@ -144,7 +144,7 @@ export class ExecutionOrchestrator {
 
       // Execute opt-out (dry-run or actual)
       if (this.options.dryRun) {
-        await this.handleDryRun(entry, profile, result);
+        await this.handleDryRun(entry, result);
       } else {
         await this.handleActualExecution(entry, profile, context, result);
       }
@@ -201,11 +201,7 @@ export class ExecutionOrchestrator {
   /**
    * Handle dry-run execution
    */
-  private async handleDryRun(
-    entry: BrokerEntry,
-    profile: PersonProfile,
-    result: OptOutResult
-  ): Promise<void> {
+  private async handleDryRun(entry: BrokerEntry, result: OptOutResult): Promise<void> {
     this.ioProvider.log("info", `[DRY RUN] Would run ${entry.adapter} adapter`);
     this.ioProvider.log("info", `[DRY RUN] Would navigate to: ${entry.removalUrl}`);
 
@@ -221,7 +217,8 @@ export class ExecutionOrchestrator {
       return;
     }
 
-    this.ioProvider.log("info", `[DRY RUN] Would fill profile data: ${profile.fullName}, ${profile.email}`);
+    // Says that the profile would be typed, never what it holds (issue #34)
+    this.ioProvider.log("info", "[DRY RUN] Would fill the form from your profile");
 
     result.status = "success";
     result.message = "[DRY RUN] Simulated successful submission";

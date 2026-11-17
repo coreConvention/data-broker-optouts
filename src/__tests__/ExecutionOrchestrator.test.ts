@@ -122,6 +122,47 @@ describe("ExecutionOrchestrator progress reporting", () => {
     expect(ioProvider.log).not.toHaveBeenCalledWith("info", expect.stringContaining(profile.email));
   });
 
+  it("never puts a profile value into dry-run output", async () => {
+    // Made-up values, each distinctive enough that a match can only be a leak
+    const fullProfile: PersonProfile = {
+      fullName: "Zephyrine Quillfeather",
+      email: "zq-primary@example.test",
+      altEmails: ["zq-alternate@example.test"],
+      phone: "555-0142-7791",
+      address: "4471 Wobblestone Crescent",
+      city: "Marrowgate",
+      state: "ZQ",
+      zip: "99887",
+    };
+    const reported: RunProgress[] = [];
+    const ioProvider: IOProvider = {
+      ...createIOProvider(),
+      reportProgress: (progress) => reported.push(progress),
+    };
+    const { verified: _verified, ...unverifiedBroker } = onlineBroker;
+
+    await createOrchestrator(ioProvider).executeAll(
+      [onlineBroker, unverifiedBroker, emailOnlyBroker, noPathBroker],
+      fullProfile,
+      context
+    );
+
+    // Everything the run wrote: provider log lines, console lines, progress events
+    const output: string = JSON.stringify([
+      vi.mocked(ioProvider.log).mock.calls,
+      vi.mocked(console.log).mock.calls,
+      reported,
+    ]);
+    const values: string[] = Object.values(fullProfile).flat().map(String);
+
+    expect(values).toHaveLength(8);
+    for (const value of values) {
+      expect(output).not.toContain(value);
+    }
+    // The verified broker still says the form would be filled
+    expect(ioProvider.log).toHaveBeenCalledWith("info", "[DRY RUN] Would fill the form from your profile");
+  });
+
   it("reports nothing for brokers that are never started after a stop", async () => {
     const reportProgress = vi.fn();
     const ioProvider: IOProvider = { ...createIOProvider(), reportProgress };
