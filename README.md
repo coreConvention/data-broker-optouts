@@ -13,7 +13,7 @@ Data brokers collect and sell personal information — home addresses, phone num
 ### Core Capabilities
 - **74 opt-out pages in the manifest**, tagged by what the opt-out actually does (see [Coverage](#-coverage))
 - **6 guided walkthroughs** for the larger people-search companies (Whitepages, Spokeo, BeenVerified, PeopleConnect, Nuwber, MyLife): step-by-step instructions with pauses. The only automation in them is filling a name or email field; you do the searching, selecting and submitting
-- **Generic adapter** for the other 68 entries: opens the page and, where the manifest has CSS selectors for it, fills fields and clicks submit. Most of those selectors have not been checked against the live pages (see [issue #25](https://github.com/coreConvention/data-broker-optouts/issues/25)), so watch the browser and use `--dry-run` first
+- **Generic adapter** for the other 68 entries: opens the opt-out page and hands over to you. It types and clicks nothing unless the entry is marked `verified: true`, meaning a person has checked its CSS selectors against the live page; no entry in the shipped manifest is marked verified yet, so today every one of these is a page you finish by hand
 - **Human-in-the-Loop**: Pauses for CAPTCHA solving, email verification, and manual steps
 - **Progress Tracking**: Real-time progress indicators and a summary report
 - **Error Handling**: Retry with exponential backoff, plus a screenshot on failure. Screenshots are saved to `./logs/*.png` and **can show your name, address, phone number or email**; treat that folder as private and delete it when you are done
@@ -211,7 +211,7 @@ Opt-out pages move and brokers shut down, so the manifest goes stale. `npm run c
 
 1. **Browser Launch**: Opens Chromium (visible or headless)
 2. **Iterate Brokers**: Processes each data broker in sequence
-3. **Auto-Fill Forms**: Fills name, email and address fields where the manifest or walkthrough knows which fields they are
+3. **Auto-Fill Forms**: The guided walkthroughs fill a name or email field where they can; the generic adapter fills fields only for entries marked `verified`
 4. **Human Pauses**: Prompts you to:
    - Search for your profile/listing
    - Solve CAPTCHAs

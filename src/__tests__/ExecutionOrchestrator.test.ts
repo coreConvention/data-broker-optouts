@@ -14,6 +14,7 @@ const onlineBroker: BrokerEntry = {
   removalUrl: "https://example.com/optout",
   requirements: ["online"],
   adapter: "generic",
+  verified: true,
 };
 const emailOnlyBroker: BrokerEntry = {
   name: "EmailOnlyBroker",
@@ -105,6 +106,20 @@ describe("ExecutionOrchestrator progress reporting", () => {
 
     await expect(orchestrator.executeAll([onlineBroker], profile, context)).resolves.toBeUndefined();
     expect(orchestrator.getStatistics().getStatistics().success).toBe(1);
+  });
+
+  it("dry-runs an unverified generic broker as manual-needed, not a simulated submission", async () => {
+    const ioProvider = createIOProvider();
+    const orchestrator = createOrchestrator(ioProvider);
+    const { verified: _verified, ...unverifiedBroker } = onlineBroker;
+
+    await orchestrator.executeAll([unverifiedBroker], profile, context);
+
+    const stats = orchestrator.getStatistics().getStatistics();
+    expect(stats.manualNeeded).toBe(1);
+    expect(stats.success).toBe(0);
+    // Nothing would be typed, so the dry run must not echo the person's details
+    expect(ioProvider.log).not.toHaveBeenCalledWith("info", expect.stringContaining(profile.email));
   });
 
   it("reports nothing for brokers that are never started after a stop", async () => {
