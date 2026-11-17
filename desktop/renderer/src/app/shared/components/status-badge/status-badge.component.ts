@@ -1,12 +1,12 @@
 import { Component, Input, computed, input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 export type StatusType = 'pending' | 'processing' | 'captcha' | 'manual' | 'success' | 'failed' | 'skipped';
 
 @Component({
   selector: 'app-status-badge',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     <span
       class="badge"

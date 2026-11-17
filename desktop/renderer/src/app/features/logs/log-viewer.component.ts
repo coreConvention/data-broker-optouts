@@ -1,5 +1,5 @@
 import { Component, inject, computed, signal, ElementRef, ViewChild, AfterViewChecked } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { RunService } from '../../core/services/run.service';
@@ -8,7 +8,7 @@ import { ElectronService } from '../../core/services/electron.service';
 @Component({
   selector: 'app-log-viewer',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink],
   template: `
     <div class="log-viewer-page">
       <header class="page-header">
