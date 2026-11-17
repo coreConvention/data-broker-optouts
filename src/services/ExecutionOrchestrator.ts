@@ -7,6 +7,7 @@ import type { StateStore, RequestOutcome } from "./StateStore.js";
 import { pickProfileFields } from "../adapters/ListingAdapter.js";
 import type { ListingAdapter, Listing, RemovalResult, ScanResult } from "../adapters/ListingAdapter.js";
 import { chooseListings } from "../utils/chooseListings.js";
+import { describeFailure } from "../utils/describeFailure.js";
 
 /**
  * Options for execution orchestrator
@@ -336,7 +337,8 @@ export class ExecutionOrchestrator {
         scan = await adapter.findListings(page, pickProfileFields(profile, adapter.fields.scan), execContext);
       } catch (error) {
         // An errored look tells us nothing about whether the person is listed.
-        scan = { kind: "unknown", reason: error instanceof Error ? error.message : "the scan failed" };
+        // The error's text is not passed on: it can quote the search address.
+        scan = { kind: "unknown", reason: describeFailure("the scan", error) };
       }
 
       if (scan.kind === "unknown") {
@@ -445,7 +447,11 @@ export class ExecutionOrchestrator {
     }
   }
 
-  /** A request that throws is a request that was not completed, not a crashed broker. */
+  /**
+   * A request that throws is a request that was not completed, not a crashed
+   * broker. The error's text is not passed on: it can quote the listing
+   * address the adapter was typing.
+   */
   private async requestRemovalSafely(
     adapter: ListingAdapter,
     page: Page,
@@ -456,7 +462,7 @@ export class ExecutionOrchestrator {
     try {
       return await adapter.requestRemoval(page, listing, person, execContext);
     } catch (error) {
-      return { kind: "not-completed", reason: error instanceof Error ? error.message : "the request failed" };
+      return { kind: "not-completed", reason: describeFailure("the request", error) };
     }
   }
 

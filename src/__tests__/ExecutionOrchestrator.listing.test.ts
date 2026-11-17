@@ -220,6 +220,45 @@ describe("ExecutionOrchestrator scan-confirm-request flow", () => {
     expect(orchestrator.getStatistics().getStatistics()).toMatchObject({ listed: 1, failed: 0 });
   });
 
+  // The browser library quotes addresses and typed values in its error text,
+  // and for a listing adapter those carry the person's name (issue #64).
+  it("keeps the text of a thrown scan out of the run log, progress and log lines", async () => {
+    const adapter = fakeAdapter(
+      new Error(
+        'page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to "https://broker.example/name/Zephyrine-Quillfeather/ZQ"'
+      )
+    );
+    const io = scriptedIO();
+
+    await run(adapter, io);
+
+    const output = JSON.stringify([written, io.reported, vi.mocked(io.log).mock.calls, vi.mocked(console.log).mock.calls]);
+    expect(output).not.toContain("Zephyrine");
+    expect(output).not.toContain("Quillfeather");
+    expect(output).not.toContain("broker.example/name");
+    expect(written[0]!.status).toBe("unknown");
+    expect(written[0]!.message).toContain("Nothing was sent");
+  });
+
+  it("keeps the text of a thrown request out of the run log, progress and log lines", async () => {
+    const thrown = new Error(
+      `locator.fill: Timeout 30000ms exceeded.\nCall log:\n  - fill("${first.url}")\n  - near "${first.summary}"`
+    );
+    thrown.name = "TimeoutError";
+    const adapter = fakeAdapter({ kind: "found", listings: [first] }, thrown);
+    const io = scriptedIO(["1"]);
+
+    await run(adapter, io);
+
+    const output = JSON.stringify([written, io.reported, vi.mocked(io.log).mock.calls, vi.mocked(console.log).mock.calls]);
+    expect(output).not.toContain(first.url);
+    expect(output).not.toContain("Zephyrine");
+    expect(output).not.toContain("Quillfeather");
+    // The kind of failure is still reported, so the person knows what happened.
+    expect(output).toContain("TimeoutError");
+    expect((await saved()).state).toBe("listed");
+  });
+
   it("a request waiting on the person stays listed with the pending step recorded", async () => {
     const adapter = fakeAdapter({ kind: "found", listings: [first] }, { kind: "requested", pending: "phone-call" });
 
