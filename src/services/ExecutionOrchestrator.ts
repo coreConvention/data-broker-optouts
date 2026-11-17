@@ -89,8 +89,21 @@ export class ExecutionOrchestrator {
       const brokerNum = i + 1;
 
       this.printBrokerHeader(entry, brokerNum, totalBrokers);
+      this.ioProvider.reportProgress?.({
+        current: i,
+        total: totalBrokers,
+        broker: entry.name,
+        status: "processing"
+      });
 
-      await this.executeBroker(entry, profile, context);
+      const result = await this.executeBroker(entry, profile, context);
+      this.ioProvider.reportProgress?.({
+        current: brokerNum,
+        total: totalBrokers,
+        broker: entry.name,
+        status: result.status,
+        ...(result.message ? { message: result.message } : {})
+      });
 
       // Add delay between brokers to avoid rate limiting
       if (i < brokers.length - 1) {
@@ -107,25 +120,26 @@ export class ExecutionOrchestrator {
    * @param entry - Broker entry configuration
    * @param profile - User profile data
    * @param context - Browser context
+   * @returns The broker's result, with its final status and message
    */
   private async executeBroker(
     entry: BrokerEntry,
     profile: PersonProfile,
     context: BrowserContext
-  ): Promise<void> {
+  ): Promise<OptOutResult> {
     const result = this.createBaseResult(entry);
 
     try {
       // Check if broker has online opt-out path
       if (this.shouldSkipBroker(entry)) {
         this.handleSkippedBroker(entry, result);
-        return;
+        return result;
       }
 
       // Check if manual-only broker
       if (this.isManualOnly(entry)) {
         this.handleManualOnlyBroker(entry, result);
-        return;
+        return result;
       }
 
       // Execute opt-out (dry-run or actual)
@@ -137,6 +151,8 @@ export class ExecutionOrchestrator {
     } catch (error) {
       this.handleExecutionError(error, result);
     }
+
+    return result;
   }
 
   /**
