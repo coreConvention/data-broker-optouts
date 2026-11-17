@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, computed, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RouterLink } from '@angular/router';
 import { RunService } from '../../core/services/run.service';
 import { ConfigService } from '../../core/services/config.service';
@@ -10,7 +10,7 @@ import { StatusBadgeComponent } from '../../shared/components/status-badge/statu
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, ProgressBarComponent, StatusBadgeComponent],
+  imports: [RouterLink, ProgressBarComponent, StatusBadgeComponent],
   template: `
     <div class="dashboard">
       <!-- Hero Header -->

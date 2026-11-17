@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ConfigService } from '../../core/services/config.service';
@@ -10,7 +10,7 @@ import { StatusBadgeComponent, StatusType } from '../../shared/components/status
 @Component({
   selector: 'app-broker-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, StatusBadgeComponent],
+  imports: [FormsModule, RouterLink, StatusBadgeComponent],
   template: `
     <div class="broker-list-page">
       <header class="page-header">
