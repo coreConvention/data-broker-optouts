@@ -58,6 +58,21 @@ export interface OptOutResult {
 export type HumanInteractionMode = "modal" | "browser";
 
 /**
+ * Per-broker progress of a run, reported through IOProvider.reportProgress.
+ *
+ * `current` counts brokers already finished, so a progress bar driven by
+ * current / total only reaches 100% once the last broker is done. A broker
+ * is reported twice: as "processing" when it starts, then with its outcome.
+ */
+export interface RunProgress {
+  current: number;
+  total: number;
+  broker: string;
+  status: "processing" | OptOutResult["status"];
+  message?: string;
+}
+
+/**
  * Abstraction for all user-facing I/O operations.
  *
  * Implemented by CliIOProvider (terminal prompts) and
@@ -71,6 +86,12 @@ export interface IOProvider {
   log(level: "info" | "warn" | "error" | "success", message: string): void;
   openExternal(url: string): Promise<void>;
   shouldOpenInBrowser(broker: BrokerEntry): boolean;
+  /**
+   * Optional: receives structured per-broker progress. The desktop app
+   * forwards it to its progress display; the CLI leaves it out because the
+   * orchestrator's log lines already show progress in the terminal.
+   */
+  reportProgress?(progress: RunProgress): void;
 }
 
 /**

@@ -12,6 +12,15 @@ interface BrokerLike {
 
 type LogLevel = 'info' | 'warn' | 'error' | 'success';
 
+// Matches RunProgress from src/types.ts (what the engine reports)
+interface RunProgressLike {
+  current: number;
+  total: number;
+  broker: string;
+  status: 'processing' | 'success' | 'manual-needed' | 'skipped' | 'failed';
+  message?: string;
+}
+
 function sendToWindow(
   getWindow: () => BrowserWindow | null,
   channel: string,
@@ -71,6 +80,15 @@ export class ElectronIOProvider {
       'run:log',
       `${prefixes[level]}${message}`
     );
+  }
+
+  /** Forwards the engine's per-broker progress to the renderer's progress display */
+  reportProgress(progress: RunProgressLike): void {
+    sendToWindow(this.getMainWindow, 'run:progress', {
+      ...progress,
+      // The renderer's status vocabulary says 'manual' where the engine says 'manual-needed'
+      status: progress.status === 'manual-needed' ? 'manual' : progress.status,
+    });
   }
 
   async openExternal(url: string): Promise<void> {
