@@ -1,6 +1,6 @@
 # Data Broker Opt-Out Runner
 
-A Playwright-based tool that walks you through opt-out requests at **74 data broker and marketing opt-out pages**, 47 of them people-search sites. It opens each broker's official opt-out page, fills in what it safely can, and pauses for you to do the rest: finding your listing, CAPTCHAs, and email or phone verification.
+A Playwright-based tool that walks you through opt-out requests at **74 data broker and marketing opt-out pages**, 46 of them people-search sites. It opens each broker's official opt-out page, fills in what it safely can, and pauses for you to do the rest: finding your listing, CAPTCHAs, and email or phone verification.
 
 > ⚠️ **What this tool is and is not:** it is a guided assistant, not a removal service. It only visits official opt-out pages and it never solves a CAPTCHA for you. It does not check afterwards that a listing is gone; you have to do that yourself (see [What "success" means](#what-success-means)).
 
@@ -34,17 +34,17 @@ Only the first group removes a public listing of your name, address or phone num
 
 | Category | Entries | What opting out does |
 |---|---|---|
-| `people-search` | 47 | Asks a people-search, phone-lookup or public-records site to remove or suppress your listing |
+| `people-search` | 46 | Asks a people-search, phone-lookup or public-records site to remove or suppress your listing |
 | `b2b` | 10 | Asks a business-contact or identity-data company to stop selling your details to its customers |
 | `marketing` | 6 | Stops marketing use of your data, junk mail, catalogs or telemarketing calls |
 | `credit` | 6 | Stops pre-approved credit offers or marketing use by credit and consumer-reporting agencies, or places a security freeze |
-| `ad-tech` | 5 | Stops ad targeting tied to a browser cookie or a device's advertising ID |
+| `ad-tech` | 6 | Stops ad targeting tied to a browser cookie or a device's advertising ID |
 
-#### People-search sites (47)
+#### People-search sites (46)
 
 Guided walkthroughs (6): **Whitepages**, **Spokeo**, **BeenVerified**, **PeopleConnect**, **Nuwber**, **MyLife**
 
-Generic adapter (41): FastPeopleSearch, TruePeopleSearch, CheckPeople, ThatsThem, SmartBackgroundChecks, FamilyTreeNow, USPhoneBook, PeopleSearchNow, AdvancedBackgroundChecks, NeighborReport, PeopleFinders, InfoTracer, SearchQuarry, SearchBug, PeopleByName, OldFriends, PrivateRecords, PropertyRecords, Classmates, 411, YellowPages, VoterRecords, CocoFinder, CyberBackgroundChecks, GladIKnow, PeopleWhiz, USAPeopleSearch, Unmask, Precise Leads (NumLookup), RecordsFinder, AncestryFree (RootsWeb), TrueCaller, Hiya, CallerSmart, PeopleSmart, RealPeopleSearch, NumLooker, FastBackgroundCheck, SocialCatfish, PeopleSearchExpert, ValidNumber
+Generic adapter (40): FastPeopleSearch, TruePeopleSearch, CheckPeople, ThatsThem, SmartBackgroundChecks, FamilyTreeNow, USPhoneBook, PeopleSearchNow, AdvancedBackgroundChecks, NeighborReport, PeopleFinders, InfoTracer, SearchQuarry, SearchBug, PeopleByName, OldFriends, PrivateRecords, PropertyRecords, Classmates, 411, VoterRecords, CocoFinder, CyberBackgroundChecks, GladIKnow, PeopleWhiz, USAPeopleSearch, Unmask, Precise Leads (NumLookup), RecordsFinder, AncestryFree (RootsWeb), TrueCaller, Hiya, CallerSmart, PeopleSmart, RealPeopleSearch, NumLooker, FastBackgroundCheck, SocialCatfish, PeopleSearchExpert, ValidNumber
 
 #### Business-contact and identity data (10)
 Apollo.io, Lusha, RocketReach, Hunter.io, ContactOut, FullContact, AtData (formerly TowerData), Pipl, Melissa Data, Clearview AI
@@ -55,12 +55,12 @@ Acxiom, Epsilon, DataAxle (InfoUSA/Donnelley), DMAChoice, National Do Not Call R
 #### Credit and consumer reporting (6)
 Experian, OptOutPrescreen (Equifax, Experian, Innovis and TransUnion), Innovis, ChexSystems, LexisNexis, Cotality (formerly CoreLogic)
 
-#### Ad tech and tracking (5)
-LiveRamp, Lotame, Tapad, ShareThis, Unacast (Gravy Analytics)
+#### Ad tech and tracking (6)
+LiveRamp, Lotame, Tapad, ShareThis, Unacast (Gravy Analytics), YellowPages
 
 > **One entry per company.** Sites that share an opt-out are listed in that entry's `notes`, not counted separately. **PeopleConnect** covers Intelius, TruthFinder, Instant Checkmate, US Search, Zabasearch and Addresses.com. **BeenVerified** covers PeopleLooker, Ownerly, NeighborWho and NumberGuru. **Spokeo** covers AnyWho.
 
-> **Link rot is real.** When these pages were last checked (2026-11-17, headless browser, nothing typed or clicked), 43 of the 74 loaded at the listed address, 13 loaded after a redirect, and 18 refused an automated browser and can only be confirmed by a person in a visible browser. Radaris and its sister sites are no longer listed: their domains were transferred by court order in 2026 and have no opt-out page. Run `npm run check:manifest` for the current picture.
+> **Link rot is real.** When these pages were last checked (2026-11-17, headless browser, nothing typed or clicked), 56 of the 74 loaded at the listed address and 18 refused an automated browser and can only be confirmed by a person in a visible browser. Radaris and its sister sites are no longer listed: their domains were transferred by court order in 2026 and have no opt-out page. Run `npm run check:manifest` for the current picture.
 
 ### What "success" means
 
@@ -191,7 +191,7 @@ npm run help
 
 #### Stealth mode
 
-Stealth mode is **on by default**. Many opt-out pages turn away anything that looks like an automated browser, so with stealth on the tool hides the usual signs: it removes the `navigator.webdriver` flag, reports a fake browser-plugin list and language list, reports a fake `window.chrome` object, and uses a regular desktop Chrome user agent and a common window size. In plain terms, it is there to get past basic bot detection so that you can reach the opt-out form.
+Stealth mode is **on by default**. Many opt-out pages turn away anything that looks like an automated browser, so with stealth on the tool hides the usual signs: it removes the `navigator.webdriver` flag, reports a fake browser-plugin list and language list, reports a fake `window.chrome` object, uses a regular desktop Chrome user agent and a common window size, and reports a US English locale whatever your machine is set to. The timezone is your machine's own, because a timezone that does not match where your connection comes from is itself a sign of an automated browser. In plain terms, it is there to get past basic bot detection so that you can reach the opt-out form.
 
 It does **not** solve or skip CAPTCHAs, log in for you, or defeat a full challenge page; when a site shows one, the tool pauses and you handle it. Some sites' terms of service forbid automated access of any kind, so decide for yourself whether you are comfortable with that. To turn the disguise off:
 
@@ -199,7 +199,7 @@ It does **not** solve or skip CAPTCHAs, log in for you, or defeat a full challen
 npm start -- --stealth=false
 ```
 
-With stealth off none of that is applied: the browser is started with no disguise flags and reports Chromium's own user agent.
+With stealth off none of that is applied: the browser is started with no disguise flags and reports Chromium's own user agent and your machine's own language and timezone.
 
 #### Checking the manifest for dead links
 
