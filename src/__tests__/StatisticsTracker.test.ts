@@ -65,4 +65,33 @@ describe("StatisticsTracker", () => {
     tracker.reset();
     expect(tracker.getTotalProcessed()).toBe(0);
   });
+  it("counts broker states reported by listing adapters", () => {
+    tracker.record("requested");
+    tracker.record("requested");
+    tracker.record("not-found");
+    tracker.record("unknown");
+    tracker.record("listed");
+    tracker.record("removed");
+    tracker.record("relisted");
+    tracker.record("manual-needed");
+
+    expect(tracker.getStatistics()).toEqual({
+      success: 0,
+      failed: 0,
+      skipped: 0,
+      manualNeeded: 1,
+      unknown: 1,
+      notFound: 1,
+      listed: 1,
+      requested: 2,
+      removed: 1,
+      relisted: 1,
+    });
+    expect(tracker.getTotalProcessed()).toBe(8);
+  });
+
+  it("keeps unknown and not-found apart", () => {
+    tracker.record("unknown");
+    expect(tracker.getStatistics().notFound).toBe(0);
+  });
 });

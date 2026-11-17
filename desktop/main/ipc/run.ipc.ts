@@ -85,6 +85,8 @@ export function registerRunHandlers(
       const Logger = loggerMod.Logger;
       const ConfigLoader = configLoaderMod.ConfigLoader;
       const BrokerFilter = brokerFilterMod.BrokerFilter;
+      const stateStoreMod = await import(toURL(path.join(engineBase, 'services/StateStore.js')));
+      const StateStore = stateStoreMod.StateStore;
 
       const dataPath = getDataPath();
       const manifestPath = path.join(dataPath, 'manifest.json');
@@ -99,6 +101,10 @@ export function registerRunHandlers(
 
       // Load and validate config via Zod schemas
       const { manifest, profile } = await ConfigLoader.loadAll(manifestPath, profilePath);
+
+      // What was found and requested at each broker. An unreadable state file
+      // stops the run here with its own message instead of being replaced.
+      const stateStore = await StateStore.load(path.join(dataPath, 'state.json'), profile);
 
       // Apply filters (BrokerFilter.filter takes comma-separated strings)
       let brokers = BrokerFilter.filter(
@@ -136,7 +142,7 @@ export function registerRunHandlers(
       const orchestrator = new ExecutionOrchestrator(logger, {
         dryRun: options.dryRun ?? false,
         delayBetweenBrokers: 2000,
-      }, electronIOProvider);
+      }, electronIOProvider, { stateStore });
       currentOrchestrator = orchestrator;
 
       // Execute all broker opt-outs
@@ -145,11 +151,14 @@ export function registerRunHandlers(
       // Get statistics from the orchestrator
       const stats = orchestrator.getStatistics().getStatistics();
 
+      // The window's four totals predate the broker states (its own view of
+      // them is #45), so each state is counted under the nearest total, the
+      // same way ElectronIOProvider.reportProgress maps the per-broker status.
       const completeData: CompleteData = {
-        success: stats.success,
-        failed: stats.failed,
-        skipped: stats.skipped,
-        manual: stats.manualNeeded,
+        success: stats.success + stats.requested + stats.removed,
+        failed: stats.failed + stats.unknown,
+        skipped: stats.skipped + stats.notFound,
+        manual: stats.manualNeeded + stats.listed + stats.relisted,
         total,
         logFile: logger.path(),
       };

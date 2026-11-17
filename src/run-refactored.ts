@@ -15,7 +15,8 @@
  */
 
 import { parseCliArguments } from "./config/index.js";
-import { ConfigLoader, BrokerFilter, ResumeService, ExecutionOrchestrator } from "./services/index.js";
+import path from "path";
+import { ConfigLoader, BrokerFilter, ResumeService, ExecutionOrchestrator, StateStore } from "./services/index.js";
 import { BrowserFactory } from "./factories/index.js";
 import { Logger } from "./utils/logger.js";
 import { CliIOProvider } from "./providers/index.js";
@@ -45,6 +46,13 @@ async function main(): Promise<void> {
     );
 
     console.log(`\n📋 Loaded ${manifest.length} data brokers from manifest`);
+
+    // The state file sits next to the profile. An unreadable one stops the
+    // run here, before any browser opens.
+    const stateStore = await StateStore.load(path.join(path.dirname(cliOptions.profile), "state.json"), profile);
+    if (stateStore.personChanged) {
+      console.log("ℹ️  The state file was written for a different profile; every broker starts as unknown.");
+    }
 
     // Step 4: Load resume data if specified
     const successfulBrokers = await ResumeService.loadSuccessfulBrokers(cliOptions.resume);
@@ -93,7 +101,7 @@ async function main(): Promise<void> {
     const orchestrator = new ExecutionOrchestrator(logger, {
       dryRun: cliOptions.dryRun,
       delayBetweenBrokers: 2000
-    }, ioProvider);
+    }, ioProvider, { stateStore });
 
     await orchestrator.executeAll(filteredBrokers, profile, context);
 

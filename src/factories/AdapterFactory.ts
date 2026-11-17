@@ -1,5 +1,6 @@
 import type { BrokerEntry } from "../types.js";
 import { BaseAdapter } from "../adapters/BaseAdapter.js";
+import type { ListingAdapter } from "../adapters/ListingAdapter.js";
 import { GenericFormAdapter } from "../adapters/GenericFormAdapter.js";
 import { SpokeoAdapter } from "../adapters/sites/SpokeoAdapter.js";
 import { WhitepagesAdapter } from "../adapters/sites/WhitepagesAdapter.js";
@@ -45,6 +46,20 @@ export class AdapterFactory {
       default:
         return new GenericFormAdapter(entry);
     }
+  }
+
+  /**
+   * Create the scan-first adapter for a broker, if it has one.
+   *
+   * A broker with a listing adapter is driven through scan, confirm, request
+   * by ExecutionOrchestrator instead of through `createAdapter(entry).run()`.
+   *
+   * @param _entry - Broker configuration entry
+   * @returns The broker's listing adapter, or null when it has none. No
+   *   broker has one yet; Whitepages is the first (#39).
+   */
+  public static createListingAdapter(_entry: BrokerEntry): ListingAdapter | null {
+    return null;
   }
 
   /**

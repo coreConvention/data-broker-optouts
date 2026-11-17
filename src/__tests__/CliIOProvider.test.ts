@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { BrokerEntry } from "../types.js";
+import type { BrokerEntry, IOProvider } from "../types.js";
+import type { Listing } from "../adapters/ListingAdapter.js";
 
 // Mock the readline-based helpers before importing CliIOProvider
 vi.mock("../utils/human.js", () => ({
@@ -9,6 +10,7 @@ vi.mock("../utils/human.js", () => ({
 
 import { CliIOProvider } from "../providers/CliIOProvider.js";
 import { waitForEnter, promptForCode } from "../utils/human.js";
+import { chooseListings } from "../utils/chooseListings.js";
 
 describe("CliIOProvider", () => {
   let provider: CliIOProvider;
@@ -112,6 +114,87 @@ describe("CliIOProvider", () => {
       };
 
       expect(provider.shouldOpenInBrowser(broker)).toBe(false);
+    });
+  });
+
+  describe("choosing listings (numbered-list fallback)", () => {
+    // Invented listings on a made-up broker.
+    const listings: Listing[] = [
+      { id: "https://broker.example/p/1", url: "https://broker.example/p/1", summary: "Testy McFixture, 30, Nowhere ZZ" },
+      { id: "https://broker.example/p/2", url: "https://broker.example/p/2", summary: "Testy McFixture, 55, Elsewhere ZZ" },
+      { id: "https://broker.example/p/3", url: "https://broker.example/p/3", summary: "T. McFixture, 30, Anywhere ZZ" },
+    ];
+    const request = { broker: "FakeBroker", listings };
+
+    beforeEach(() => {
+      vi.spyOn(console, "log").mockImplementation(() => {});
+    });
+
+    it("has no selectListings of its own, so the fallback is what runs", () => {
+      expect("selectListings" in provider).toBe(false);
+    });
+
+    it("shows every candidate as a numbered line and asks which are the person's", async () => {
+      vi.mocked(promptForCode).mockResolvedValueOnce("none");
+
+      await chooseListings(provider, request);
+
+      const prompt: string = vi.mocked(promptForCode).mock.calls[0]![0];
+      expect(prompt).toContain("1. Testy McFixture, 30, Nowhere ZZ");
+      expect(prompt).toContain("3. T. McFixture, 30, Anywhere ZZ");
+      expect(prompt).toContain("https://broker.example/p/2");
+      expect(prompt).toContain("Which of these are you? e.g. 1,3 or none");
+    });
+
+    it("returns the listings whose numbers were typed", async () => {
+      vi.mocked(promptForCode).mockResolvedValueOnce("1,3");
+      expect(await chooseListings(provider, request)).toEqual([listings[0], listings[2]]);
+    });
+
+    it("accepts spaces, repeats and any order", async () => {
+      vi.mocked(promptForCode).mockResolvedValueOnce(" 3 , 1 3 ");
+      expect(await chooseListings(provider, request)).toEqual([listings[0], listings[2]]);
+    });
+
+    it.each(["none", "NONE", "", "0", "n"])("selects nothing for %j", async (answer) => {
+      vi.mocked(promptForCode).mockResolvedValueOnce(answer);
+      expect(await chooseListings(provider, request)).toEqual([]);
+      expect(promptForCode).toHaveBeenCalledTimes(1);
+    });
+
+    it("asks again after an answer it cannot read", async () => {
+      vi.mocked(promptForCode).mockResolvedValueOnce("the second one").mockResolvedValueOnce("2");
+
+      expect(await chooseListings(provider, request)).toEqual([listings[1]]);
+      expect(promptForCode).toHaveBeenCalledTimes(2);
+    });
+
+    it.each(["4", "1,9", "-1", "1.5", "all", "1,two"])("does not guess from %j", async (answer) => {
+      vi.mocked(promptForCode).mockResolvedValueOnce(answer).mockResolvedValueOnce("none");
+
+      expect(await chooseListings(provider, request)).toEqual([]);
+      expect(promptForCode).toHaveBeenCalledTimes(2);
+    });
+
+    it("selects nothing after three answers it cannot read", async () => {
+      vi.mocked(promptForCode).mockResolvedValue("yes");
+
+      expect(await chooseListings(provider, request)).toEqual([]);
+      expect(promptForCode).toHaveBeenCalledTimes(3);
+    });
+
+    it("does not prompt when there is nothing to choose from", async () => {
+      expect(await chooseListings(provider, { broker: "FakeBroker", listings: [] })).toEqual([]);
+      expect(promptForCode).not.toHaveBeenCalled();
+    });
+
+    it("uses a provider's own selectListings when it has one, ignoring ids that were not shown", async () => {
+      const selectListings = vi.fn().mockResolvedValue(["https://broker.example/p/2", "https://broker.example/p/made-up"]);
+      const io: IOProvider = Object.assign(new CliIOProvider(), { selectListings });
+
+      expect(await chooseListings(io, request)).toEqual([listings[1]]);
+      expect(selectListings).toHaveBeenCalledWith(request);
+      expect(promptForCode).not.toHaveBeenCalled();
     });
   });
 

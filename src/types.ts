@@ -1,3 +1,5 @@
+import type { Listing } from "./adapters/ListingAdapter.js";
+
 export type BrokerRequirement =
   | "online"
   | "email"
@@ -64,7 +66,12 @@ export interface PersonProfile {
 
 export interface OptOutResult {
   site: string;
-  status: "success" | "manual-needed" | "skipped" | "failed";
+  /**
+   * One line of the run log. A broker handled through a listing adapter
+   * reports its broker state (BrokerState); brokers on the older adapter path
+   * still report "success", which only means the adapter did not throw.
+   */
+  status: "success" | "manual-needed" | "skipped" | "failed" | BrokerState;
   message?: string;
   url?: string;
   ts: string;
@@ -113,6 +120,13 @@ export interface IOProvider {
    * orchestrator's log lines already show progress in the terminal.
    */
   reportProgress?(progress: RunProgress): void;
+  /**
+   * Optional: show a broker's candidate listings and return the ids of the
+   * ones the person says are theirs. Nothing selected is the default. Without
+   * it, `chooseListings` (utils/chooseListings.ts) asks through `promptUser`
+   * with a numbered list.
+   */
+  selectListings?(request: { broker: string; listings: Listing[] }): Promise<string[]>;
 }
 
 /**
