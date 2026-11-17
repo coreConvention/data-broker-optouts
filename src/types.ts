@@ -1,4 +1,5 @@
 import type { Listing } from "./adapters/ListingAdapter.js";
+import type { EvidenceStore } from "./services/EvidenceStore.js";
 
 export type BrokerRequirement =
   | "online"
@@ -135,6 +136,11 @@ export interface IOProvider {
  */
 export interface ExecutionContext {
   ioProvider: IOProvider;
+  /**
+   * Where screenshots go. Without it none is taken: no adapter writes an
+   * image anywhere else.
+   */
+  evidence?: EvidenceStore;
 }
 /**
  * What the tool knows about the person's listing at one broker (design plan

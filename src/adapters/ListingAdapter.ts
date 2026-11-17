@@ -16,6 +16,9 @@ import type { ExecutionContext, PendingStep, PersonProfile } from "../types.js";
  * - Each step receives only the profile fields the adapter declared for it.
  * - An adapter takes its base URL from a constructor option so tests can
  *   point it at local fixtures.
+ * - An adapter saves no screenshot. Each step leaves the page it read or
+ *   finished on in the window, and the flow that called it (the orchestrator,
+ *   the verify pass) screenshots that page through the one EvidenceStore.
  */
 
 /** One candidate record on a broker's site. */
@@ -35,8 +38,8 @@ export type ScanResult =
   | { kind: "unknown"; reason: string };
 
 export type RemovalResult =
-  /** `evidence`: path of the confirmation screenshot, relative to the data directory. */
-  | { kind: "requested"; pending?: PendingStep; evidence?: string }
+  /** Without `pending`, the page is left on the broker's confirmation. */
+  | { kind: "requested"; pending?: PendingStep }
   | { kind: "not-completed"; reason: string };
 
 export type VerifyResult =

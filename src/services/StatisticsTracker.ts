@@ -136,7 +136,8 @@ export class StatisticsTracker {
       ["Listed, no request outstanding", this.stats.listed],
       ["Listed again after removal", this.stats.relisted],
       ["Not found when we looked", this.stats.notFound],
-      ["Removed (not found when we looked)", this.stats.removed],
+      // Never "deleted": the tool only knows it looked and did not see the listing.
+      ["Not found when checked after a removal request", this.stats.removed],
       ["Could not tell", this.stats.unknown]
     ];
     for (const [label, count] of listingLines) {

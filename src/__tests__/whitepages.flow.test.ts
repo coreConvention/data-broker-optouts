@@ -13,6 +13,7 @@ import type { Logger } from "../utils/logger.js";
 import { WhitepagesListingAdapter } from "../adapters/sites/WhitepagesListingAdapter.js";
 import { ExecutionOrchestrator } from "../services/ExecutionOrchestrator.js";
 import { StateStore } from "../services/StateStore.js";
+import { EvidenceStore } from "../services/EvidenceStore.js";
 import { verifyBroker } from "../services/VerifyPass.js";
 import type { VerifyPassResult } from "../services/VerifyPass.js";
 
@@ -194,25 +195,28 @@ describe("Whitepages flow against local fixtures", () => {
   }
 
   const newAdapter = (): WhitepagesListingAdapter =>
-    new WhitepagesListingAdapter({ baseUrl, evidenceDir, now: () => clock, navigationTimeoutMs: 10000 });
+    new WhitepagesListingAdapter({ baseUrl, navigationTimeoutMs: 10000 });
 
   const loadStore = (): Promise<StateStore> => StateStore.load(stateFile, profile, { now: () => clock });
 
-  /** One run of the tool: scan, confirm, request. */
-  async function run(answers: string[]): Promise<void> {
+  async function newOrchestrator(answers: string[]): Promise<ExecutionOrchestrator> {
     const logger = {
       append: vi.fn(async (result: OptOutResult) => {
         written.push({ ...result });
       }),
       path: () => "test.jsonl",
     } as unknown as Logger;
-    const orchestrator = new ExecutionOrchestrator(
+    return new ExecutionOrchestrator(
       logger,
       { dryRun: false, delayBetweenBrokers: 0 },
       scriptedIO(answers),
-      { stateStore: await loadStore(), createListingAdapter: () => newAdapter() }
+      { stateStore: await loadStore(), createListingAdapter: () => newAdapter(), evidenceDir, now: () => clock }
     );
-    await orchestrator.executeAll([entry()], profile, context);
+  }
+
+  /** One run of the tool: scan, confirm, request. */
+  async function run(answers: string[]): Promise<void> {
+    await (await newOrchestrator(answers)).executeAll([entry()], profile, context);
   }
 
   /** One verify pass. */
@@ -226,6 +230,7 @@ describe("Whitepages flow against local fixtures", () => {
         profile,
         ioProvider: scriptedIO(answers),
         now: clock,
+        evidence: new EvidenceStore(evidenceDir, () => clock),
       });
     } finally {
       await page.close();
@@ -280,14 +285,18 @@ describe("Whitepages flow against local fixtures", () => {
     expect(record.lastRequestedAt).toBe(T0.toISOString());
     expect(record.verifyAfter).toBe(new Date(T0.getTime() + 3 * DAY).toISOString());
 
-    // One evidence file, named by broker and time, never by person.
+    // Two evidence files, the listing as found and the confirmation, named by
+    // broker and time, never by person. Both are real images.
     const files = await evidenceFiles();
-    expect(files).toEqual(["20261117T180000-request.png"]);
-    expect(record.history.at(-1)).toMatchObject({
-      event: "request",
-      result: "requested",
-      evidence: "evidence/whitepages/20261117T180000-request.png",
-    });
+    expect(files).toEqual(["20261117T180000-request.png", "20261117T180000-scan.png"]);
+    for (const file of files) {
+      const image = await fs.readFile(path.join(evidenceDir, "whitepages", file));
+      expect(image.subarray(1, 4).toString("ascii")).toBe("PNG");
+    }
+    expect(record.history.map((line) => [line.event, line.result, line.evidence])).toEqual([
+      ["scan", "listed", "evidence/whitepages/20261117T180000-scan.png"],
+      ["request", "requested", "evidence/whitepages/20261117T180000-request.png"],
+    ]);
     expect(written[0]).toMatchObject({ status: "requested" });
   });
 
@@ -324,11 +333,18 @@ describe("Whitepages flow against local fixtures", () => {
     scenario.search = "none";
     const result = await verify();
 
-    expect(result).toEqual({ kind: "verified", state: "removed" });
+    expect(result).toEqual({ kind: "verified", state: "removed", removed: 1, listed: 0, unknown: 0, attempts: 0 });
     const record = await saved();
     expect(record.state).toBe("removed");
     expect(record.lastVerifiedAt).toBe(clock.toISOString());
     expect(record.nextCheckDue).toBe(new Date(clock.getTime() + 90 * DAY).toISOString());
+    // The check's own screenshot sits beside the earlier two.
+    expect(await evidenceFiles()).toContain("20261121T180000-verify.png");
+    expect(record.history.at(-1)).toMatchObject({
+      event: "verify",
+      result: "removed",
+      evidence: "evidence/whitepages/20261121T180000-verify.png",
+    });
     // Verify loaded the listing address, then repeated the scan, and submitted nothing.
     expect(requests.slice(-2).map((r) => `${r.method} ${r.path}`)).toEqual([`GET ${SECOND}`, "GET /name/Testy-McFixture/ZZ"]);
     expect(suppressionRequests().filter((r) => r.method === "POST")).toHaveLength(1);
@@ -416,7 +432,8 @@ describe("Whitepages flow against local fixtures", () => {
     expect(record.state).toBe("listed");
     expect(record.listings[0]).toMatchObject({ state: "listed", pending: "phone-call", requestAttempts: 1 });
     expect(record.verifyAfter).toBeNull();
-    expect(await evidenceFiles()).toEqual([]);
+    // The listing as found, and no confirmation: there was none to capture.
+    expect(await evidenceFiles()).toEqual(["20261117T180000-scan.png"]);
   });
 
   it("a refused suppression page types nothing and leaves the listing listed", async () => {
@@ -438,8 +455,26 @@ describe("Whitepages flow against local fixtures", () => {
     scenario.listing = "present";
     const result = await verify();
 
-    expect(result).toEqual({ kind: "verified", state: "listed" });
+    expect(result).toEqual({ kind: "verified", state: "listed", removed: 0, listed: 1, unknown: 0, attempts: 1 });
     expect((await saved()).listings[0]).toMatchObject({ state: "listed", requestAttempts: 1 });
+  });
+
+  it("the verify command checks Whitepages through the orchestrator and submits nothing", async () => {
+    await requestSecondListing();
+    written = [];
+
+    clock = new Date(T0.getTime() + 4 * DAY);
+    scenario.listing = "gone";
+    scenario.search = "none";
+    await (await newOrchestrator([])).verifyAll([entry()], profile, context);
+
+    expect((await saved()).state).toBe("removed");
+    expect(written).toHaveLength(1);
+    expect(written[0]).toMatchObject({ site: "Whitepages", status: "removed" });
+    expect(written[0]!.message).toMatch(/^1 listing\(s\) not found when checked on \d{4}-\d{2}-\d{2}\.$/);
+    expect(requests.slice(-2).map((r) => `${r.method} ${r.path}`)).toEqual([`GET ${SECOND}`, "GET /name/Testy-McFixture/ZZ"]);
+    expect(suppressionRequests().filter((r) => r.method === "POST")).toHaveLength(1);
+    expect(await evidenceFiles()).toContain("20261121T180000-verify.png");
   });
 
   it("after the window, a gone address that is still in the search results stays listed", async () => {
@@ -450,7 +485,7 @@ describe("Whitepages flow against local fixtures", () => {
     scenario.search = "one";
     const result = await verify();
 
-    expect(result).toEqual({ kind: "verified", state: "listed" });
+    expect(result).toMatchObject({ kind: "verified", state: "listed" });
   });
 
   it("after the window, a blocked rescan gives unknown, not removed", async () => {
@@ -461,7 +496,7 @@ describe("Whitepages flow against local fixtures", () => {
     scenario.search = "challenge";
     const result = await verify([""]);
 
-    expect(result).toEqual({ kind: "verified", state: "unknown" });
+    expect(result).toMatchObject({ kind: "verified", state: "unknown", removed: 0, unknown: 1 });
   });
 
   it("case 8: the state file and evidence folder are matched by .gitignore", () => {

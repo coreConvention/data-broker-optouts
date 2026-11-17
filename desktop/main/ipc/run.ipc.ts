@@ -9,6 +9,12 @@ interface RunOptions {
   headful?: boolean;
   stealth?: boolean;
   dryRun?: boolean;
+  /**
+   * Run the verify pass instead of the scan-and-request run: check the
+   * requests whose waiting period has passed, and submit nothing. The
+   * button that sets it is the renderer's work (#45).
+   */
+  verify?: boolean;
   filter?: string[];
   exclude?: string[];
   limit?: number;
@@ -145,8 +151,12 @@ export function registerRunHandlers(
       }, electronIOProvider, { stateStore, evidenceDir: path.join(dataPath, 'evidence') });
       currentOrchestrator = orchestrator;
 
-      // Execute all broker opt-outs
-      await orchestrator.executeAll(brokers, profile, context);
+      // Check the requests that are due, or execute all broker opt-outs
+      if (options.verify) {
+        await orchestrator.verifyAll(brokers, profile, context);
+      } else {
+        await orchestrator.executeAll(brokers, profile, context);
+      }
 
       // Get statistics from the orchestrator
       const stats = orchestrator.getStatistics().getStatistics();

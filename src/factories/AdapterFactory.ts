@@ -58,16 +58,12 @@ export class AdapterFactory {
    * by ExecutionOrchestrator instead of through `createAdapter(entry).run()`.
    *
    * @param entry - Broker configuration entry
-   * @param options - evidenceDir: folder for confirmation screenshots
    * @returns The broker's listing adapter, or null when it has none
    */
-  public static createListingAdapter(
-    entry: BrokerEntry,
-    options: { evidenceDir?: string } = {}
-  ): ListingAdapter | null {
+  public static createListingAdapter(entry: BrokerEntry): ListingAdapter | null {
     switch (entry.adapter) {
       case "Whitepages":
-        return new WhitepagesListingAdapter(options);
+        return new WhitepagesListingAdapter();
 
       default:
         return null;

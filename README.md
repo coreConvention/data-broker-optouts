@@ -2,7 +2,7 @@
 
 A Playwright-based tool that walks you through opt-out requests at **74 data broker and marketing opt-out pages**, 46 of them people-search sites. It opens each broker's official opt-out page, fills in what it safely can, and pauses for you to do the rest: finding your listing, CAPTCHAs, and email or phone verification.
 
-> ⚠️ **What this tool is and is not:** it is a guided assistant, not a removal service. It only visits official opt-out pages and it never solves a CAPTCHA for you. It does not check afterwards that a listing is gone; you have to do that yourself (see [What "success" means](#what-success-means)).
+> ⚠️ **What this tool is and is not:** it is a guided assistant, not a removal service. It only visits official opt-out pages and it never solves a CAPTCHA for you. For Whitepages it can look again later and tell you whether the listing you asked to have removed is still there (see [Checking that a listing is gone](#verify)). For every other broker it does not check afterwards; you have to do that yourself (see [What "success" means](#what-success-means)).
 
 ## Why This Matters
 
@@ -17,7 +17,9 @@ Data brokers collect and sell personal information — home addresses, phone num
 - **Generic adapter** for the other 68 entries: opens the opt-out page and hands over to you. It types and clicks nothing unless the entry is marked `verified: true`, meaning a person has checked its CSS selectors against the live page; no entry in the shipped manifest is marked verified yet, so today every one of these is a page you finish by hand
 - **Human-in-the-Loop**: Pauses for CAPTCHA solving, email verification, and manual steps
 - **Progress Tracking**: Real-time progress indicators and a summary report
-- **Error Handling**: Retry with exponential backoff, plus a screenshot on failure. Screenshots are saved to `./logs/*.png` and **can show your name, address, phone number or email**; treat that folder as private and delete it when you are done
+- **Verify pass**: `--verify` goes back to the listings you asked to have removed, once the broker's waiting period has passed, and records whether each one is still published. It sends no removal request (see [Checking that a listing is gone](#verify))
+- **Error Handling**: Retry with exponential backoff, plus a screenshot on failure
+- **One private screenshot folder**: every screenshot the tool takes goes to `data/evidence/` (see [Evidence folder](#evidence)). They **can show your name, address, phone number or email**; treat that folder as private
 - **Audit Logging**: Timestamped JSONL logs of every attempt
 
 ### Advanced Features ⚡
@@ -68,6 +70,8 @@ LiveRamp, Lotame, Tapad, ShareThis, Unacast (Gravy Analytics), YellowPages
 ### What "success" means
 
 A `success` line in the log means **the steps for that broker ran without an error**. It does not mean the broker removed your record, and the tool does not go back to check. Because `--resume` skips every broker already logged as `success`, re-run without `--resume` when you want to repeat a broker.
+
+Whitepages is the exception: it is handled through a search for your listing, so its log line is a state (`not-found`, `listed`, `requested`, `removed`, `relisted` or `unknown`), not `success`, and `--verify` goes back to check a request. Even there, `removed` means "not found when checked on that date", never "deleted".
 
 After a run, search each site for yourself again a week or two later, and repeat every few months: brokers re-list people when they receive new records.
 
@@ -147,6 +151,30 @@ npm run start:dry-run
 <a id="dry-run"></a>
 > **What a dry run still does.** It sends no removal request and writes nothing to the state file. For most brokers it contacts nothing at all. For a broker the tool can search for your listing (Whitepages today), it still opens that broker's name search, which sends your **name and state** to the broker, and asks which listings are yours, so it can tell you what it would request. The start-up output names each broker that will be searched. To try the tool without contacting any broker, leave those out: `npm run start:dry-run -- --exclude Whitepages`.
 
+<a id="verify"></a>
+#### Checking that a listing is gone
+
+```bash
+npm start -- --verify
+```
+
+A removal request is a request, not a removal. After you have asked a broker to remove a listing, wait out its stated period (three days for Whitepages), then run the verify pass. For each listing with a request outstanding it loads the listing's address, and if the address is gone it repeats the name search, because a listing can move to a new address. It sends no removal request and fills in no form. Like the search, it sends your **name and state** to the broker.
+
+What it records for each listing:
+
+- **Not found when checked on that date.** The address was gone and the search did not show it. This is what the tool means by `removed`: it looked and did not see the listing. It cannot know that the broker deleted anything, and listings do come back.
+- **Still published**, with how many removal requests that listing has now had, so a broker that ignores you is visible. Run the tool again without `--verify` to ask again.
+- **Could not tell** (the site refused the page or showed a bot check). The request stays outstanding and the next verify pass looks again. A look that could not tell is never recorded as gone.
+
+A request still inside its waiting period is not loaded; the tool tells you the day it can be checked. A request you could not finish (the verification call never came, the emailed link was not clicked) is not a request yet: the listing stays `listed`, and the verify pass says so instead of checking it. `--verify --dry-run` names what would be checked and contacts no broker. Today only Whitepages has a verify pass, and its page selectors are not yet confirmed against the live site.
+
+<a id="evidence"></a>
+#### Evidence folder
+
+Every screenshot the tool takes goes to one folder: `data/evidence/<broker>/<date and time>-<event>.png` (the desktop app keeps the same folder under its data directory). The events are `scan` (your listing as the tool found it, taken once you have said which listing is yours), `request` (the broker's confirmation page), `verify` (the listing's page at each later check) and `error` (the page an adapter failed on). File names carry the broker and the time, never your name, and the state file records which screenshot belongs to which step.
+
+The images themselves show whatever the page showed, which usually includes your name and address, and a search page can show other people with the same name. The folder is ignored by git, nothing in it is uploaded or sent anywhere, and the tool never deletes it. Keep it for as long as you want proof of what you asked for and when; delete it when you do not. On a shared or monitored computer, a folder of screenshots of your own listings is itself something to protect.
+
 #### Advanced CLI Options
 
 The tool supports powerful filtering and control options:
@@ -187,6 +215,7 @@ npm start -- --filter "True,Fast,Check" --limit 10 --dry-run
 | `--filter` | string | - | Filter brokers (comma-separated names) |
 | `--exclude` | string | - | Exclude brokers (comma-separated names) |
 | `--dry-run` | boolean | false | Send no removal request. Brokers with a listing search are still searched for your name (see [Dry run](#dry-run)) |
+| `--verify` | boolean | false | Check the removal requests whose waiting period has passed. Sends no removal request (see [Checking that a listing is gone](#verify)) |
 | `--resume` | string | - | Resume from log file |
 | `--limit` | number | - | Limit number of brokers to process |
 
@@ -223,7 +252,7 @@ Opt-out pages move and brokers shut down, so the manifest goes stale. `npm run c
    - Solve CAPTCHAs
    - Verify email confirmations
    - Complete any manual steps
-5. **Error Handling**: Retries failed requests and captures screenshots (saved to `./logs`; they can show your personal details)
+5. **Error Handling**: Retries failed requests and captures screenshots (saved to `data/evidence/`; they can show your personal details)
 6. **Audit Trail**: Logs all attempts with timestamps and status. `success` means the steps ran without error, not that the record was removed
 
 ### Terminal Output Example
@@ -308,7 +337,7 @@ export class NewBrokerAdapter extends BaseAdapter {
 
 ### Error Troubleshooting
 
-**Screenshots**: Check `./logs/` for error screenshots with timestamps. They are full-page captures of the opt-out page as it was when the error happened, so they can contain your name, address, phone number or email. Do not attach them to a public issue without checking, and delete them when you no longer need them
+**Screenshots**: Check `data/evidence/<broker>/` for files ending in `-error.png`. They are full-page captures of the opt-out page as it was when the error happened, so they can contain your name, address, phone number or email. Do not attach them to a public issue without checking, and delete them when you no longer need them
 
 **Audit Logs**: Review JSONL files for detailed error messages:
 ```bash
@@ -362,7 +391,7 @@ Total brokers processed: 20
 - **No telemetry or tracking** - completely open source
 - **Your credentials are never stored** - only profile data you provide
 - **Audit logs are local** - review and delete as needed
-- **Error screenshots are local too, and sensitive** - `./logs/*.png` can show the personal details you entered on a form; keep the folder private and delete it when you are done
+- **Screenshots are local too, and sensitive** - everything under `data/evidence/` can show your listing or the personal details you entered on a form; keep the folder private (see [Evidence folder](#evidence))
 
 ## 🤝 Contributing
 
@@ -422,6 +451,6 @@ This tool is provided as-is for legal privacy protection purposes. Always:
 - Use only on official opt-out pages
 - Read each website's Terms of Service; stealth mode, which is on by default, disguises the automated browser (see [Stealth mode](#stealth-mode)), and some sites do not allow automated access
 - Solve CAPTCHAs and verification steps yourself; the tool never does this for you
-- Check for yourself that a listing is gone; a `success` in the log is not proof of removal
+- Check for yourself that a listing is gone; a `success` in the log is not proof of removal, and `--verify` covers only brokers the tool can search (Whitepages today)
 
 **This tool is not affiliated with any data broker or removal service.**

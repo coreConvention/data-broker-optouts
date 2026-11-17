@@ -13,6 +13,8 @@ export interface CliOptions {
   filter?: string;
   exclude?: string;
   dryRun: boolean;
+  /** Run the verify pass instead of the scan-and-request run. */
+  verify: boolean;
   resume?: string;
   limit?: number;
 }
@@ -21,10 +23,11 @@ export interface CliOptions {
  * Parse command-line arguments using yargs
  * Single Responsibility: CLI argument parsing only
  *
+ * @param args - The arguments to parse; the process's own by default (tests pass theirs)
  * @returns Parsed and validated CLI options
  */
-export async function parseCliArguments(): Promise<CliOptions> {
-  const argv = await yargs(hideBin(process.argv))
+export async function parseCliArguments(args: string[] = hideBin(process.argv)): Promise<CliOptions> {
+  const argv = await yargs(args)
     .option("manifest", {
       type: "string",
       demandOption: true,
@@ -58,6 +61,12 @@ export async function parseCliArguments(): Promise<CliOptions> {
       default: false,
       description: "Send no removal request (brokers with a listing search are still searched for your name)"
     })
+    .option("verify", {
+      type: "boolean",
+      default: false,
+      description:
+        "Check the removal requests whose waiting period has passed; sends no removal request"
+    })
     .option("resume", {
       type: "string",
       description: "Resume from previous log file, skip successful brokers"
@@ -70,6 +79,7 @@ export async function parseCliArguments(): Promise<CliOptions> {
     .example("$0 --filter 'Spokeo,Whitepages' --headful", "Run only Spokeo and Whitepages")
     .example("$0 --exclude 'BeenVerified,Intelius' --headful", "Run all except BeenVerified and Intelius")
     .example("$0 --dry-run --headful", "Run without sending any removal request")
+    .example("$0 --verify", "Check whether the listings you asked to have removed are gone")
     .example("$0 --resume optouts-2025-11-05.jsonl --headful", "Resume from previous run")
     .help()
     .parse();
@@ -82,6 +92,7 @@ export async function parseCliArguments(): Promise<CliOptions> {
     ...(argv.filter !== undefined && { filter: argv.filter }),
     ...(argv.exclude !== undefined && { exclude: argv.exclude }),
     dryRun: argv["dry-run"],
+    verify: argv.verify,
     ...(argv.resume !== undefined && { resume: argv.resume }),
     ...(argv.limit !== undefined && { limit: argv.limit }),
   };

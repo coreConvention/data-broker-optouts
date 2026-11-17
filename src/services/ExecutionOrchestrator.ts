@@ -4,11 +4,15 @@ import { Logger } from "../utils/logger.js";
 import { AdapterFactory } from "../factories/AdapterFactory.js";
 import { StatisticsTracker } from "./StatisticsTracker.js";
 import type { StateStore, RequestOutcome } from "./StateStore.js";
+import { EvidenceStore } from "./EvidenceStore.js";
+import type { EvidenceEvent } from "./EvidenceStore.js";
+import { verifyBroker, verifyStatus } from "./VerifyPass.js";
 import { pickProfileFields } from "../adapters/ListingAdapter.js";
 import type { ListingAdapter, Listing, RemovalResult, ScanResult } from "../adapters/ListingAdapter.js";
 import { chooseListings } from "../utils/chooseListings.js";
 import { describeFailure } from "../utils/describeFailure.js";
 import { describeFields } from "../utils/dryRunNotice.js";
+import { formatDay } from "../utils/formatDay.js";
 
 /**
  * Options for execution orchestrator
@@ -27,8 +31,19 @@ export interface ExecutionDependencies {
   stateStore?: StateStore;
   /** Defaults to AdapterFactory.createListingAdapter; tests pass a fake or a fixture-backed adapter. */
   createListingAdapter?: (entry: BrokerEntry) => ListingAdapter | null;
-  /** Folder for confirmation screenshots, handed to listing adapters made by the default factory. */
+  /**
+   * The evidence folder (`data/evidence`, or the same folder under the desktop
+   * app's data directory). Screenshots are taken only when it is given.
+   */
   evidenceDir?: string;
+  /** Clock for the verify pass and for screenshot file names; tests set it. */
+  now?: () => Date;
+}
+
+/** A broker in a verify pass: its manifest entry and its listing adapter. */
+export interface VerifyTarget {
+  entry: BrokerEntry;
+  adapter: ListingAdapter;
 }
 
 /**
@@ -46,6 +61,8 @@ export class ExecutionOrchestrator {
   private isPaused = false;
   private stateStore: StateStore | undefined;
   private createListingAdapter: (entry: BrokerEntry) => ListingAdapter | null;
+  private evidence: EvidenceStore | undefined;
+  private now: () => Date;
 
   constructor(
     logger: Logger,
@@ -59,12 +76,9 @@ export class ExecutionOrchestrator {
     this.ioProvider = ioProvider;
     this.stateStore = dependencies.stateStore;
     this.createListingAdapter =
-      dependencies.createListingAdapter ??
-      ((entry) =>
-        AdapterFactory.createListingAdapter(
-          entry,
-          dependencies.evidenceDir ? { evidenceDir: dependencies.evidenceDir } : {}
-        ));
+      dependencies.createListingAdapter ?? ((entry) => AdapterFactory.createListingAdapter(entry));
+    this.now = dependencies.now ?? (() => new Date());
+    this.evidence = dependencies.evidenceDir ? new EvidenceStore(dependencies.evidenceDir, this.now) : undefined;
   }
 
   /**
@@ -146,6 +160,187 @@ export class ExecutionOrchestrator {
     }
 
     this.statistics.printReport(totalBrokers);
+  }
+
+  /**
+   * The verify pass for every broker in the list that has a request
+   * outstanding (design plan section 5.2). This is `--verify` on the CLI and
+   * the entry point the desktop app calls. It submits nothing.
+   *
+   * A broker is checked only once its waiting period has passed. One still
+   * inside it is named with the day it can be checked; a request waiting on a
+   * step only the person can do is named as that, and stays "listed".
+   *
+   * A dry run names what would be checked, loads nothing and writes nothing.
+   *
+   * @param brokers - Broker entries to consider; those without a listing adapter are ignored
+   * @param profile - User profile data (the repeat scan needs the adapter's scan fields)
+   * @param context - Browser context
+   */
+  public async verifyAll(brokers: BrokerEntry[], profile: PersonProfile, context: BrowserContext): Promise<void> {
+    await this.verifyDue(this.verifyTargets(brokers), profile, context);
+  }
+
+  /**
+   * Run the verify pass for brokers `verifyTargets` returned. Split from
+   * `verifyAll` so a caller can look at what is due before opening a browser.
+   *
+   * @param due - The brokers to check, from `verifyTargets`
+   * @param profile - User profile data
+   * @param context - Browser context
+   */
+  public async verifyDue(due: VerifyTarget[], profile: PersonProfile, context: BrowserContext): Promise<void> {
+    if (due.length === 0) {
+      this.ioProvider.log("info", "No removal request is ready to check.");
+      return;
+    }
+
+    for (let i = 0; i < due.length; i++) {
+      if (await this.checkPauseAndStop()) {
+        this.ioProvider.log("warn", "Run stopped by user.");
+        break;
+      }
+
+      const target = due[i]!;
+      this.ioProvider.log("info", `\n[${i + 1}/${due.length}] Checking: ${target.entry.name}`);
+      this.ioProvider.reportProgress?.({
+        current: i,
+        total: due.length,
+        broker: target.entry.name,
+        status: "processing"
+      });
+
+      const result = await this.verifyOne(target, profile, context);
+      this.ioProvider.reportProgress?.({
+        current: i + 1,
+        total: due.length,
+        broker: target.entry.name,
+        status: result.status,
+        ...(result.message ? { message: result.message } : {})
+      });
+
+      if (i < due.length - 1) {
+        await this.delayBetweenBrokers();
+      }
+    }
+
+    this.statistics.printReport(due.length);
+  }
+
+  /**
+   * The brokers whose requests the verify pass can check now. For the others
+   * that have a request, it says why they are not checked yet. Loads nothing.
+   *
+   * @param brokers - Broker entries to consider
+   * @returns The brokers that are due, in the order given
+   */
+  public verifyTargets(brokers: BrokerEntry[]): VerifyTarget[] {
+    const store = this.requireStateStore("The verify pass");
+    const now = this.now();
+    const due: VerifyTarget[] = [];
+
+    for (const entry of brokers) {
+      const adapter = this.createListingAdapter(entry);
+      if (!adapter) continue;
+
+      const record = store.getBroker(adapter.brokerId);
+      const status = verifyStatus(record, now);
+      if (status === "due") {
+        due.push({ entry, adapter });
+      } else if (status === "waiting") {
+        const from = record.verifyAfter ? `from ${formatDay(record.verifyAfter)}` : "later";
+        this.ioProvider.log("info", `${entry.name}: the removal request can be checked ${from}.`);
+      }
+
+      const waitingOnPerson = record.listings.filter((listing) => listing.pending !== null).length;
+      if (waitingOnPerson > 0) {
+        this.ioProvider.log(
+          "warn",
+          `${entry.name}: ${waitingOnPerson} request(s) still waiting on a step only you can do ` +
+            "(an emailed link or a phone call). There is nothing to check until that is done; " +
+            "run the tool without --verify to make the request again."
+        );
+      }
+    }
+    return due;
+  }
+
+  /** The verify pass for one broker that is due, written to the run log and counted. */
+  private async verifyOne(
+    target: VerifyTarget,
+    profile: PersonProfile,
+    context: BrowserContext
+  ): Promise<OptOutResult> {
+    const { entry, adapter } = target;
+    const store = this.requireStateStore("The verify pass");
+    const result = this.createBaseResult(entry);
+    const before = store.getBroker(adapter.brokerId);
+    const outstanding = before.listings.filter((listing) => listing.state === "requested").length;
+
+    if (this.options.dryRun) {
+      await this.finishBroker(
+        result,
+        before.state,
+        `[DRY RUN] Would check ${outstanding} listing(s). Nothing was loaded.`,
+        "info"
+      );
+      return result;
+    }
+
+    // The check loads the listing address and repeats the search, and both
+    // carry the person's name. Say so, with field names only.
+    this.ioProvider.log(
+      "info",
+      `Loading the address of ${outstanding} listing(s) at ${entry.name}, then repeating the search, ` +
+        `which sends your ${describeFields(adapter.fields.scan)}. Nothing is submitted.`
+    );
+
+    const now = this.now();
+    try {
+      const page = await context.newPage();
+      try {
+        const outcome = await verifyBroker({
+          adapter,
+          store,
+          page,
+          profile,
+          ioProvider: this.ioProvider,
+          now,
+          ...(this.evidence ? { evidence: this.evidence } : {})
+        });
+        if (outcome.kind === "not-due") {
+          await this.finishBroker(result, before.state, "Nothing was ready to check.", "info");
+          return result;
+        }
+
+        // "removed" is only ever "not found when checked on <date>": the tool
+        // looked and did not see the listing, which is all it can know.
+        const day = formatDay(now);
+        const parts: string[] = [];
+        if (outcome.removed > 0) {
+          parts.push(`${outcome.removed} listing(s) not found when checked on ${day}.`);
+        }
+        if (outcome.listed > 0) {
+          parts.push(
+            `${outcome.listed} listing(s) still published when checked on ${day}, after ` +
+              `${outcome.attempts} removal request(s); run the tool without --verify to ask again.`
+          );
+        }
+        if (outcome.unknown > 0) {
+          parts.push(
+            `Could not tell for ${outcome.unknown} listing(s) on ${day}; they will be checked again next time.`
+          );
+        }
+        await this.finishBroker(result, outcome.state, parts.join(" "), outcome.state === "removed" ? "success" : "warn");
+      } finally {
+        await page.close().catch(() => undefined);
+      }
+    } catch (error) {
+      // Opening the page or saving the state file failed. The error's text is
+      // not passed on: it can quote a listing address or a local path.
+      await this.finishBroker(result, "failed", `${describeFailure("the check", error)}. Nothing was submitted.`, "error");
+    }
+    return result;
   }
 
   /**
@@ -280,8 +475,7 @@ export class ExecutionOrchestrator {
     result: OptOutResult
   ): Promise<void> {
     const adapter = AdapterFactory.createAdapter(entry);
-    const execContext: ExecutionContext = { ioProvider: this.ioProvider };
-    const outcome = await adapter.run(context, profile, execContext);
+    const outcome = await adapter.run(context, profile, this.executionContext());
 
     // The adapter opened the page but did not submit anything itself
     // (unverified entry, or the page did not look like the opt-out form).
@@ -323,13 +517,10 @@ export class ExecutionOrchestrator {
     context: BrowserContext,
     result: OptOutResult
   ): Promise<void> {
-    const store = this.stateStore;
-    if (!store) {
-      throw new Error(`${entry.name} needs the state file, but no state store was given to the run.`);
-    }
+    const store = this.requireStateStore(entry.name);
     const dryRun = this.options.dryRun;
     const tag = dryRun ? "[DRY RUN] " : "";
-    const execContext: ExecutionContext = { ioProvider: this.ioProvider };
+    const execContext = this.executionContext();
     const page = await context.newPage();
 
     try {
@@ -402,10 +593,13 @@ export class ExecutionOrchestrator {
         return;
       }
 
-      let record = store.recordScan(adapter.brokerId, {
-        kind: "found",
-        listings: chosen.map(({ id, url }) => ({ id, url }))
-      });
+      // The page still shows what the scan found: the confirmed listing as found.
+      const scanEvidence = await this.captureEvidence(page, adapter.brokerId, "scan");
+      let record = store.recordScan(
+        adapter.brokerId,
+        { kind: "found", listings: chosen.map(({ id, url }) => ({ id, url })) },
+        scanEvidence ? { evidence: scanEvidence } : {}
+      );
       await store.save();
 
       const requestFields = pickProfileFields(profile, adapter.fields.request);
@@ -426,9 +620,14 @@ export class ExecutionOrchestrator {
           removal.kind === "requested"
             ? { kind: "requested", ...(removal.pending ? { pending: removal.pending } : {}) }
             : { kind: "not-completed" };
+        // A finished request leaves the broker's confirmation in the window.
+        const confirmation =
+          removal.kind === "requested" && !removal.pending
+            ? await this.captureEvidence(page, adapter.brokerId, "request")
+            : null;
         record = store.recordRequest(adapter.brokerId, listing.id, outcome, {
           removalWindowDays: adapter.removalWindowDays,
-          ...(removal.kind === "requested" && removal.evidence ? { evidence: removal.evidence } : {})
+          ...(confirmation ? { evidence: confirmation } : {})
         });
         // Saved after every request: a crash must not forget one that was sent.
         await store.save();
@@ -478,12 +677,36 @@ export class ExecutionOrchestrator {
     }
   }
 
+  /** What adapters are handed: the way to reach the person, and where screenshots go. */
+  private executionContext(): ExecutionContext {
+    return { ioProvider: this.ioProvider, ...(this.evidence ? { evidence: this.evidence } : {}) };
+  }
+
+  private requireStateStore(what: string): StateStore {
+    if (!this.stateStore) {
+      throw new Error(`${what} needs the state file, but no state store was given to the run.`);
+    }
+    return this.stateStore;
+  }
+
+  /** Save a screenshot through the evidence store, if the run has one. */
+  private async captureEvidence(page: Page, broker: string, event: EvidenceEvent): Promise<string | null> {
+    if (!this.evidence) {
+      return null;
+    }
+    const saved = await this.evidence.capture(page, broker, event);
+    if (!saved) {
+      this.ioProvider.log("warn", "A screenshot could not be saved.");
+    }
+    return saved;
+  }
+
   /** Set a listing-flow broker's outcome, write it to the run log and count it. */
   private async finishBroker(
     result: OptOutResult,
     status: OptOutResult["status"],
     message: string,
-    level: "info" | "warn" | "success"
+    level: "info" | "warn" | "success" | "error"
   ): Promise<void> {
     result.status = status;
     result.message = message;

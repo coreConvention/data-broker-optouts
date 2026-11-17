@@ -19,7 +19,7 @@ export type { ExecutionStatistics } from "./StatisticsTracker.js";
 
 // Execution Orchestration
 export { ExecutionOrchestrator } from "./ExecutionOrchestrator.js";
-export type { ExecutionOptions } from "./ExecutionOrchestrator.js";
+export type { ExecutionOptions, VerifyTarget } from "./ExecutionOrchestrator.js";
 
 // Configuration Loading
 export { ConfigLoader } from "./ConfigLoader.js";
@@ -29,5 +29,9 @@ export { StateStore, StateFileError, personHash } from "./StateStore.js";
 export type { StateStoreOptions, ScanOutcome, RequestOutcome, VerifyOutcome } from "./StateStore.js";
 
 // Verify Pass
-export { verifyBroker } from "./VerifyPass.js";
+export { verifyBroker, verifyStatus } from "./VerifyPass.js";
 export type { VerifyPassResult } from "./VerifyPass.js";
+
+// Evidence Folder
+export { EvidenceStore } from "./EvidenceStore.js";
+export type { EvidenceEvent } from "./EvidenceStore.js";

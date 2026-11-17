@@ -1,5 +1,3 @@
-import { promises as fs } from "fs";
-import path from "path";
 import type { Locator, Page, Response } from "@playwright/test";
 import type { ExecutionContext, PersonProfile } from "../../types.js";
 import type { Listing, ListingAdapter, RemovalResult, ScanResult, VerifyResult } from "../ListingAdapter.js";
@@ -37,10 +35,6 @@ const SITE = {
 export interface WhitepagesOptions {
   /** Site root. Tests point this at a local server; the default is the live site. */
   baseUrl?: string;
-  /** Folder for confirmation screenshots (the data directory's `evidence`). None are taken without it. */
-  evidenceDir?: string;
-  /** Clock, used for screenshot file names. */
-  now?: () => Date;
   navigationTimeoutMs?: number;
 }
 
@@ -57,6 +51,9 @@ export interface WhitepagesOptions {
  *   verification call.
  * - Verify: loads the listing address and says whether it is still there.
  *
+ * It saves no screenshot itself: each step leaves its page in the window for
+ * the flow to capture (see ListingAdapter).
+ *
  * The search sends the person's name and state, which is what they would type
  * into the site's own search box. Nothing else from the profile is used.
  */
@@ -66,14 +63,10 @@ export class WhitepagesListingAdapter implements ListingAdapter {
   public readonly fields: ListingAdapter["fields"] = { scan: ["fullName", "state"], request: [] };
 
   private readonly origin: string;
-  private readonly evidenceDir: string | undefined;
-  private readonly now: () => Date;
   private readonly timeout: number;
 
   constructor(options: WhitepagesOptions = {}) {
     this.origin = new URL(options.baseUrl ?? DEFAULT_BASE_URL).origin;
-    this.evidenceDir = options.evidenceDir;
-    this.now = options.now ?? (() => new Date());
     this.timeout = options.navigationTimeoutMs ?? 30000;
   }
 
@@ -140,8 +133,8 @@ export class WhitepagesListingAdapter implements ListingAdapter {
     const reply = answer.trim().toLowerCase();
 
     if (["done", "yes", "y", "finished"].includes(reply)) {
-      const evidence = await this.screenshot(page, "request", ctx);
-      return { kind: "requested", ...(evidence ? { evidence } : {}) };
+      // The confirmation stays in the window for the flow to screenshot.
+      return { kind: "requested" };
     }
     if (["call", "no call", "nocall"].includes(reply)) {
       return { kind: "requested", pending: "phone-call" };
@@ -317,27 +310,5 @@ export class WhitepagesListingAdapter implements ListingAdapter {
       }
     }
     return matches.length === 1 ? matches[0]! : null;
-  }
-
-  /**
-   * Save a screenshot under the evidence folder and return its path relative
-   * to the data directory. The file name carries the broker and the time,
-   * never the person's name. A failed screenshot does not undo the request.
-   */
-  private async screenshot(page: Page, event: string, ctx: ExecutionContext): Promise<string | null> {
-    if (!this.evidenceDir) {
-      return null;
-    }
-    const stamp = this.now().toISOString().replace(/[-:]/g, "").replace(/\.\d+Z$/, "");
-    const fileName = `${stamp}-${event}.png`;
-    try {
-      const folder = path.join(this.evidenceDir, this.brokerId);
-      await fs.mkdir(folder, { recursive: true });
-      await page.screenshot({ path: path.join(folder, fileName), fullPage: true });
-      return `evidence/${this.brokerId}/${fileName}`;
-    } catch {
-      ctx.ioProvider.log("warn", "Whitepages: the confirmation screenshot could not be saved.");
-      return null;
-    }
   }
 }

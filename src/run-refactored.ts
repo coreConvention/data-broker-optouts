@@ -17,6 +17,7 @@
 import { parseCliArguments } from "./config/index.js";
 import path from "path";
 import { ConfigLoader, BrokerFilter, ResumeService, ExecutionOrchestrator, StateStore } from "./services/index.js";
+import type { VerifyTarget } from "./services/index.js";
 import { AdapterFactory, BrowserFactory } from "./factories/index.js";
 import { Logger } from "./utils/logger.js";
 import { CliIOProvider } from "./providers/index.js";
@@ -85,13 +86,35 @@ async function main(): Promise<void> {
       process.exit(0);
     }
 
-    // Step 10: Print execution configuration. A dry run still searches the
-    // brokers that have a listing adapter, so they are named up front (#63).
-    const searched: SearchedBroker[] = filteredBrokers.flatMap((entry) => {
-      const adapter = AdapterFactory.createListingAdapter(entry);
-      return adapter ? [{ broker: entry.name, fields: adapter.fields.scan }] : [];
+    const ioProvider = new CliIOProvider();
+    const orchestrator = new ExecutionOrchestrator(logger, {
+      dryRun: cliOptions.dryRun,
+      delayBetweenBrokers: 2000
+    }, ioProvider, {
+      stateStore,
+      evidenceDir: path.join(path.dirname(cliOptions.profile), "evidence")
     });
-    printExecutionConfig(profile, cliOptions, logger.path(), searched);
+
+    // Step 10: Print execution configuration. The verify pass is a run of
+    // its own: it checks requests already made and sends nothing, and the
+    // browser opens only when a request is ready to check.
+    let verifyDue: VerifyTarget[] | null = null;
+    if (cliOptions.verify) {
+      printVerifyConfig(profile, cliOptions.dryRun, logger.path());
+      verifyDue = orchestrator.verifyTargets(filteredBrokers);
+      if (verifyDue.length === 0) {
+        console.log("\nNo removal request is ready to check.");
+        return;
+      }
+    } else {
+      // A dry run still searches the brokers that have a listing adapter, so
+      // they are named up front (#63).
+      const searched: SearchedBroker[] = filteredBrokers.flatMap((entry) => {
+        const adapter = AdapterFactory.createListingAdapter(entry);
+        return adapter ? [{ broker: entry.name, fields: adapter.fields.scan }] : [];
+      });
+      printExecutionConfig(profile, cliOptions, logger.path(), searched);
+    }
 
     // Step 11: Create browser and context
     const { browser, context } = await BrowserFactory.createBrowserWithContext({
@@ -103,17 +126,12 @@ async function main(): Promise<void> {
       console.log(`🥷 Stealth configurations applied`);
     }
 
-    // Step 12: Execute opt-outs
-    const ioProvider = new CliIOProvider();
-    const orchestrator = new ExecutionOrchestrator(logger, {
-      dryRun: cliOptions.dryRun,
-      delayBetweenBrokers: 2000
-    }, ioProvider, {
-      stateStore,
-      evidenceDir: path.join(path.dirname(cliOptions.profile), "evidence")
-    });
-
-    await orchestrator.executeAll(filteredBrokers, profile, context);
+    // Step 12: Check the requests that are due, or execute opt-outs
+    if (verifyDue) {
+      await orchestrator.verifyDue(verifyDue, profile, context);
+    } else {
+      await orchestrator.executeAll(filteredBrokers, profile, context);
+    }
 
     // Step 13: Cleanup
     await context.close();
@@ -177,6 +195,21 @@ function printExecutionConfig(
     }
   }
 
+  console.log(`📝 Log file: ${logPath}`);
+  console.log("\n" + "=".repeat(60) + "\n");
+}
+
+/**
+ * Print what a verify pass is about to do
+ */
+function printVerifyConfig(profile: PersonProfile, dryRun: boolean, logPath: string): void {
+  console.log(`👤 Profile: ${describeProfile(profile)}`);
+  console.log("🔎 Verify pass: checking removal requests whose waiting period has passed.");
+  console.log("   No removal request is sent. A listing that is gone is recorded as");
+  console.log("   \"not found when checked\", which is all a look can tell.");
+  if (dryRun) {
+    console.log("🧪 DRY RUN MODE: no broker will be contacted and nothing will be recorded.");
+  }
   console.log(`📝 Log file: ${logPath}`);
   console.log("\n" + "=".repeat(60) + "\n");
 }
