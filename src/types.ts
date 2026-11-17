@@ -25,7 +25,7 @@ export interface BrokerEntry {
   category?: BrokerCategory;
   removalUrl?: string | null;
   requirements: BrokerRequirement[];
-  adapter: "generic" | "Spokeo" | "Whitepages" | "Nuwber" | "Radaris" | "BeenVerified" | "Intelius" | "MyLife";
+  adapter: "generic" | "Spokeo" | "Whitepages" | "Nuwber" | "BeenVerified" | "Intelius" | "MyLife";
   notes?: string | null;
   humanInteraction?: HumanInteractionMode;
   /**
