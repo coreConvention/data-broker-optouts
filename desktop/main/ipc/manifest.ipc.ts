@@ -22,9 +22,9 @@ interface ManifestUpdateInfo {
   modified: string[];
 }
 
-// GitHub raw URL for manifest - update with actual repo
+// GitHub raw URL for manifest
 const GITHUB_RAW_URL =
-  'https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/data-broker-optouts/main/data/manifest.json';
+  'https://raw.githubusercontent.com/coreConvention/data-broker-optouts/main/data/manifest.json';
 
 let lastChecked: string | null = null;
 let cachedRemoteManifest: Broker[] | null = null;
