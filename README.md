@@ -199,7 +199,7 @@ It does **not** solve or skip CAPTCHAs, log in for you, or defeat a full challen
 npm start -- --stealth=false
 ```
 
-With stealth off the fake plugin list, languages and user agent are gone, but the browser is still started with Chromium's `AutomationControlled` flag disabled, so it is not yet a fully undisguised browser.
+With stealth off none of that is applied: the browser is started with no disguise flags and reports Chromium's own user agent.
 
 #### Checking the manifest for dead links
 
