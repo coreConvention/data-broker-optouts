@@ -56,7 +56,7 @@ export async function parseCliArguments(): Promise<CliOptions> {
     .option("dry-run", {
       type: "boolean",
       default: false,
-      description: "Simulate run without actually submitting"
+      description: "Send no removal request (brokers with a listing search are still searched for your name)"
     })
     .option("resume", {
       type: "string",
@@ -69,7 +69,7 @@ export async function parseCliArguments(): Promise<CliOptions> {
     .example("$0 --manifest data/manifest.json --profile data/profile.json --headful", "Run in visible mode")
     .example("$0 --filter 'Spokeo,Whitepages' --headful", "Run only Spokeo and Whitepages")
     .example("$0 --exclude 'BeenVerified,Intelius' --headful", "Run all except BeenVerified and Intelius")
-    .example("$0 --dry-run --headful", "Test run without submitting")
+    .example("$0 --dry-run --headful", "Run without sending any removal request")
     .example("$0 --resume optouts-2025-11-05.jsonl --headful", "Resume from previous run")
     .help()
     .parse();

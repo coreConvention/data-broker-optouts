@@ -304,6 +304,33 @@ describe("ExecutionOrchestrator scan-confirm-request flow", () => {
     await expect(fs.access(stateFile)).rejects.toThrow();
   });
 
+  // A dry run still searches the broker, so it has to say so (issue #63).
+  it("a dry run says the broker is being searched and what the search sends", async () => {
+    const adapter = fakeAdapter({ kind: "not-found" });
+    const io = scriptedIO();
+
+    await run(adapter, io, { dryRun: true });
+
+    const lines: string[] = vi.mocked(io.log).mock.calls.map(([, message]) => String(message));
+    const notice = lines.find((line) => line.includes("Searching FakeBroker"));
+    expect(notice).toBeDefined();
+    expect(notice).toContain("[DRY RUN]");
+    expect(notice).toContain("your name and state");
+    expect(notice).toContain("No removal request will be sent");
+    // Field names only, never what they hold.
+    expect(notice).not.toContain(profile.fullName);
+    expect(notice).not.toContain(profile.state!);
+  });
+
+  it("a real run does not print the dry-run search notice", async () => {
+    const io = scriptedIO();
+
+    await run(fakeAdapter({ kind: "not-found" }), io);
+
+    const lines: string[] = vi.mocked(io.log).mock.calls.map(([, message]) => String(message));
+    expect(lines.some((line) => line.includes("[DRY RUN]"))).toBe(false);
+  });
+
   it("keeps listing addresses, summaries and profile values out of the run log and progress", async () => {
     const adapter = fakeAdapter({ kind: "found", listings: [first, second] });
     const io = scriptedIO(["2"]);

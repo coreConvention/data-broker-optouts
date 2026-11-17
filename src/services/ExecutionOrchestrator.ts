@@ -8,6 +8,7 @@ import { pickProfileFields } from "../adapters/ListingAdapter.js";
 import type { ListingAdapter, Listing, RemovalResult, ScanResult } from "../adapters/ListingAdapter.js";
 import { chooseListings } from "../utils/chooseListings.js";
 import { describeFailure } from "../utils/describeFailure.js";
+import { describeFields } from "../utils/dryRunNotice.js";
 
 /**
  * Options for execution orchestrator
@@ -332,6 +333,17 @@ export class ExecutionOrchestrator {
     const page = await context.newPage();
 
     try {
+      if (dryRun) {
+        // A dry run still searches the broker, and the search carries the
+        // person's name. Say so, with field names only, where the desktop
+        // app's log view shows it too (issue #63).
+        this.ioProvider.log(
+          "info",
+          `[DRY RUN] Searching ${entry.name} for your listing. The search sends your ` +
+            `${describeFields(adapter.fields.scan)}. No removal request will be sent.`
+        );
+      }
+
       let scan: ScanResult;
       try {
         scan = await adapter.findListings(page, pickProfileFields(profile, adapter.fields.scan), execContext);
