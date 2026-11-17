@@ -1,6 +1,7 @@
 import { chromium, type Browser, type BrowserContext } from "@playwright/test";
 import {
   applyStealthToContext,
+  getMachineLocale,
   getRealisticUserAgent,
   getRealisticViewport,
   getStealthLaunchArgs
@@ -53,6 +54,7 @@ export class BrowserFactory {
     const viewport = config.stealth
       ? getRealisticViewport()
       : { width: 1280, height: 900 };
+    const stealthLocale = getMachineLocale();
 
     const context = await browser.newContext({
       viewport,
@@ -64,12 +66,14 @@ export class BrowserFactory {
       // With stealth on the timezone is left unset as well: a fixed New York
       // timezone that does not match where the person's connection comes from
       // is a common bot-detection signal, so the machine's own is the better
-      // disguise (#56). The locale stays en-US because the stealth script
-      // reports a fixed ['en-US', 'en'] language list, and the two must agree.
+      // disguise (#56). The language follows the machine for the same reason
+      // (#58), but it is passed explicitly: given no locale, a headless
+      // Chromium sends no Accept-Language header at all. The stealth script
+      // builds its language list from the same value, so the two agree.
       ...(config.stealth
         ? {
             userAgent: getRealisticUserAgent(),
-            locale: 'en-US'
+            locale: stealthLocale
           }
         : {}),
       permissions: [],
@@ -79,7 +83,7 @@ export class BrowserFactory {
 
     // Apply stealth scripts if enabled
     if (config.stealth) {
-      await applyStealthToContext(context);
+      await applyStealthToContext(context, stealthLocale);
     }
 
     return context;

@@ -24,11 +24,41 @@ export const defaultStealthConfig: StealthConfig = {
 };
 
 /**
- * Apply stealth configurations to a browser context
+ * The machine's own language as a browser locale, for example `de-DE`.
+ *
+ * Read in Node and handed to the browser as its `locale`, because a headless
+ * Chromium that is given no locale sends no Accept-Language header at all,
+ * which gives the disguise away faster than any fixed language would (#58).
  */
-export async function applyStealthToContext(context: BrowserContext, config: StealthConfig = defaultStealthConfig): Promise<void> {
+export function getMachineLocale(): string {
+  const locale = new Intl.Locale(Intl.DateTimeFormat().resolvedOptions().locale);
+  return locale.region ? `${locale.language}-${locale.region}` : locale.language;
+}
+
+/**
+ * The `navigator.languages` list a desktop Chrome reports for a locale: the
+ * locale itself, then its bare language (`de-DE` gives `['de-DE', 'de']`).
+ */
+export function languageListFor(locale: string): string[] {
+  const language = locale.split('-')[0]!;
+  return language === locale ? [locale] : [locale, language];
+}
+
+/**
+ * Apply stealth configurations to a browser context
+ *
+ * @param locale - The locale the context was created with. The language list
+ *   the page sees is built from it, so `navigator.language`,
+ *   `navigator.languages` and the Accept-Language header name the same
+ *   language (#58).
+ */
+export async function applyStealthToContext(
+  context: BrowserContext,
+  locale: string,
+  _config: StealthConfig = defaultStealthConfig
+): Promise<void> {
   // Add initialization script to mask automation indicators
-  await context.addInitScript(() => {
+  await context.addInitScript((languages: string[]) => {
     // Override navigator.webdriver
     Object.defineProperty(navigator, 'webdriver', {
       get: () => undefined,
@@ -51,9 +81,10 @@ export async function applyStealthToContext(context: BrowserContext, config: Ste
       },
     });
 
-    // Mock languages
+    // Headless Chromium reports a one-entry language list; a desktop Chrome
+    // also lists the bare language.
     Object.defineProperty(navigator, 'languages', {
-      get: () => ['en-US', 'en'],
+      get: () => languages,
     });
 
     // Mock permissions
@@ -77,24 +108,7 @@ export async function applyStealthToContext(context: BrowserContext, config: Ste
       }
       return originalDebug.apply(console, args);
     };
-  });
-}
-
-/**
- * Apply stealth configurations to a specific page
- */
-export async function applyStealthToPage(page: Page, _config: StealthConfig = defaultStealthConfig): Promise<void> {
-  // Set extra HTTP headers to match a real browser
-  await page.setExtraHTTPHeaders({
-    'Accept-Language': 'en-US,en;q=0.9',
-    'Accept-Encoding': 'gzip, deflate, br',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-    'Sec-Fetch-Site': 'none',
-    'Sec-Fetch-Mode': 'navigate',
-    'Sec-Fetch-User': '?1',
-    'Sec-Fetch-Dest': 'document',
-    'Upgrade-Insecure-Requests': '1',
-  });
+  }, languageListFor(locale));
 }
 
 /**
