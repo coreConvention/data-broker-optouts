@@ -5,13 +5,6 @@ import type { AdapterOutcome, BrokerEntry, PersonProfile } from "../types.js";
 /** Words that show a page is about getting a record removed. */
 const OPT_OUT_WORDING = /\bopt(?:ing|ed)?[\s-]*out\b|\bremov(?:e|al|ed|ing)\b|\bsuppress(?:ion|ed|ing)?\b|\bdelet(?:e|ion|ed|ing)\b/i;
 
-/**
- * Submit labels that belong to some other form. Taken from what the adapter
- * would have clicked on live pages before issue #25 ("Subscribe Now" on a
- * marketing sign-up form, "Search" on a site search box).
- */
-const WRONG_PURPOSE_LABEL = /subscribe|sign\s*-?\s*up|newsletter|search|log\s*-?\s*in|sign\s*-?\s*in/i;
-
 /** How long to wait for a verified entry's submit control to appear. */
 const FORM_WAIT_MS = 30_000;
 
@@ -56,7 +49,11 @@ export class GenericFormAdapter extends BaseAdapter {
       return this.handOver("This page does not mention opt-out, removal, suppression or deletion, so nothing was typed or clicked for you.");
     }
 
-    const form: Locator | null = await this.findOptOutForm(page, fields.map(f => f.selector), sel.submit);
+    // The first form that visibly holds every configured field and the
+    // configured submit control (per-form matching shared via BaseAdapter).
+    const form: Locator | undefined = (await this.findCandidateForms(
+      page, fields.map(f => [f.selector]), { submitSelector: sel.submit, requireEveryField: true }
+    ))[0];
     if (!form) {
       return this.handOver("No single form on this page holds both the expected fields and an opt-out submit button, so nothing was typed or clicked for you.");
     }
@@ -156,44 +153,9 @@ export class GenericFormAdapter extends BaseAdapter {
     return OPT_OUT_WORDING.test(text);
   }
 
-  /**
-   * Finds the one <form> that visibly holds every configured field and a
-   * submit control that is not another form's button (newsletter, search,
-   * login). Matching per form, instead of taking the first match on the page,
-   * is what keeps a loose selector like `input[type='email']` from landing in
-   * a marketing sign-up form that happens to come first.
-   */
-  private async findOptOutForm(page: Page, fieldSelectors: string[], submitSelector: string): Promise<Locator | null> {
-    const forms: Locator = page.locator("form");
-    const count: number = await forms.count();
-
-    for (let i = 0; i < count; i++) {
-      const form: Locator = forms.nth(i);
-      const submit: Locator = form.locator(submitSelector).first();
-      if (!(await submit.isVisible())) continue;
-      if (WRONG_PURPOSE_LABEL.test(await this.controlLabel(submit))) continue;
-
-      let hasEveryField = true;
-      for (const selector of fieldSelectors) {
-        if (!(await form.locator(selector).first().isVisible())) { hasEveryField = false; break; }
-      }
-      if (hasEveryField) return form;
-    }
-    return null;
-  }
-
-  /** The text a person would read on a button or submit input. */
-  private async controlLabel(control: Locator): Promise<string> {
-    return control.evaluate((el: Element) =>
-      [el.textContent, el.getAttribute("value"), el.getAttribute("aria-label"), el.getAttribute("title")]
-        .filter(Boolean)
-        .join(" ")
-    );
-  }
-
   private async isSafeToSubmit(submit: Locator, filled: ElementHandle[]): Promise<boolean> {
     if (!(await submit.isVisible())) return false;
-    if (WRONG_PURPOSE_LABEL.test(await this.controlLabel(submit))) return false;
+    if (this.isWrongPurposeLabel(await this.controlLabel(submit))) return false;
     return submit.evaluate(
       (el: Element, fields: Node[]) => {
         const form = el.closest("form");

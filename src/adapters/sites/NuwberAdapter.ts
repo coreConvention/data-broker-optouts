@@ -21,7 +21,7 @@ export class NuwberAdapter extends BaseAdapter {
     );
 
     this.ioProvider.log("info", "[Nuwber] Attempting to auto-fill form fields...");
-    await this.tryFillField(page, BaseAdapter.EMAIL_SELECTORS, profile.email, "Email", 2000);
+    await this.tryFillField(page, BaseAdapter.EMAIL_SELECTORS, profile.email, "Email");
 
     // Check for agreement checkbox
     const checkboxSelectors = [
@@ -29,19 +29,7 @@ export class NuwberAdapter extends BaseAdapter {
       "input[type='checkbox'][name*='confirm']",
       "input[type='checkbox'][id*='agree']",
     ];
-    for (const selector of checkboxSelectors) {
-      try {
-        const checkbox = page.locator(selector).first();
-        if (await checkbox.isVisible({ timeout: 1500 })) {
-          const isChecked = await checkbox.isChecked();
-          if (!isChecked) {
-            await checkbox.check();
-            this.ioProvider.log("info", "[Nuwber] Agreement checkbox checked");
-          }
-          break;
-        }
-      } catch {}
-    }
+    await this.tryCheckBox(page, checkboxSelectors, "Agreement checkbox");
 
     await this.ioProvider.waitForConfirmation(
       "\n[Nuwber] STEP 2: Complete the opt-out request:\n" +

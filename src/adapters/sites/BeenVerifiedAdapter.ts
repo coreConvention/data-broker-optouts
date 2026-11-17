@@ -16,13 +16,15 @@ export class BeenVerifiedAdapter extends BaseAdapter {
     const firstName = nameParts[0] || "";
     const lastName = nameParts.slice(1).join(" ") || "";
 
-    await this.tryFillField(page, BaseAdapter.FIRST_NAME_SELECTORS, firstName, "First name");
-    await this.tryFillField(page, BaseAdapter.LAST_NAME_SELECTORS, lastName, "Last name");
+    // This step fills the broker's own record search, so a "Search" button is expected.
+    const searchStep = { allowSearchForm: true };
+    await this.tryFillField(page, BaseAdapter.FIRST_NAME_SELECTORS, firstName, "First name", searchStep);
+    await this.tryFillField(page, BaseAdapter.LAST_NAME_SELECTORS, lastName, "Last name", searchStep);
     if (profile.city) {
-      await this.tryFillField(page, BaseAdapter.CITY_SELECTORS, profile.city, "City", 1000);
+      await this.tryFillField(page, BaseAdapter.CITY_SELECTORS, profile.city, "City", searchStep);
     }
     if (profile.state) {
-      await this.tryFillStateField(page, BaseAdapter.STATE_SELECTORS, profile.state);
+      await this.tryFillStateField(page, BaseAdapter.STATE_SELECTORS, profile.state, searchStep);
     }
 
     await this.ioProvider.waitForConfirmation(
@@ -46,7 +48,7 @@ export class BeenVerifiedAdapter extends BaseAdapter {
     );
 
     this.ioProvider.log("info", "[BeenVerified] Attempting to auto-fill opt-out form...");
-    await this.tryFillField(page, BaseAdapter.EMAIL_SELECTORS, profile.email, "Email", 2000);
+    await this.tryFillField(page, BaseAdapter.EMAIL_SELECTORS, profile.email, "Email");
 
     await this.ioProvider.waitForConfirmation(
       "\n[BeenVerified] STEP 3: Complete opt-out request:\n" +

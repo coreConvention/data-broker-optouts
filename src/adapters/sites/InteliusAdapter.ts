@@ -22,7 +22,7 @@ export class InteliusAdapter extends BaseAdapter {
     );
 
     this.ioProvider.log("info", "[Intelius] Attempting to auto-fill email field...");
-    await this.tryFillField(page, BaseAdapter.EMAIL_SELECTORS, profile.email, "Email", 2000);
+    await this.tryFillField(page, BaseAdapter.EMAIL_SELECTORS, profile.email, "Email");
 
     await this.ioProvider.waitForConfirmation(
       "\n[Intelius] STEP 2: Search for your records:\n" +
@@ -34,12 +34,14 @@ export class InteliusAdapter extends BaseAdapter {
       { broker: this.entry.name }
     );
 
-    await this.tryFillField(page, BaseAdapter.NAME_SELECTORS, profile.fullName, "Name");
+    // This step fills the broker's own record search, so a "Search" button is expected.
+    const searchStep = { allowSearchForm: true };
+    await this.tryFillField(page, BaseAdapter.NAME_SELECTORS, profile.fullName, "Name", searchStep);
     if (profile.city) {
-      await this.tryFillField(page, BaseAdapter.CITY_SELECTORS, profile.city, "City", 1000);
+      await this.tryFillField(page, BaseAdapter.CITY_SELECTORS, profile.city, "City", searchStep);
     }
     if (profile.state) {
-      await this.tryFillStateField(page, BaseAdapter.STATE_SELECTORS, profile.state);
+      await this.tryFillStateField(page, BaseAdapter.STATE_SELECTORS, profile.state, searchStep);
     }
 
     await this.ioProvider.waitForConfirmation(

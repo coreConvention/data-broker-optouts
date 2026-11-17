@@ -22,12 +22,12 @@ export class SpokeoAdapter extends BaseAdapter {
     );
 
     this.ioProvider.log("info", "[Spokeo] Attempting to auto-fill email field...");
-    const emailFilled = await this.tryFillField(page, BaseAdapter.EMAIL_SELECTORS, profile.email, "Email", 2000);
+    const emailFilled = await this.tryFillField(page, BaseAdapter.EMAIL_SELECTORS, profile.email, "Email");
     if (!emailFilled) {
       this.ioProvider.log("warn", "[Spokeo] Could not auto-fill email. You may need to enter it manually.");
     }
 
-    await this.tryFillField(page, BaseAdapter.NAME_SELECTORS, profile.fullName, "Name", 1000);
+    await this.tryFillField(page, BaseAdapter.NAME_SELECTORS, profile.fullName, "Name");
 
     await this.ioProvider.waitForConfirmation(
       "\n[Spokeo] STEP 2: Complete the opt-out request:\n" +
