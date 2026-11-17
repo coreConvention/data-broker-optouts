@@ -1,9 +1,0 @@
-{
-  "fullName": "John Doe",
-  "city": "New York",
-  "state": "NY",
-  "zip": "10001",
-  "email": "johndoe@example.com",
-  "phone": null,
-  "address": null
-}

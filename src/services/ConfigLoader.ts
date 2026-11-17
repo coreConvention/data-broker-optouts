@@ -44,6 +44,13 @@ export class ConfigLoader {
 
       return validated;
     } catch (error) {
+      // The profile is personal data and is never committed, so a fresh
+      // checkout has none: point at the template instead of a bare ENOENT.
+      if ((error as NodeJS.ErrnoException)?.code === "ENOENT") {
+        throw new Error(
+          `Profile not found at ${filePath}. Copy data/profile.example.json to data/profile.json and fill in your details.`
+        );
+      }
       if (error instanceof Error) {
         throw new Error(`Failed to load profile from ${filePath}: ${error.message}`);
       }
