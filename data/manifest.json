@@ -27,7 +27,7 @@
   {
     "name": "FastPeopleSearch",
     "category": "people-search",
-    "removalUrl": "https://www.fastpeoplesearch.com/removal",
+    "removalUrl": "https://www.fastpeoplesearch.com/optout",
     "requirements": [
       "online",
       "captcha",
@@ -112,7 +112,7 @@
   {
     "name": "SmartBackgroundChecks",
     "category": "people-search",
-    "removalUrl": "https://www.smartbackgroundchecks.com/optout",
+    "removalUrl": "https://www.smartbackgroundchecks.com/remove",
     "requirements": [
       "online",
       "email-verification"
@@ -184,10 +184,11 @@
   {
     "name": "USPhoneBook",
     "category": "people-search",
-    "removalUrl": "https://www.usphonebook.com/opt-out",
+    "removalUrl": "https://www.usphonebook.com/removal",
     "requirements": [
       "online",
-      "captcha"
+      "captcha",
+      "email-verification"
     ],
     "adapter": "generic",
     "config": {
@@ -198,7 +199,7 @@
       },
       "postSubmitWaitMs": 3000
     },
-    "notes": "Provide phone number or email to opt out. CAPTCHA required."
+    "notes": "Enter your name and email address and complete the CAPTCHA. The site emails a link to the opt-out form; the link expires after 24 hours."
   },
   {
     "name": "PeopleSearchNow",
@@ -288,38 +289,28 @@
   {
     "name": "SearchQuarry",
     "category": "people-search",
-    "removalUrl": "https://www.searchquarry.com/opt-out",
-    "requirements": [
-      "online",
-      "email-verification"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Public records search. Must search for record first."
-  },
-  {
-    "name": "SearchBug",
-    "category": "people-search",
-    "removalUrl": "https://www.searchbug.com/peoplefinder/protect-my-privacy.aspx",
+    "removalUrl": "https://www.searchquarry.com/privacy-choices/",
     "requirements": [
       "online"
     ],
     "adapter": "generic",
     "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
       "postSubmitWaitMs": 3000
     },
-    "notes": "Privacy protection form for people finder."
+    "notes": "Privacy choices page: turns off the site's advertising tags and explains how to send privacy requests about SearchQuarry member accounts. The page says SearchQuarry no longer sells new memberships and that its reports now come from TruthFinder and BeenVerified, whose records it cannot change, so also do the PeopleConnect and BeenVerified opt-outs."
+  },
+  {
+    "name": "SearchBug",
+    "category": "people-search",
+    "removalUrl": "https://www.searchbug.com/privacy-requests.aspx",
+    "requirements": [
+      "online"
+    ],
+    "adapter": "generic",
+    "config": {
+      "postSubmitWaitMs": 3000
+    },
+    "notes": "Privacy requests hub. Choose 'Opt-Out / Do Not Sell' and press 'Submit opt-out request': that suppresses your record from Searchbug's public people search and opens the contact form where the request is sent. The page says no photo ID is needed for an opt-out. 'Request Deletion' on the same page is for Searchbug account holders and does need photo ID."
   },
   {
     "name": "PeopleByName",
@@ -358,19 +349,16 @@
   {
     "name": "PrivateRecords",
     "category": "people-search",
-    "removalUrl": "https://www.privaterecords.net/help",
+    "removalUrl": "https://www.privaterecords.net/api/helper/optOutLight/search?type=removal",
     "requirements": [
-      "email-only"
+      "online",
+      "email-verification"
     ],
     "adapter": "generic",
     "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
       "postSubmitWaitMs": 3000
     },
-    "notes": "Public records database. No dedicated opt-out form - you must email their help desk directly to request removal."
+    "notes": "Privacy requests page, opened on 'Remove My Information', which stops results for a person being returned. It asks for the person's name, date of birth, city, state and ZIP, plus an email address or phone number, and needs one confirmation click afterwards. The other option on the page, 'Your Privacy Choices', only stops selling and sharing; it does not remove a listing."
   },
   {
     "name": "PropertyRecords",
@@ -392,18 +380,15 @@
   {
     "name": "Classmates",
     "category": "people-search",
-    "removalUrl": "https://www.classmates.com/siteui/account/settings/privacy",
+    "removalUrl": "https://help.classmates.com/hc/en-us/requests/new",
     "requirements": [
       "online"
     ],
     "adapter": "generic",
     "config": {
-      "selectors": {
-        "submit": "button:has-text('Delete'), a:has-text('Delete')"
-      },
       "postSubmitWaitMs": 3000
     },
-    "notes": "Requires login. Delete account to remove information."
+    "notes": "Classmates' request form (Classmates is run by PeopleConnect, Inc.). Choose 'State Law Data Privacy Request' to ask for deletion or to opt out of the sale or sharing of your information; the privacy policy says you can also email privacy@classmates.com. They will ask for some details to match the request to your profile. Members can instead cancel their account from the Help Center article 'How can I cancel my membership?'."
   },
   {
     "name": "Acxiom",
@@ -459,19 +444,16 @@
   },
   {
     "name": "YellowPages",
-    "category": "people-search",
-    "removalUrl": "https://www.yellowpages.com/account/privacy",
+    "category": "ad-tech",
+    "removalUrl": "https://www.yellowpages.com/about/ccpa-yp",
     "requirements": [
       "online"
     ],
     "adapter": "generic",
     "config": {
-      "selectors": {
-        "submit": "button:has-text('Suppress'), button:has-text('Remove')"
-      },
       "postSubmitWaitMs": 3000
     },
-    "notes": "Business and residential directory. Account required."
+    "notes": "Yellowpages.com (owned by Thryv) is a business directory; its 'Find People' link now sends you to Intelius, which the PeopleConnect entry covers. This page has a 'Do Not Sell or Share My Personal Information' button that stops ad-network sharing for this browser only: it is stored in a cookie, so repeat it in each browser and after clearing cookies. No account needed. For access or deletion requests, Thryv's privacy notice (thryv.com/privacy) links to a separate request form."
   },
   {
     "name": "VoterRecords",
@@ -570,9 +552,11 @@
   {
     "name": "USAPeopleSearch",
     "category": "people-search",
-    "removalUrl": "https://www.usa-people-search.com/manage",
+    "removalUrl": "https://www.usa-people-search.com/removal",
     "requirements": [
-      "online"
+      "online",
+      "captcha",
+      "email-verification"
     ],
     "adapter": "generic",
     "config": {
@@ -583,7 +567,7 @@
       },
       "postSubmitWaitMs": 3000
     },
-    "notes": "Free people search directory. Manage/remove your listing using phone number or email."
+    "notes": "Enter your name and email address and complete the CAPTCHA. The site emails a link to the opt-out form; the link expires after 24 hours."
   },
   {
     "name": "Unmask",
@@ -640,25 +624,15 @@
   {
     "name": "DataAxle (InfoUSA/Donnelley)",
     "category": "marketing",
-    "removalUrl": "https://www.data.com/consumer/optout",
+    "removalUrl": "https://www.data-axle.com/privacy-rights-request/",
     "requirements": [
-      "online",
-      "email-verification"
+      "online"
     ],
     "adapter": "generic",
     "config": {
-      "selectors": {
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "email": "input[type='email']",
-        "address": "input[name='address'], input[placeholder*='Address']",
-        "city": "input[name='city']",
-        "state": "select[name='state']",
-        "zip": "input[name='zip']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
       "postSubmitWaitMs": 3000
     },
-    "notes": "MAJOR DATA BROKER. Formerly InfoUSA/Donnelley Marketing. Provides data to direct marketers. Full address required for opt-out. Alternative: call 1-866-478-2673 or email optout@data.com"
+    "notes": "MAJOR DATA BROKER. Formerly InfoUSA/Donnelley Marketing. Provides data to direct marketers. Data Axle's own Consumer Privacy Rights Request form: name, full postal address, email and phone are required; pick 'opt out of the sale or sharing' (or deletion) under Privacy Choice. The site's footer link 'Do Not Sell or Share My Data' leads to this same form. Privacy contact listed in the policy: privacyteam@data-axle.com."
   },
   {
     "name": "Clearview AI",
@@ -703,19 +677,15 @@
   {
     "name": "AncestryFree (RootsWeb)",
     "category": "people-search",
-    "removalUrl": "https://support.ancestry.com/s/article/Removing-Personal-Information",
+    "removalUrl": "https://help.ancestry.com/hc/en-us/articles/53933317038099-Requesting-Content-Removal",
     "requirements": [
-      "online",
-      "account-required"
+      "online"
     ],
     "adapter": "generic",
     "config": {
-      "selectors": {
-        "submit": "button[type='submit'], a:has-text('Delete')"
-      },
       "postSubmitWaitMs": 3000
     },
-    "notes": "Genealogy and family tree data. Must have an account to delete data. Navigate to account settings to delete. Contact support at 1-800-262-3787 for data removal without an account."
+    "notes": "Ancestry's help article on content removal (RootsWeb is run by Ancestry). Its 'Request content removal' link opens a report form where you can report information about you or your living minor children. Ancestry also lists privacy@ancestry.com and usprivacyrequests@ancestry.com for privacy requests. If you have an Ancestry account, trees you created are removed from your own account settings instead."
   },
   {
     "name": "DMAChoice (Direct Marketing Association)",
@@ -865,19 +835,16 @@
   {
     "name": "LiveRamp",
     "category": "ad-tech",
-    "removalUrl": "https://liveramp.com/opt_out/",
+    "removalUrl": "https://liveramp.com/privacy/my-privacy-choices",
     "requirements": [
-      "online"
+      "online",
+      "captcha"
     ],
     "adapter": "generic",
     "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
       "postSubmitWaitMs": 5000
     },
-    "notes": "MAJOR DATA BROKER. One of the largest data onboarding/identity resolution platforms. Connects offline data to digital identities. Cookie-based opt-out plus email-based opt-out for offline data."
+    "notes": "MAJOR DATA BROKER. One of the largest data onboarding/identity resolution platforms. Connects offline data to digital identities. This page offers three opt-outs. 'Opt Out as a Consumer, Agent, or Parent/Guardian/Conservator' opens a request form (first and last name, email, CAPTCHA) and covers every identifier LiveRamp links to you; it is open to everyone in the US. The other two cover only one mobile device's advertising ID or one browser's cookie."
   },
   {
     "name": "Tapad",
@@ -892,18 +859,15 @@
   {
     "name": "Lotame",
     "category": "ad-tech",
-    "removalUrl": "https://www.lotame.com/about-lotame/privacy/opt-out/",
+    "removalUrl": "https://www.lotame.com/privacy/information-privacy-choices-services/",
     "requirements": [
       "online"
     ],
     "adapter": "generic",
     "config": {
-      "selectors": {
-        "submit": "button[type='submit'], a:has-text('Opt Out'), input[type='submit']"
-      },
       "postSubmitWaitMs": 3000
     },
-    "notes": "Data management platform (DMP). Collects and sells audience data for advertising. Cookie-based opt-out."
+    "notes": "Data management platform (DMP), now part of Epsilon. Collects and sells audience data for advertising. This page explains each way to opt out: Lotame's Browser Opt-Out Tool (lotame-optout.com) sets an opt-out cookie for one browser, and requests tied to an email address or device ID go through Epsilon's privacy request form (legal.epsilon.com/dsr). Ignore the newsletter sign-up box on the page: it is not part of the opt-out."
   },
   {
     "name": "ShareThis",
@@ -1024,7 +988,7 @@
   {
     "name": "FastBackgroundCheck",
     "category": "people-search",
-    "removalUrl": "https://www.fastbackgroundcheck.com/opt-out",
+    "removalUrl": "https://www.fastbackgroundcheck.com/optout",
     "requirements": [
       "online",
       "email-verification"
