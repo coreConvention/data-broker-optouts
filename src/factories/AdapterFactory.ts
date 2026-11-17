@@ -4,7 +4,6 @@ import { GenericFormAdapter } from "../adapters/GenericFormAdapter.js";
 import { SpokeoAdapter } from "../adapters/sites/SpokeoAdapter.js";
 import { WhitepagesAdapter } from "../adapters/sites/WhitepagesAdapter.js";
 import { NuwberAdapter } from "../adapters/sites/NuwberAdapter.js";
-import { RadarisAdapter } from "../adapters/sites/RadarisAdapter.js";
 import { BeenVerifiedAdapter } from "../adapters/sites/BeenVerifiedAdapter.js";
 import { InteliusAdapter } from "../adapters/sites/InteliusAdapter.js";
 import { MyLifeAdapter } from "../adapters/sites/MyLifeAdapter.js";
@@ -33,9 +32,6 @@ export class AdapterFactory {
       case "Nuwber":
         return new NuwberAdapter(entry);
 
-      case "Radaris":
-        return new RadarisAdapter(entry);
-
       case "BeenVerified":
         return new BeenVerifiedAdapter(entry);
 
@@ -63,7 +59,6 @@ export class AdapterFactory {
       "Spokeo",
       "Whitepages",
       "Nuwber",
-      "Radaris",
       "BeenVerified",
       "Intelius",
       "MyLife"

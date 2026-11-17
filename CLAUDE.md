@@ -5,7 +5,7 @@ Playwright-based tool that guides opt-out requests at 74 data broker and marketi
 
 ## Architecture
 - **Entry point**: `src/run-refactored.ts` - orchestrates CLI parsing, config loading, browser setup, and execution
-- **Adapters**: `src/adapters/BaseAdapter.ts` (abstract base) + 7 site-specific adapters in `sites/` (6 used by the manifest; `RadarisAdapter` has no entry since Radaris lost its domain) + `GenericFormAdapter` for simple forms
+- **Adapters**: `src/adapters/BaseAdapter.ts` (abstract base) + 6 site-specific adapters in `sites/` + `GenericFormAdapter` for simple forms
 - **Services**: `src/services/` - ConfigLoader, BrokerFilter, ResumeService, ExecutionOrchestrator, StatisticsTracker
 - **Factories**: `src/factories/` - AdapterFactory, BrowserFactory
 - **Config**: `src/config/` - CLI parsing (yargs), Zod schemas for validation
@@ -51,7 +51,7 @@ Playwright-based tool that guides opt-out requests at 74 data broker and marketi
 - `.temp/` is gitignored — never commit temp files to the repo
 
 ## Testing
-- Tests in `src/__tests__/` using vitest (111 tests)
+- Tests in `src/__tests__/` using vitest (114 tests)
 - Run output never carries a profile value: `ExecutionOrchestrator.test.ts` checks every dry-run log line, and the CLI start-up summary goes through `describeProfile` (`src/utils/profileSummary.ts`), which lists field names only
 - Schema validation tests verify manifest.json integrity (every entry has a category; no two entries share a removalUrl)
 - Service tests cover BrokerFilter, ResumeService, StatisticsTracker, AdapterFactory, ExecutionOrchestrator
