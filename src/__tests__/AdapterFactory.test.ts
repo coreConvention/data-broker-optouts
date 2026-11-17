@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { AdapterFactory } from "../factories/AdapterFactory.js";
 import { GenericFormAdapter } from "../adapters/GenericFormAdapter.js";
 import { SpokeoAdapter } from "../adapters/sites/SpokeoAdapter.js";
-import { WhitepagesAdapter } from "../adapters/sites/WhitepagesAdapter.js";
+import { WhitepagesListingAdapter } from "../adapters/sites/WhitepagesListingAdapter.js";
 import { NuwberAdapter } from "../adapters/sites/NuwberAdapter.js";
 import { BeenVerifiedAdapter } from "../adapters/sites/BeenVerifiedAdapter.js";
 import { InteliusAdapter } from "../adapters/sites/InteliusAdapter.js";
@@ -24,8 +24,8 @@ describe("AdapterFactory", () => {
       expect(AdapterFactory.createAdapter(makeEntry("Spokeo"))).toBeInstanceOf(SpokeoAdapter);
     });
 
-    it("creates WhitepagesAdapter for Whitepages", () => {
-      expect(AdapterFactory.createAdapter(makeEntry("Whitepages"))).toBeInstanceOf(WhitepagesAdapter);
+    it("has no run()-style adapter for Whitepages, which is handled by its listing adapter", () => {
+      expect(() => AdapterFactory.createAdapter(makeEntry("Whitepages"))).toThrow(/listing adapter/);
     });
 
     it("creates NuwberAdapter for Nuwber", () => {
@@ -50,8 +50,18 @@ describe("AdapterFactory", () => {
   });
 
   describe("createListingAdapter", () => {
+    it("creates the Whitepages listing adapter", () => {
+      const adapter = AdapterFactory.createListingAdapter(makeEntry("Whitepages"), { evidenceDir: "data/evidence" });
+      expect(adapter).toBeInstanceOf(WhitepagesListingAdapter);
+      expect(adapter).toMatchObject({
+        brokerId: "whitepages",
+        removalWindowDays: 3,
+        fields: { scan: ["fullName", "state"], request: [] },
+      });
+    });
+
     it("returns null for brokers without a listing adapter", () => {
-      const names: BrokerEntry["adapter"][] = ["generic", "Spokeo", "Whitepages", "Nuwber", "BeenVerified", "Intelius", "MyLife"];
+      const names: BrokerEntry["adapter"][] = ["generic", "Spokeo", "Nuwber", "BeenVerified", "Intelius", "MyLife"];
       for (const name of names) {
         expect(AdapterFactory.createListingAdapter(makeEntry(name))).toBeNull();
       }

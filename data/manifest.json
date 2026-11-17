@@ -9,7 +9,7 @@
       "phone-verification"
     ],
     "adapter": "Whitepages",
-    "notes": "Requires locating your listing before suppression. You will receive an automated phone call with a verification code that you must enter via keypad. Removal typically takes 24-72 hours."
+    "notes": "Scan-first: the tool searches Whitepages by your name and state, asks which listing is yours, and enters that listing's address on the suppression page. You then confirm the record, give a reason and your phone number, and answer an automated call, entering the code shown on screen via keypad. Removal typically takes 24-72 hours; the tool checks again after 3 days."
   },
   {
     "name": "Spokeo",

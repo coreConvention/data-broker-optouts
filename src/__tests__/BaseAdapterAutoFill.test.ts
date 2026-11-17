@@ -3,7 +3,7 @@ import { chromium } from "@playwright/test";
 import type { Browser, BrowserContext, Page } from "@playwright/test";
 import type { BrokerEntry, IOProvider, PersonProfile } from "../types.js";
 import { BaseAdapter } from "../adapters/BaseAdapter.js";
-import { WhitepagesAdapter } from "../adapters/sites/WhitepagesAdapter.js";
+import { MyLifeAdapter } from "../adapters/sites/MyLifeAdapter.js";
 import { SpokeoAdapter } from "../adapters/sites/SpokeoAdapter.js";
 import { NuwberAdapter } from "../adapters/sites/NuwberAdapter.js";
 import { BeenVerifiedAdapter } from "../adapters/sites/BeenVerifiedAdapter.js";
@@ -298,10 +298,10 @@ describe("BaseAdapter auto-fill (issue #29)", () => {
       await runnable.execute(page, profile);
     }
 
-    it("Whitepages (autoFillProfile) leaves the newsletter box empty and logs no values", async () => {
+    it("MyLife (autoFillProfile) leaves the newsletter box empty and logs no values", async () => {
       await page.setContent(pageOf(NEWSLETTER_FORM, OPT_OUT_FORM));
 
-      await runSteps(new WhitepagesAdapter(entry));
+      await runSteps(new MyLifeAdapter(entry));
 
       const values = await valuesOn(page);
       expectFormEmpty(values, "newsletter");

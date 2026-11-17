@@ -101,7 +101,10 @@ async function main(): Promise<void> {
     const orchestrator = new ExecutionOrchestrator(logger, {
       dryRun: cliOptions.dryRun,
       delayBetweenBrokers: 2000
-    }, ioProvider, { stateStore });
+    }, ioProvider, {
+      stateStore,
+      evidenceDir: path.join(path.dirname(cliOptions.profile), "evidence")
+    });
 
     await orchestrator.executeAll(filteredBrokers, profile, context);
 

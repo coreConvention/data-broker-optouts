@@ -27,3 +27,7 @@ export { ConfigLoader } from "./ConfigLoader.js";
 // Broker State File
 export { StateStore, StateFileError, personHash } from "./StateStore.js";
 export type { StateStoreOptions, ScanOutcome, RequestOutcome, VerifyOutcome } from "./StateStore.js";
+
+// Verify Pass
+export { verifyBroker } from "./VerifyPass.js";
+export type { VerifyPassResult } from "./VerifyPass.js";
