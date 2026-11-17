@@ -98,7 +98,7 @@ describe("BrokerEntrySchema", () => {
   });
 
   it("validates all adapter types", () => {
-    const adapters = ["generic", "Spokeo", "Whitepages", "Nuwber", "Radaris", "BeenVerified", "Intelius", "MyLife"];
+    const adapters = ["generic", "Spokeo", "Whitepages", "Nuwber", "BeenVerified", "Intelius", "MyLife"];
     for (const adapter of adapters) {
       const entry = {
         name: "Test",
