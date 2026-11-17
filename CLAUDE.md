@@ -1,7 +1,7 @@
 # Data Broker Opt-Out Runner
 
 ## Project Overview
-Playwright-based tool that automates opt-out requests from 113+ data broker sites using a human-in-the-loop approach. Includes a CLI tool and a partially-built Electron + Angular 19 desktop app.
+Playwright-based tool that automates opt-out requests from 113+ data broker sites using a human-in-the-loop approach. Includes a CLI tool and a partially-built Electron + Angular 21 desktop app.
 
 ## Architecture
 - **Entry point**: `src/run-refactored.ts` - orchestrates CLI parsing, config loading, browser setup, and execution
@@ -9,7 +9,7 @@ Playwright-based tool that automates opt-out requests from 113+ data broker site
 - **Services**: `src/services/` - ConfigLoader, BrokerFilter, ResumeService, ExecutionOrchestrator, StatisticsTracker
 - **Factories**: `src/factories/` - AdapterFactory, BrowserFactory
 - **Config**: `src/config/` - CLI parsing (yargs), Zod schemas for validation
-- **Desktop**: `desktop/` - Electron main process + Angular 19 renderer with real engine integration
+- **Desktop**: `desktop/` - Electron main process + Angular 21 renderer with real engine integration
 - **IOProvider**: `src/providers/` - Pluggable interface for human interaction (CliIOProvider, ElectronIOProvider)
 
 ## Key Patterns
@@ -20,12 +20,12 @@ Playwright-based tool that automates opt-out requests from 113+ data broker site
 - **BaseAdapter helpers**: `tryFillField()`, `autoFillProfile()`, `detectAndLogSuccess()` reduce duplication across site adapters
 
 ## Tech Stack
-- TypeScript 5.5 (strict mode, ES2022 target)
+- TypeScript 7 (strict mode, ES2022 target; the Angular renderer uses 5.9)
 - Playwright for browser automation
-- Zod for schema validation
+- Zod 4 for schema validation
 - yargs for CLI
 - vitest for testing
-- Electron 33 + Angular 19 for desktop (WIP)
+- Electron 45 + Angular 21 for desktop (WIP)
 
 ## Data Files
 - `data/manifest.json` - broker configurations (tracked in git)
