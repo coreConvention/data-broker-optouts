@@ -1,7 +1,7 @@
 # Data Broker Opt-Out Runner
 
 ## Project Overview
-Playwright-based tool that guides opt-out requests at 74 data broker and marketing opt-out pages (47 of them people-search sites) using a human-in-the-loop approach. Includes a CLI tool and a partially-built Electron + Angular 21 desktop app.
+Playwright-based tool that guides opt-out requests at 74 data broker and marketing opt-out pages (46 of them people-search sites) using a human-in-the-loop approach. Includes a CLI tool and a partially-built Electron + Angular 21 desktop app.
 
 ## Architecture
 - **Entry point**: `src/run-refactored.ts` - orchestrates CLI parsing, config loading, browser setup, and execution
@@ -54,7 +54,7 @@ Playwright-based tool that guides opt-out requests at 74 data broker and marketi
 - `.temp/` is gitignored — never commit temp files to the repo
 
 ## Testing
-- Tests in `src/__tests__/` using vitest (166 tests)
+- Tests in `src/__tests__/` using vitest (168 tests)
 - Run output never carries a profile value: `ExecutionOrchestrator.test.ts` checks every dry-run log line, and the CLI start-up summary goes through `describeProfile` (`src/utils/profileSummary.ts`), which lists field names only
 - Schema validation tests verify manifest.json integrity (every entry has a category; no two entries share a removalUrl)
 - Service tests cover BrokerFilter, ResumeService, StatisticsTracker, AdapterFactory, ExecutionOrchestrator
