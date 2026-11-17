@@ -77,5 +77,28 @@ describe("BrowserFactory", () => {
       expect(options.userAgent).toMatch(/^Mozilla\/5\.0 .*Chrome\/\d+/);
       expect(addInitScript).toHaveBeenCalled();
     });
+
+    it("leaves the locale and timezone to the machine when stealth is off", async () => {
+      const { browser, newContext } = fakeBrowser();
+
+      await BrowserFactory.createContext(browser, { headful: false, stealth: false });
+
+      const options = newContext.mock.calls[0]![0];
+      expect(options.locale).toBeUndefined();
+      expect(options.timezoneId).toBeUndefined();
+      // Present-but-undefined would still be a key Playwright sees.
+      expect(options).not.toHaveProperty("locale");
+      expect(options).not.toHaveProperty("timezoneId");
+    });
+
+    it("keeps the US English locale and New York timezone when stealth is on", async () => {
+      const { browser, newContext } = fakeBrowser();
+
+      await BrowserFactory.createContext(browser, { headful: false, stealth: true });
+
+      const options = newContext.mock.calls[0]![0];
+      expect(options.locale).toBe("en-US");
+      expect(options.timezoneId).toBe("America/New_York");
+    });
   });
 });
