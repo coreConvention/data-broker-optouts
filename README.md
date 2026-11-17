@@ -191,7 +191,7 @@ npm run help
 
 #### Stealth mode
 
-Stealth mode is **on by default**. Many opt-out pages turn away anything that looks like an automated browser, so with stealth on the tool hides the usual signs: it removes the `navigator.webdriver` flag, reports a fake browser-plugin list and language list, reports a fake `window.chrome` object, uses a regular desktop Chrome user agent and a common window size, and reports a US English locale and a New York timezone whatever your machine is set to. In plain terms, it is there to get past basic bot detection so that you can reach the opt-out form.
+Stealth mode is **on by default**. Many opt-out pages turn away anything that looks like an automated browser, so with stealth on the tool hides the usual signs: it removes the `navigator.webdriver` flag, reports a fake browser-plugin list and language list, reports a fake `window.chrome` object, uses a regular desktop Chrome user agent and a common window size, and reports a US English locale whatever your machine is set to. The timezone is your machine's own, because a timezone that does not match where your connection comes from is itself a sign of an automated browser. In plain terms, it is there to get past basic bot detection so that you can reach the opt-out form.
 
 It does **not** solve or skip CAPTCHAs, log in for you, or defeat a full challenge page; when a site shows one, the tool pauses and you handle it. Some sites' terms of service forbid automated access of any kind, so decide for yourself whether you are comfortable with that. To turn the disguise off:
 

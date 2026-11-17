@@ -60,11 +60,16 @@ export class BrowserFactory {
       // Playwright's default (Chromium's own) and not a made-up string (#32).
       // Locale and timezone are left unset too, so the browser reports the
       // machine's own and not a fixed US English / New York pair (#52).
+      //
+      // With stealth on the timezone is left unset as well: a fixed New York
+      // timezone that does not match where the person's connection comes from
+      // is a common bot-detection signal, so the machine's own is the better
+      // disguise (#56). The locale stays en-US because the stealth script
+      // reports a fixed ['en-US', 'en'] language list, and the two must agree.
       ...(config.stealth
         ? {
             userAgent: getRealisticUserAgent(),
-            locale: 'en-US',
-            timezoneId: 'America/New_York'
+            locale: 'en-US'
           }
         : {}),
       permissions: [],

@@ -91,14 +91,16 @@ describe("BrowserFactory", () => {
       expect(options).not.toHaveProperty("timezoneId");
     });
 
-    it("keeps the US English locale and New York timezone when stealth is on", async () => {
+    it("keeps the US English locale but leaves the timezone to the machine when stealth is on", async () => {
       const { browser, newContext } = fakeBrowser();
 
       await BrowserFactory.createContext(browser, { headful: false, stealth: true });
 
       const options = newContext.mock.calls[0]![0];
+      // Matches the ['en-US', 'en'] language list the stealth script reports.
       expect(options.locale).toBe("en-US");
-      expect(options.timezoneId).toBe("America/New_York");
+      // Present-but-undefined would still be a key Playwright sees.
+      expect(options).not.toHaveProperty("timezoneId");
     });
   });
 });
