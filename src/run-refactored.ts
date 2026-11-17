@@ -17,10 +17,12 @@
 import { parseCliArguments } from "./config/index.js";
 import path from "path";
 import { ConfigLoader, BrokerFilter, ResumeService, ExecutionOrchestrator, StateStore } from "./services/index.js";
-import { BrowserFactory } from "./factories/index.js";
+import { AdapterFactory, BrowserFactory } from "./factories/index.js";
 import { Logger } from "./utils/logger.js";
 import { CliIOProvider } from "./providers/index.js";
 import { describeProfile } from "./utils/profileSummary.js";
+import { dryRunNotice } from "./utils/dryRunNotice.js";
+import type { SearchedBroker } from "./utils/dryRunNotice.js";
 import type { PersonProfile } from "./types.js";
 
 /**
@@ -83,8 +85,13 @@ async function main(): Promise<void> {
       process.exit(0);
     }
 
-    // Step 10: Print execution configuration
-    printExecutionConfig(profile, cliOptions, logger.path());
+    // Step 10: Print execution configuration. A dry run still searches the
+    // brokers that have a listing adapter, so they are named up front (#63).
+    const searched: SearchedBroker[] = filteredBrokers.flatMap((entry) => {
+      const adapter = AdapterFactory.createListingAdapter(entry);
+      return adapter ? [{ broker: entry.name, fields: adapter.fields.scan }] : [];
+    });
+    printExecutionConfig(profile, cliOptions, logger.path(), searched);
 
     // Step 11: Create browser and context
     const { browser, context } = await BrowserFactory.createBrowserWithContext({
@@ -155,14 +162,19 @@ function printFilteringSummary(
 function printExecutionConfig(
   profile: PersonProfile,
   options: { headful: boolean; stealth: boolean; dryRun: boolean },
-  logPath: string
+  logPath: string,
+  searched: readonly SearchedBroker[]
 ): void {
   console.log(`👤 Profile: ${describeProfile(profile)}`);
   console.log(`🌐 Browser mode: ${options.headful ? "Headful (visible)" : "Headless"}`);
   console.log(`🥷 Stealth mode: ${options.stealth ? "Enabled" : "Disabled"}`);
 
   if (options.dryRun) {
-    console.log(`🧪 DRY RUN MODE: No actual submissions will be made`);
+    const [headline, ...rest] = dryRunNotice(searched);
+    console.log(`🧪 ${headline}`);
+    for (const line of rest) {
+      console.log(`   ${line}`);
+    }
   }
 
   console.log(`📝 Log file: ${logPath}`);

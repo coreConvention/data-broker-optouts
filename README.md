@@ -23,7 +23,7 @@ Data brokers collect and sell personal information — home addresses, phone num
 ### Advanced Features ⚡
 - **Stealth Mode** (on by default): makes the automated browser look like an ordinary one so that basic bot detection does not turn it away. See [Stealth mode](#stealth-mode) for exactly what it changes and how to turn it off
 - **Selective Execution**: Filter by broker name, exclude specific brokers, or limit batch size
-- **Dry Run Mode**: Test configurations without actually submitting requests
+- **Dry Run Mode**: Sends no removal request. Brokers the tool can search for your listing (Whitepages today) are still searched, which sends your name and state to that broker; see [Dry run](#dry-run)
 - **Resume Support**: Skip brokers a previous run logged as `success`
 - **Manifest health check**: `npm run check:manifest` reports dead, blocked and moved opt-out pages
 
@@ -139,10 +139,13 @@ npm start
 npm run start:headless
 ```
 
-**Dry Run (Test without submitting):**
+**Dry Run (no removal request is sent):**
 ```bash
 npm run start:dry-run
 ```
+
+<a id="dry-run"></a>
+> **What a dry run still does.** It sends no removal request and writes nothing to the state file. For most brokers it contacts nothing at all. For a broker the tool can search for your listing (Whitepages today), it still opens that broker's name search, which sends your **name and state** to the broker, and asks which listings are yours, so it can tell you what it would request. The start-up output names each broker that will be searched. To try the tool without contacting any broker, leave those out: `npm run start:dry-run -- --exclude Whitepages`.
 
 #### Advanced CLI Options
 
@@ -183,7 +186,7 @@ npm start -- --filter "True,Fast,Check" --limit 10 --dry-run
 | `--stealth` | boolean | true | Make the automated browser look like an ordinary one (see [Stealth mode](#stealth-mode)) |
 | `--filter` | string | - | Filter brokers (comma-separated names) |
 | `--exclude` | string | - | Exclude brokers (comma-separated names) |
-| `--dry-run` | boolean | false | Simulate without submitting |
+| `--dry-run` | boolean | false | Send no removal request. Brokers with a listing search are still searched for your name (see [Dry run](#dry-run)) |
 | `--resume` | string | - | Resume from log file |
 | `--limit` | number | - | Limit number of brokers to process |
 

@@ -3,6 +3,7 @@ import type { BrokerState, IOProvider, PersonProfile } from "../types.js";
 import { pickProfileFields } from "../adapters/ListingAdapter.js";
 import type { ListingAdapter, ScanResult, VerifyResult } from "../adapters/ListingAdapter.js";
 import type { StateStore } from "./StateStore.js";
+import { describeFailure } from "../utils/describeFailure.js";
 
 export type VerifyPassResult =
   /** No request is outstanding, or its window has not passed. Nothing was loaded. */
@@ -47,7 +48,9 @@ export async function verifyBroker(args: {
     try {
       results.set(listing.id, await adapter.verifyRemoval(page, { id: listing.id, url: listing.url, summary: "" }, ctx));
     } catch (error) {
-      results.set(listing.id, { kind: "unknown", reason: error instanceof Error ? error.message : "the check failed" });
+      // The reason is not shown today; it is kept free of the error's text so
+      // that showing it later (#40) cannot leak a listing address.
+      results.set(listing.id, { kind: "unknown", reason: describeFailure("the check", error) });
     }
   }
 
@@ -56,7 +59,7 @@ export async function verifyBroker(args: {
     try {
       rescan = await adapter.findListings(page, pickProfileFields(profile, adapter.fields.scan), ctx);
     } catch (error) {
-      rescan = { kind: "unknown", reason: error instanceof Error ? error.message : "the scan failed" };
+      rescan = { kind: "unknown", reason: describeFailure("the scan", error) };
     }
   }
 
