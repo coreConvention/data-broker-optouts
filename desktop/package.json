@@ -88,7 +88,7 @@
     },
     "publish": {
       "provider": "github",
-      "owner": "YOUR_GITHUB_USERNAME",
+      "owner": "coreConvention",
       "repo": "data-broker-optouts"
     }
   }
