@@ -4,7 +4,6 @@ import { GenericFormAdapter } from "../adapters/GenericFormAdapter.js";
 import { SpokeoAdapter } from "../adapters/sites/SpokeoAdapter.js";
 import { WhitepagesAdapter } from "../adapters/sites/WhitepagesAdapter.js";
 import { NuwberAdapter } from "../adapters/sites/NuwberAdapter.js";
-import { RadarisAdapter } from "../adapters/sites/RadarisAdapter.js";
 import { BeenVerifiedAdapter } from "../adapters/sites/BeenVerifiedAdapter.js";
 import { InteliusAdapter } from "../adapters/sites/InteliusAdapter.js";
 import { MyLifeAdapter } from "../adapters/sites/MyLifeAdapter.js";
@@ -33,10 +32,6 @@ describe("AdapterFactory", () => {
       expect(AdapterFactory.createAdapter(makeEntry("Nuwber"))).toBeInstanceOf(NuwberAdapter);
     });
 
-    it("creates RadarisAdapter for Radaris", () => {
-      expect(AdapterFactory.createAdapter(makeEntry("Radaris"))).toBeInstanceOf(RadarisAdapter);
-    });
-
     it("creates BeenVerifiedAdapter for BeenVerified", () => {
       expect(AdapterFactory.createAdapter(makeEntry("BeenVerified"))).toBeInstanceOf(BeenVerifiedAdapter);
     });
@@ -56,7 +51,7 @@ describe("AdapterFactory", () => {
 
   describe("hasAdapter", () => {
     it("returns true for all known adapters", () => {
-      const names = ["generic", "Spokeo", "Whitepages", "Nuwber", "Radaris", "BeenVerified", "Intelius", "MyLife"];
+      const names = ["generic", "Spokeo", "Whitepages", "Nuwber", "BeenVerified", "Intelius", "MyLife"];
       for (const name of names) {
         expect(AdapterFactory.hasAdapter(name)).toBe(true);
       }
