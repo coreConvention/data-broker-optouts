@@ -27,6 +27,39 @@ describe("manifest.json validation", () => {
     expect(names.length).toBe(uniqueNames.size);
   });
 
+  it("every broker has a category", async () => {
+    const content = await fs.readFile("./data/manifest.json", "utf-8");
+    const manifest = JSON.parse(content) as { name: string; category?: string }[];
+
+    // The schema keeps category optional so hand-written manifests still load,
+    // but the shipped manifest must tag every entry: the README reports
+    // coverage per category.
+    const untagged = manifest.filter((b) => !b.category).map((b) => b.name);
+    if (untagged.length > 0) {
+      console.error("Brokers without a category:", untagged);
+    }
+    expect(untagged).toHaveLength(0);
+  });
+
+  it("has no two entries pointing at the same removalUrl", async () => {
+    const content = await fs.readFile("./data/manifest.json", "utf-8");
+    const manifest = JSON.parse(content) as { name: string; removalUrl?: string | null }[];
+
+    // One entry per parent company: sites that share an opt-out page are
+    // listed in that entry's notes, not as separate entries.
+    const byUrl = new Map<string, string[]>();
+    for (const broker of manifest) {
+      if (!broker.removalUrl) continue;
+      const key = broker.removalUrl.replace(/\/+$/, "").toLowerCase();
+      byUrl.set(key, [...(byUrl.get(key) ?? []), broker.name]);
+    }
+    const shared = [...byUrl.values()].filter((names) => names.length > 1);
+    if (shared.length > 0) {
+      console.error("Entries sharing a removalUrl:", shared);
+    }
+    expect(shared).toHaveLength(0);
+  });
+
   it("all brokers with online requirement have a removalUrl", async () => {
     const content = await fs.readFile("./data/manifest.json", "utf-8");
     const manifest = JSON.parse(content) as { name: string; removalUrl?: string; requirements: string[] }[];

@@ -13,8 +13,16 @@ export type BrokerRequirement =
   | "profile-url-required"
   | "unknown";
 
+/**
+ * What an entry's opt-out does. Mirrors BrokerCategorySchema in
+ * config/schemas.ts; only "people-search" removes a public listing.
+ */
+export type BrokerCategory = "people-search" | "marketing" | "ad-tech" | "credit" | "b2b";
+
 export interface BrokerEntry {
   name: string;
+  /** What kind of opt-out this is; only "people-search" removes a public listing. */
+  category?: BrokerCategory;
   removalUrl?: string | null;
   requirements: BrokerRequirement[];
   adapter: "generic" | "Spokeo" | "Whitepages" | "Nuwber" | "Radaris" | "BeenVerified" | "Intelius" | "MyLife";

@@ -141,6 +141,19 @@ describe("BrokerEntrySchema", () => {
     expect(() => BrokerEntrySchema.parse(entry)).toThrow();
   });
 
+  it("accepts every category and an entry without one", () => {
+    const base = { name: "Test", requirements: ["online"], adapter: "generic" };
+    for (const category of ["people-search", "marketing", "ad-tech", "credit", "b2b"]) {
+      expect(() => BrokerEntrySchema.parse({ ...base, category })).not.toThrow();
+    }
+    expect(() => BrokerEntrySchema.parse(base)).not.toThrow();
+  });
+
+  it("rejects an unknown category", () => {
+    const entry = { name: "Test", requirements: ["online"], adapter: "generic", category: "social" };
+    expect(() => BrokerEntrySchema.parse(entry)).toThrow();
+  });
+
   it("accepts null removalUrl", () => {
     const entry = {
       name: "Test",

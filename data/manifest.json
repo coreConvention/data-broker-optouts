@@ -1,6 +1,7 @@
 [
   {
     "name": "Whitepages",
+    "category": "people-search",
     "removalUrl": "https://www.whitepages.com/suppression-requests",
     "requirements": [
       "online",
@@ -12,6 +13,7 @@
   },
   {
     "name": "Spokeo",
+    "category": "people-search",
     "removalUrl": "https://www.spokeo.com/optout",
     "requirements": [
       "online",
@@ -20,10 +22,11 @@
     ],
     "adapter": "Spokeo",
     "humanInteraction": "browser",
-    "notes": "Email confirmation required."
+    "notes": "Covers Spokeo and AnyWho (anywho.com/optout redirects here). Find your profile at spokeo.com first, paste its URL into the form, then click the confirmation link Spokeo emails you."
   },
   {
     "name": "FastPeopleSearch",
+    "category": "people-search",
     "removalUrl": "https://www.fastpeoplesearch.com/removal",
     "requirements": [
       "online",
@@ -42,6 +45,7 @@
   },
   {
     "name": "TruePeopleSearch",
+    "category": "people-search",
     "removalUrl": "https://www.truepeoplesearch.com/removal",
     "requirements": [
       "online",
@@ -59,6 +63,7 @@
   },
   {
     "name": "Nuwber",
+    "category": "people-search",
     "removalUrl": "https://nuwber.com/removal/link",
     "requirements": [
       "online",
@@ -69,18 +74,8 @@
     "notes": "Search for your profile at nuwber.com first, then use removal link. 24-hour removal. Email verification required."
   },
   {
-    "name": "Radaris",
-    "removalUrl": "https://radaris.com/control/privacy",
-    "requirements": [
-      "online",
-      "email-verification"
-    ],
-    "adapter": "Radaris",
-    "humanInteraction": "browser",
-    "notes": "Search for your profile at radaris.com first. Email verification required. 24-48 hour removal."
-  },
-  {
     "name": "CheckPeople",
+    "category": "people-search",
     "removalUrl": "https://www.checkpeople.com/opt-out",
     "requirements": [
       "online",
@@ -99,6 +94,7 @@
   },
   {
     "name": "ThatsThem",
+    "category": "people-search",
     "removalUrl": "https://thatsthem.com/optout",
     "requirements": [
       "online"
@@ -115,6 +111,7 @@
   },
   {
     "name": "SmartBackgroundChecks",
+    "category": "people-search",
     "removalUrl": "https://www.smartbackgroundchecks.com/optout",
     "requirements": [
       "online",
@@ -132,25 +129,8 @@
     "notes": "Email verification required for removal."
   },
   {
-    "name": "ClustrMaps",
-    "removalUrl": "https://clustrmaps.com/bl/opt-out",
-    "requirements": [
-      "online",
-      "email-verification"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Email confirmation required for opt-out."
-  },
-  {
     "name": "BeenVerified",
+    "category": "people-search",
     "removalUrl": "https://www.beenverified.com/app/optout/search",
     "requirements": [
       "online",
@@ -159,10 +139,11 @@
     ],
     "adapter": "BeenVerified",
     "humanInteraction": "browser",
-    "notes": "NETWORK: Opting out of BeenVerified also removes you from PeopleLooker, NeighborWho, NumberGuru, and Ownerly. Search for your record first, then submit opt-out. Email confirmation required. Only allows ONE opt-out per email address - contact privacy@beenverified.com for additional removals. Processing takes 24-72 hours."
+    "notes": "One opt-out covers the BeenVerified sites: BeenVerified, PeopleLooker, Ownerly, NeighborWho and NumberGuru. Search for your record first, then submit the opt-out. Email confirmation required. Only ONE opt-out per email address; contact privacy@beenverified.com for additional removals. Processing takes 24-72 hours."
   },
   {
-    "name": "Intelius",
+    "name": "PeopleConnect",
+    "category": "people-search",
     "removalUrl": "https://suppression.peopleconnect.us/login",
     "requirements": [
       "online",
@@ -170,21 +151,23 @@
       "account-required"
     ],
     "adapter": "Intelius",
-    "notes": "NETWORK: PeopleConnect suppression portal. Opting out here also removes you from TruthFinder, InstantCheckmate, and all other PeopleConnect sites. Requires account creation and email verification. Processing takes up to 72 hours. Alternative: call (877) 564-3253 or email privacy@peopleconnect.us"
+    "notes": "One suppression request covers the PeopleConnect sites: Intelius, TruthFinder, Instant Checkmate, US Search, Zabasearch and Addresses.com (PublicRecords360 redirects to US Search). Requires email verification and account creation. Processing takes up to 72 hours. Alternative: call (877) 564-3253 or email privacy@peopleconnect.us."
   },
   {
     "name": "MyLife",
-    "removalUrl": "https://www.mylife.com/ccpa/index.pubview",
+    "category": "people-search",
+    "removalUrl": "https://www.mylife.com/privacyrequest",
     "requirements": [
       "online",
       "email-verification"
     ],
     "adapter": "MyLife",
     "humanInteraction": "browser",
-    "notes": "Non-CA residents report mixed success. Email verification required."
+    "notes": "MyLife's 'Do Not Sell My Personal Information' opt-out form (linked from its privacy policy). Non-CA residents report mixed success. Email verification required."
   },
   {
     "name": "FamilyTreeNow",
+    "category": "people-search",
     "removalUrl": "https://www.familytreenow.com/optout",
     "requirements": [
       "online"
@@ -200,6 +183,7 @@
   },
   {
     "name": "USPhoneBook",
+    "category": "people-search",
     "removalUrl": "https://www.usphonebook.com/opt-out",
     "requirements": [
       "online",
@@ -218,6 +202,7 @@
   },
   {
     "name": "PeopleSearchNow",
+    "category": "people-search",
     "removalUrl": "https://www.peoplesearchnow.com/opt-out",
     "requirements": [
       "online",
@@ -235,58 +220,18 @@
   },
   {
     "name": "AdvancedBackgroundChecks",
-    "removalUrl": "https://www.advancedbackgroundchecks.com/removal",
+    "category": "people-search",
+    "removalUrl": "https://www.advancedbackgroundchecks.com/opt-out",
     "requirements": [
       "online",
       "email-verification"
     ],
     "adapter": "generic",
-    "config": {
-      "selectors": {
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Email verification required. May take several business days."
-  },
-  {
-    "name": "PublicDataUSA",
-    "removalUrl": "https://www.publicdatausa.com/remove.php",
-    "requirements": [
-      "online"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Requires profile URL. Search at publicdatausa.com first."
-  },
-  {
-    "name": "Dataveria",
-    "removalUrl": "https://dataveria.com/ng/control/privacy",
-    "requirements": [
-      "online",
-      "email-verification"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Email confirmation required for removal."
+    "notes": "Enter your name and email; the site emails a link to the full opt-out form. It states records can reappear when new public records arrive, so re-check later."
   },
   {
     "name": "NeighborReport",
+    "category": "people-search",
     "removalUrl": "https://neighbor.report/remove",
     "requirements": [
       "online",
@@ -304,6 +249,7 @@
   },
   {
     "name": "PeopleFinders",
+    "category": "people-search",
     "removalUrl": "https://www.peoplefinders.com/opt-out",
     "requirements": [
       "online",
@@ -322,128 +268,8 @@
     "notes": "Major people search engine. Email verification required. Search for profile first."
   },
   {
-    "name": "PeekYou",
-    "removalUrl": "https://www.peekyou.com/about/contact/optout/",
-    "requirements": [
-      "online",
-      "profile-url-required"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Contact form for opt-out requests. You MUST first search for your profile at peekyou.com, copy your profile URL, and include it in the opt-out form."
-  },
-  {
-    "name": "InstantCheckmate",
-    "removalUrl": "https://www.instantcheckmate.com/opt-out/",
-    "requirements": [
-      "online",
-      "email-verification"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "NETWORK: Part of PeopleConnect. If you've already opted out of Intelius/PeopleConnect, you're already covered. Background check service - search for yourself first, then submit opt-out with profile URL."
-  },
-  {
-    "name": "TruthFinder",
-    "removalUrl": "https://www.truthfinder.com/opt-out/",
-    "requirements": [
-      "online",
-      "email-verification"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], button:has-text('Submit')"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "NETWORK: Part of PeopleConnect. If you've already opted out of Intelius/PeopleConnect, you're already covered. Background check site - search for record first, include profile URL in opt-out."
-  },
-  {
-    "name": "USSearch",
-    "removalUrl": "https://www.ussearch.com/opt-out/submit/",
-    "requirements": [
-      "online",
-      "captcha"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Requires finding your record first and providing record details."
-  },
-  {
-    "name": "Zabasearch",
-    "removalUrl": "https://www.zabasearch.com/block_records/",
-    "requirements": [
-      "online"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Free people search. Opt-out by blocking records."
-  },
-  {
-    "name": "AnyWho",
-    "removalUrl": "https://www.anywho.com/optout",
-    "requirements": [
-      "online"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "phone": "input[type='tel'], input[name='phone']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "White pages directory. Opt-out by phone number."
-  },
-  {
-    "name": "Addresses",
-    "removalUrl": "https://www.addresses.com/optout.php",
-    "requirements": [
-      "online",
-      "email-verification"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Address lookup service. Email verification required."
-  },
-  {
     "name": "InfoTracer",
+    "category": "people-search",
     "removalUrl": "https://infotracer.com/optout/",
     "requirements": [
       "online",
@@ -460,25 +286,8 @@
     "notes": "Public records search. Email verification required."
   },
   {
-    "name": "PrivateEye",
-    "removalUrl": "https://www.privateeye.com/static/view/optout/",
-    "requirements": [
-      "online",
-      "email-verification"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "People search and background checks. Email verification required."
-  },
-  {
     "name": "SearchQuarry",
+    "category": "people-search",
     "removalUrl": "https://www.searchquarry.com/opt-out",
     "requirements": [
       "online",
@@ -496,6 +305,7 @@
   },
   {
     "name": "SearchBug",
+    "category": "people-search",
     "removalUrl": "https://www.searchbug.com/peoplefinder/protect-my-privacy.aspx",
     "requirements": [
       "online"
@@ -512,24 +322,8 @@
     "notes": "Privacy protection form for people finder."
   },
   {
-    "name": "SpyFly",
-    "removalUrl": "https://www.spyfly.com/opt-out",
-    "requirements": [
-      "online",
-      "email-verification"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Background check service. Email verification required."
-  },
-  {
     "name": "PeopleByName",
+    "category": "people-search",
     "removalUrl": "https://www.peoplebyname.com/remove.php",
     "requirements": [
       "online"
@@ -546,6 +340,7 @@
   },
   {
     "name": "OldFriends",
+    "category": "people-search",
     "removalUrl": "https://www.oldfriends.com/privacy",
     "requirements": [
       "email-only"
@@ -562,6 +357,7 @@
   },
   {
     "name": "PrivateRecords",
+    "category": "people-search",
     "removalUrl": "https://www.privaterecords.net/help",
     "requirements": [
       "email-only"
@@ -578,6 +374,7 @@
   },
   {
     "name": "PropertyRecords",
+    "category": "people-search",
     "removalUrl": "https://www.propertyrecord.com/help.php",
     "requirements": [
       "email-only"
@@ -594,6 +391,7 @@
   },
   {
     "name": "Classmates",
+    "category": "people-search",
     "removalUrl": "https://www.classmates.com/siteui/account/settings/privacy",
     "requirements": [
       "online"
@@ -609,38 +407,18 @@
   },
   {
     "name": "Acxiom",
-    "removalUrl": "https://isapps.acxiom.com/optout/optout.aspx",
+    "category": "marketing",
+    "removalUrl": "https://www.acxiom.com/optout/",
     "requirements": [
       "online",
       "email-verification"
     ],
     "adapter": "generic",
-    "config": {
-      "selectors": {
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "email": "input[type='email']",
-        "address": "input[name='address'], input[placeholder*='Address']",
-        "city": "input[name='city']",
-        "state": "select[name='state']",
-        "zip": "input[name='zip'], input[name='zipcode']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Major data aggregator ($2.7B revenue, 500M+ consumer profiles). Comprehensive form required. You must click the confirmation link in your email to complete the opt-out. Note: Does not remove data already shared with marketers prior to your request."
-  },
-  {
-    "name": "PeopleConnect",
-    "removalUrl": "https://suppression.peopleconnect.us/login",
-    "requirements": [
-      "online",
-      "email-verification"
-    ],
-    "adapter": "Intelius",
-    "notes": "Same as Intelius - covers Intelius, InstantCheckmate, TruthFinder, and other PeopleConnect sites."
+    "notes": "Major marketing data aggregator. One opt-out request page (replaces the old isapps.acxiom.com form and the separate 'Do Not Sell' page). Stops Acxiom using your data for marketing; it does not recall data already shared with marketers."
   },
   {
     "name": "Epsilon",
+    "category": "marketing",
     "removalUrl": "https://legal.epsilon.com/dsr/",
     "requirements": [
       "online",
@@ -660,37 +438,28 @@
   },
   {
     "name": "Experian",
-    "removalUrl": "https://www.experian.com/privacy/opting_out_online_behavioral_ads.html",
+    "category": "credit",
+    "removalUrl": "https://consumerprivacy.experian.com/",
     "requirements": [
-      "online"
+      "online",
+      "id-verification"
     ],
     "adapter": "generic",
-    "config": {
-      "selectors": {
-        "submit": "button[type='submit'], a:has-text('Opt Out')"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Credit bureau. Opt out of marketing/advertising use."
+    "notes": "Experian's consumer privacy portal: opt out of the sale or sharing of your personal information and of its use for marketing. Stops marketing use only; it does not change your credit file."
   },
   {
     "name": "411",
-    "removalUrl": "https://www.411.com/manage",
+    "category": "people-search",
+    "removalUrl": "https://www.411.com/your-privacy-choices",
     "requirements": [
       "online"
     ],
     "adapter": "generic",
-    "config": {
-      "selectors": {
-        "phone": "input[type='tel'], input[name='phone']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Phone directory. Manage listing via phone number."
+    "notes": "Phone directory operated by Whitepages. The 'Your Privacy Choices' page links the deletion and opt-out requests; follow the steps there by hand."
   },
   {
     "name": "YellowPages",
+    "category": "people-search",
     "removalUrl": "https://www.yellowpages.com/account/privacy",
     "requirements": [
       "online"
@@ -706,6 +475,7 @@
   },
   {
     "name": "VoterRecords",
+    "category": "people-search",
     "removalUrl": "https://voterrecords.com/contact",
     "requirements": [
       "email-only"
@@ -723,6 +493,7 @@
   },
   {
     "name": "CocoFinder",
+    "category": "people-search",
     "removalUrl": "https://cocofinder.com/optout",
     "requirements": [
       "online",
@@ -742,6 +513,7 @@
   },
   {
     "name": "CyberBackgroundChecks",
+    "category": "people-search",
     "removalUrl": "https://www.cyberbackgroundchecks.com/removal",
     "requirements": [
       "online",
@@ -760,6 +532,7 @@
   },
   {
     "name": "GladIKnow",
+    "category": "people-search",
     "removalUrl": "https://gladiknow.com/opt-out",
     "requirements": [
       "online",
@@ -777,6 +550,7 @@
   },
   {
     "name": "PeopleWhiz",
+    "category": "people-search",
     "removalUrl": "https://www.peoplewhiz.com/remove-my-info",
     "requirements": [
       "online",
@@ -795,6 +569,7 @@
   },
   {
     "name": "USAPeopleSearch",
+    "category": "people-search",
     "removalUrl": "https://www.usa-people-search.com/manage",
     "requirements": [
       "online"
@@ -811,96 +586,8 @@
     "notes": "Free people search directory. Manage/remove your listing using phone number or email."
   },
   {
-    "name": "Verecor",
-    "removalUrl": "https://verecor.com/ng/control/privacy",
-    "requirements": [
-      "online",
-      "email-verification"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Background check and people search. Search for your profile first. Email verification required to complete removal."
-  },
-  {
-    "name": "Pub360",
-    "removalUrl": "https://pub360.com/ng/control/privacy",
-    "requirements": [
-      "online",
-      "email-verification"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Public records search. Email verification required. Similar process to Radaris/Dataveria."
-  },
-  {
-    "name": "Spokeo (Profile URL)",
-    "removalUrl": "https://www.spokeo.com/optout",
-    "requirements": [
-      "online",
-      "email-verification",
-      "profile-url-required"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email'], input[name='email']",
-        "submit": "button[type='submit'], button:has-text('Remove')"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Alternative direct URL opt-out. Find your profile URL at spokeo.com first, paste it in the form, enter email, complete CAPTCHA. Email verification link sent within minutes."
-  },
-  {
-    "name": "IDTrue",
-    "removalUrl": "https://www.idtrue.com/optout/",
-    "requirements": [
-      "online",
-      "email-verification"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Background check and people search service. Search for your profile first at idtrue.com. Email verification required."
-  },
-  {
-    "name": "Persopo",
-    "removalUrl": "https://www.persopo.com/optout",
-    "requirements": [
-      "online",
-      "email-verification"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "People search engine. Search for your listing first at persopo.com. Email verification required for removal."
-  },
-  {
     "name": "Unmask",
+    "category": "people-search",
     "removalUrl": "https://unmask.com/opt-out/",
     "requirements": [
       "online",
@@ -918,96 +605,8 @@
     "notes": "Phone number and people search. Find your profile first, then submit opt-out. Email verification required."
   },
   {
-    "name": "Xlek",
-    "removalUrl": "https://www.xlek.com/optout",
-    "requirements": [
-      "online",
-      "email-verification"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "People search site. Search for your record at xlek.com first. Email verification required."
-  },
-  {
-    "name": "NewEnglandFacts",
-    "removalUrl": "https://www.newenglandfacts.com/ng/control/privacy",
-    "requirements": [
-      "online",
-      "email-verification"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Regional people search for New England area. Similar to Radaris/Dataveria privacy control page."
-  },
-  {
-    "name": "Cubib",
-    "removalUrl": "https://cubib.com/optout/",
-    "requirements": [
-      "online",
-      "email-verification"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "People search and public records. Email verification required for opt-out."
-  },
-  {
-    "name": "Centeda",
-    "removalUrl": "https://centeda.com/ng/control/privacy",
-    "requirements": [
-      "online",
-      "email-verification"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "People search service. Similar privacy control page to Radaris network sites."
-  },
-  {
-    "name": "Verispy",
-    "removalUrl": "https://www.verispy.com/optout/",
-    "requirements": [
-      "online",
-      "email-verification"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Phone lookup and background check. Email verification required."
-  },
-  {
     "name": "LexisNexis",
+    "category": "credit",
     "removalUrl": "https://consumer.risk.lexisnexis.com/request",
     "requirements": [
       "online",
@@ -1029,94 +628,18 @@
     "notes": "MAJOR DATA BROKER. One of the largest consumer data aggregators. Comprehensive opt-out form with identity verification. Alternative: call 1-800-456-6004 or mail request to LexisNexis Consumer Center, P.O. Box 105108, Atlanta, GA 30348. Processing takes 30 days."
   },
   {
-    "name": "Oracle Data Cloud (BlueKai)",
-    "removalUrl": "https://datacloudoptout.oracle.com/optout",
-    "requirements": [
-      "online"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "submit": "button[type='submit'], button:has-text('Opt Out'), a:has-text('Opt Out')"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "MAJOR DATA BROKER. Oracle's advertising/marketing data cloud (formerly BlueKai/AddThis). Opt out of interest-based advertising and data collection. Browser cookie-based opt-out."
-  },
-  {
-    "name": "Acxiom (AboutTheData)",
-    "removalUrl": "https://www.acxiom.com/do-not-sell-my-data/",
-    "requirements": [
-      "online",
-      "email-verification",
-      "id-verification"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 5000
-    },
-    "notes": "MAJOR DATA BROKER. Acxiom's CCPA/CPRA 'Do Not Sell' form (separate from their general opt-out). Identity verification may be required. Processing takes up to 45 days per CCPA requirements."
-  },
-  {
-    "name": "Spokeo (Direct Removal)",
-    "removalUrl": "https://www.spokeo.com/optout",
-    "requirements": [
-      "online",
-      "email-verification",
-      "captcha"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email'], input[name='email']",
-        "submit": "button[type='submit'], button:has-text('Remove')"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Direct removal form - paste your Spokeo profile URL and email. Check your email for verification link within 5 minutes."
-  },
-  {
-    "name": "Equifax Marketing Opt-Out",
-    "removalUrl": "https://www.equifax.com/personal/credit-report-services/opt-out-prescreen/",
-    "requirements": [
-      "online",
-      "phone"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "submit": "button[type='submit'], a:has-text('Opt Out')"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "CREDIT BUREAU. Opt out of pre-screened credit offers. Use OptOutPrescreen.com (run by all 3 bureaus) or call 1-888-567-8688. For full credit freeze, visit equifax.com/personal/credit-report-services/credit-freeze/"
-  },
-  {
-    "name": "TransUnion Marketing Opt-Out",
+    "name": "OptOutPrescreen",
+    "category": "credit",
     "removalUrl": "https://www.optoutprescreen.com/",
     "requirements": [
       "online"
     ],
     "adapter": "generic",
-    "config": {
-      "selectors": {
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "email": "input[type='email']",
-        "address": "input[name='address'], input[placeholder*='Address']",
-        "zip": "input[name='zip']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 5000
-    },
-    "notes": "CREDIT BUREAUS. OptOutPrescreen.com is the official site run by Equifax, Experian, TransUnion, and Innovis to opt out of pre-approved credit/insurance offers. Online opt-out lasts 5 years; mail-in form for permanent opt-out."
+    "notes": "Official site run by Equifax, Experian, Innovis and TransUnion to stop pre-approved credit and insurance offers from all four. Online opt-out lasts 5 years; a mailed form makes it permanent. Stops offers only; it does not remove a people-search listing. The site refuses automated browsers, so open it yourself."
   },
   {
     "name": "DataAxle (InfoUSA/Donnelley)",
+    "category": "marketing",
     "removalUrl": "https://www.data.com/consumer/optout",
     "requirements": [
       "online",
@@ -1139,113 +662,28 @@
   },
   {
     "name": "Clearview AI",
-    "removalUrl": "https://privacy.clearview.ai/hc/en-us/requests/new",
+    "category": "b2b",
+    "removalUrl": "https://www.clearview.ai/privacy-and-requests",
     "requirements": [
       "online",
       "id-upload"
     ],
     "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "FACIAL RECOGNITION. Submit a privacy request to have your faceprint deleted. May require government ID and a clear photo of your face. Available to residents of IL, CA, VA, CO, CT, and EU/UK. Response within 45 days."
+    "notes": "FACIAL RECOGNITION. The Privacy & Requests page lists the request forms by state and region (deletion and opt-out). May require a photo of your face. Not available to residents of every state."
   },
   {
     "name": "Precise Leads (NumLookup)",
-    "removalUrl": "https://www.numlookup.com/opt-out",
+    "category": "people-search",
+    "removalUrl": "https://www.numlookup.com/opt_out",
     "requirements": [
-      "online",
-      "email-verification"
+      "online"
     ],
     "adapter": "generic",
-    "config": {
-      "selectors": {
-        "phone": "input[type='tel'], input[name='phone']",
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Phone number lookup/reverse search. Provide the phone number you want removed and your email. Verification email sent."
-  },
-  {
-    "name": "Ownerly",
-    "removalUrl": "https://www.ownerly.com/opt-out/search",
-    "requirements": [
-      "online",
-      "email-verification"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "NETWORK: Part of BeenVerified. Property and people search. If already opted out of BeenVerified, may already be covered. Email verification required."
-  },
-  {
-    "name": "PeopleLooker",
-    "removalUrl": "https://www.peoplelooker.com/opt-out/search",
-    "requirements": [
-      "online",
-      "email-verification"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "NETWORK: Part of BeenVerified. If already opted out of BeenVerified, may already be covered. Search for your record, then submit opt-out."
-  },
-  {
-    "name": "LocatePeople",
-    "removalUrl": "https://www.locatepeople.org/optout",
-    "requirements": [
-      "online",
-      "email-verification"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "People search directory. Find your listing first, then submit opt-out request with email verification."
-  },
-  {
-    "name": "PublicRecordsNow",
-    "removalUrl": "https://www.publicrecordsnow.com/opt-out/",
-    "requirements": [
-      "online",
-      "email-verification"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Public records aggregator. Search for your records first. Email verification required."
+    "notes": "Reverse phone lookup. Removes your information from NumLookup's phone and name lookup. Provide the phone number you want removed."
   },
   {
     "name": "RecordsFinder",
+    "category": "people-search",
     "removalUrl": "https://recordsfinder.com/optout/",
     "requirements": [
       "online",
@@ -1263,24 +701,8 @@
     "notes": "Public records search engine. Find your record first at recordsfinder.com. Email verification required."
   },
   {
-    "name": "Instant People Finder",
-    "removalUrl": "https://www.instantpeoplefinder.com/optout",
-    "requirements": [
-      "online",
-      "email-verification"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "People search directory. Email verification required for removal."
-  },
-  {
     "name": "AncestryFree (RootsWeb)",
+    "category": "people-search",
     "removalUrl": "https://support.ancestry.com/s/article/Removing-Personal-Information",
     "requirements": [
       "online",
@@ -1297,6 +719,7 @@
   },
   {
     "name": "DMAChoice (Direct Marketing Association)",
+    "category": "marketing",
     "removalUrl": "https://www.dmachoice.org/register.php",
     "requirements": [
       "online",
@@ -1317,6 +740,7 @@
   },
   {
     "name": "National Do Not Call Registry",
+    "category": "marketing",
     "removalUrl": "https://www.donotcall.gov/register.html",
     "requirements": [
       "online",
@@ -1335,6 +759,7 @@
   },
   {
     "name": "Catalog Choice",
+    "category": "marketing",
     "removalUrl": "https://www.catalogchoice.org/",
     "requirements": [
       "online",
@@ -1351,58 +776,29 @@
     "notes": "Non-profit service. Opt out of receiving unwanted catalogs, phone books, credit card offers, and other junk mail. Free account required. Works with over 10,000 companies."
   },
   {
-    "name": "ZoomInfo",
-    "removalUrl": "https://www.zoominfo.com/about-zoominfo/privacy/opt-out",
-    "requirements": [
-      "online",
-      "email-verification"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 5000
-    },
-    "notes": "MAJOR B2B DATA BROKER. One of the largest B2B contact databases. Has online opt-out form. Verification email sent. May take up to 30 days."
-  },
-  {
     "name": "Lusha",
-    "removalUrl": "https://www.lusha.com/opt-out/",
+    "category": "b2b",
+    "removalUrl": "https://www.lusha.com/privacy-center/request-removal/",
     "requirements": [
       "online",
       "email-verification"
     ],
     "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "B2B contact data platform. Provides business contact info to sales teams. Online opt-out form available."
+    "notes": "B2B contact data platform. 'Request Removal' page in Lusha's privacy centre. Email verification required."
   },
   {
     "name": "Apollo.io",
-    "removalUrl": "https://www.apollo.io/privacy-policy/removal",
+    "category": "b2b",
+    "removalUrl": "https://www.apollo.io/privacy-policy/remove",
     "requirements": [
       "online"
     ],
     "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "B2B sales intelligence platform. Large database of business contacts. Online removal form."
+    "notes": "B2B sales contact database. 'Remove your information' request page."
   },
   {
     "name": "RocketReach",
+    "category": "b2b",
     "removalUrl": "https://rocketreach.co/privacy",
     "requirements": [
       "email-only"
@@ -1416,6 +812,7 @@
   },
   {
     "name": "Hunter.io",
+    "category": "b2b",
     "removalUrl": "https://hunter.io/privacy-policy",
     "requirements": [
       "email-only"
@@ -1429,6 +826,7 @@
   },
   {
     "name": "ContactOut",
+    "category": "b2b",
     "removalUrl": "https://contactout.com/optout",
     "requirements": [
       "online"
@@ -1445,39 +843,28 @@
   },
   {
     "name": "FullContact",
-    "removalUrl": "https://www.fullcontact.com/privacy/claim-your-data/",
+    "category": "b2b",
+    "removalUrl": "https://platform.fullcontact.com/your-privacy-choices",
     "requirements": [
       "online",
       "email-verification"
     ],
     "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Identity resolution platform. Aggregates data from multiple sources to build identity graphs. Online form to claim and manage your data."
+    "notes": "Identity resolution platform. 'Exercise My Privacy Rights' page: opt-out and deletion requests, open to everyone regardless of location."
   },
   {
-    "name": "TowerData",
-    "removalUrl": "https://www.towerdata.com/opt-out",
+    "name": "AtData (formerly TowerData)",
+    "category": "b2b",
+    "removalUrl": "https://instantdata.atdata.com/optout",
     "requirements": [
       "online"
     ],
     "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Email intelligence and data append broker. Enriches email addresses with demographic data. Online opt-out form."
+    "notes": "Email data broker; TowerData is now AtData. AtData's opt-out request page."
   },
   {
     "name": "LiveRamp",
+    "category": "ad-tech",
     "removalUrl": "https://liveramp.com/opt_out/",
     "requirements": [
       "online"
@@ -1494,21 +881,17 @@
   },
   {
     "name": "Tapad",
-    "removalUrl": "https://www.tapad.com/privacy/opt-out",
+    "category": "ad-tech",
+    "removalUrl": "https://crportal.tapad.com/",
     "requirements": [
       "online"
     ],
     "adapter": "generic",
-    "config": {
-      "selectors": {
-        "submit": "button[type='submit'], a:has-text('Opt Out'), input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Cross-device tracking data broker. Links your devices together for ad targeting. Cookie-based opt-out."
+    "notes": "Cross-device ad tracking (owned by Experian). Consumer Rights Request Portal for opt-out, access and deletion. Works on device identifiers, not your name, so it needs a separate request per device. Stops ad targeting; it does not remove a people-search listing."
   },
   {
     "name": "Lotame",
+    "category": "ad-tech",
     "removalUrl": "https://www.lotame.com/about-lotame/privacy/opt-out/",
     "requirements": [
       "online"
@@ -1524,6 +907,7 @@
   },
   {
     "name": "ShareThis",
+    "category": "ad-tech",
     "removalUrl": "https://sharethis.com/privacy/",
     "requirements": [
       "online"
@@ -1539,6 +923,7 @@
   },
   {
     "name": "TrueCaller",
+    "category": "people-search",
     "removalUrl": "https://www.truecaller.com/unlisting",
     "requirements": [
       "online",
@@ -1556,22 +941,17 @@
   },
   {
     "name": "Hiya",
-    "removalUrl": "https://hiya.com/optout",
+    "category": "people-search",
+    "removalUrl": "https://support.hiya.com/hc/en-us/requests/new?ticket_form_id=360000113547",
     "requirements": [
       "online"
     ],
     "adapter": "generic",
-    "config": {
-      "selectors": {
-        "phone": "input[type='tel'], input[name='phone']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "PHONE ID APP. Phone number identity and spam blocking service. Opt-out removes your caller ID information."
+    "notes": "PHONE ID APP. 'Manage your data at Hiya' request form. A wrong caller name is a separate request, 'Remove incorrect name shown for a call', on Hiya's support request hub."
   },
   {
     "name": "CallerSmart",
+    "category": "people-search",
     "removalUrl": "https://www.callersmart.com/opt-out",
     "requirements": [
       "online"
@@ -1588,6 +968,7 @@
   },
   {
     "name": "PeopleSmart",
+    "category": "people-search",
     "removalUrl": "https://www.peoplesmart.com/optout",
     "requirements": [
       "online",
@@ -1605,24 +986,8 @@
     "notes": "People search engine. Find your listing, then submit opt-out. Email verification required."
   },
   {
-    "name": "Veromi",
-    "removalUrl": "https://www.veromi.net/optout",
-    "requirements": [
-      "online"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "People search and background check site. Online opt-out form."
-  },
-  {
     "name": "RealPeopleSearch",
+    "category": "people-search",
     "removalUrl": "https://realpeoplesearch.com/opt-out",
     "requirements": [
       "online",
@@ -1640,6 +1005,7 @@
   },
   {
     "name": "NumLooker",
+    "category": "people-search",
     "removalUrl": "https://numlooker.com/opt-out",
     "requirements": [
       "online"
@@ -1657,6 +1023,7 @@
   },
   {
     "name": "FastBackgroundCheck",
+    "category": "people-search",
     "removalUrl": "https://www.fastbackgroundcheck.com/opt-out",
     "requirements": [
       "online",
@@ -1675,6 +1042,7 @@
   },
   {
     "name": "SocialCatfish",
+    "category": "people-search",
     "removalUrl": "https://socialcatfish.com/opt-out/",
     "requirements": [
       "online",
@@ -1693,6 +1061,7 @@
   },
   {
     "name": "Innovis",
+    "category": "credit",
     "removalUrl": "https://www.innovis.com/personal/securityFreeze",
     "requirements": [
       "online",
@@ -1711,25 +1080,19 @@
     "notes": "4TH CREDIT BUREAU. Often overlooked. Place a security freeze to prevent new accounts. May require government ID verification. Free under federal law."
   },
   {
-    "name": "CoreLogic",
-    "removalUrl": "https://www.corelogic.com/privacy/opt-out/",
+    "name": "Cotality (formerly CoreLogic)",
+    "category": "credit",
+    "removalUrl": "https://www.cotality.com/legal/product-privacy-policy",
     "requirements": [
-      "online",
-      "id-upload"
+      "email-only",
+      "phone-only"
     ],
     "adapter": "generic",
-    "config": {
-      "selectors": {
-        "name": "input[name='name'], input[placeholder*='Name']",
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 5000
-    },
-    "notes": "Property and tenant screening data broker. Holds property records, rental history, and background screening data. May require ID for verification."
+    "notes": "Property and tenant-screening data; CoreLogic is now Cotality. No direct form link: the Product Privacy Policy explains how to ask for deletion or opt out of sale, through its Online Privacy Portal, by email to privacy@cotality.com, or by phone at 1-866-221-9291."
   },
   {
     "name": "Pipl",
+    "category": "b2b",
     "removalUrl": "https://pipl.com/personal-information-removal-request",
     "requirements": [
       "email-only"
@@ -1743,6 +1106,7 @@
   },
   {
     "name": "Melissa Data",
+    "category": "b2b",
     "removalUrl": "https://www.melissa.com/privacy",
     "requirements": [
       "email-only"
@@ -1755,36 +1119,18 @@
     "notes": "B2B address and identity verification broker. Email privacy@melissa.com to request removal. Reference CCPA if applicable."
   },
   {
-    "name": "Gravy Analytics",
-    "removalUrl": "https://gravyanalytics.com/privacy/",
-    "requirements": [
-      "email-only"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {},
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Location data broker. Collects and sells location data from mobile apps. Email to request deletion of your location data."
-  },
-  {
-    "name": "OfficialUSA",
-    "removalUrl": "https://www.officialusa.com/opt-out/",
+    "name": "Unacast (Gravy Analytics)",
+    "category": "ad-tech",
+    "removalUrl": "https://www.unacast.com/opt-out",
     "requirements": [
       "online"
     ],
     "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Public data aggregator. Compiles publicly available government data. Online opt-out form."
+    "notes": "Location data broker; Gravy Analytics merged into Unacast and gravyanalytics.com redirects there. 'Opt Out & Delete Request' page. Works on your phone's advertising ID."
   },
   {
     "name": "PeopleSearchExpert",
+    "category": "people-search",
     "removalUrl": "https://www.peoplesearchexpert.com/opt-out",
     "requirements": [
       "online"
@@ -1801,72 +1147,19 @@
     "notes": "People search aggregator. Online opt-out form available."
   },
   {
-    "name": "Revealname",
-    "removalUrl": "https://www.revealname.com/opt_out",
-    "requirements": [
-      "online"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "phone": "input[type='tel'], input[name='phone']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Phone and name lookup service. Online opt-out form."
-  },
-  {
-    "name": "Numberville",
-    "removalUrl": "https://numberville.com/opt-out",
-    "requirements": [
-      "online"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "phone": "input[type='tel'], input[name='phone']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Phone number lookup site. Online opt-out form."
-  },
-  {
     "name": "ValidNumber",
-    "removalUrl": "https://validnumber.com/opt-out/",
-    "requirements": [
-      "online"
-    ],
-    "adapter": "generic",
-    "config": {
-      "selectors": {
-        "phone": "input[type='tel'], input[name='phone']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Phone number validation and lookup. Online opt-out form."
-  },
-  {
-    "name": "PublicRecords360",
-    "removalUrl": "https://www.publicrecords360.com/optout.html",
+    "category": "people-search",
+    "removalUrl": "https://validnumber.com/doc/privacy/",
     "requirements": [
       "online",
-      "email-verification"
+      "profile-url-required"
     ],
     "adapter": "generic",
-    "config": {
-      "selectors": {
-        "email": "input[type='email']",
-        "submit": "button[type='submit'], input[type='submit']"
-      },
-      "postSubmitWaitMs": 3000
-    },
-    "notes": "Public records aggregator. Search for your listing first, then request removal. Email verification required."
+    "notes": "Reverse phone lookup. There is no single opt-out address: section 9 of this privacy policy explains the steps (look up the number on validnumber.com, then use the removal request on that number's page)."
   },
   {
     "name": "ChexSystems",
+    "category": "credit",
     "removalUrl": "https://www.chexsystems.com/security-freeze/place-freeze",
     "requirements": [
       "online",
