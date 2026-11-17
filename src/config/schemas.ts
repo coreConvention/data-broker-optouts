@@ -15,6 +15,7 @@ import { z } from "zod";
  *
  * Each broker entry represents a data broker website with:
  * - name: Display name of the broker
+ * - category: What kind of opt-out this is (see BrokerCategorySchema)
  * - removalUrl: URL for opt-out form (if available)
  * - requirements: Array of what's needed to complete opt-out
  * - adapter: Which automation adapter to use
@@ -24,8 +25,24 @@ import { z } from "zod";
  *   the page for the person to finish by hand
  * - config: Optional selectors and configuration for form filling
  */
+/**
+ * What an entry's opt-out actually does. Only "people-search" removes a
+ * public listing of someone's address or phone number; the others stop
+ * marketing offers, ad targeting, credit-file use or business-contact sales.
+ * Kept separate so coverage counts are not inflated by entries that do not
+ * take a listing down.
+ */
+export const BrokerCategorySchema = z.enum([
+  "people-search", // Public people/phone/address lookup: opt-out removes a listing
+  "marketing",     // Marketing data and mail/phone preference lists
+  "ad-tech",       // Online ad targeting, device and location tracking
+  "credit",        // Credit bureaus and consumer-reporting agencies
+  "b2b"            // Business-contact and identity data sold to companies
+]);
+
 export const BrokerEntrySchema = z.object({
   name: z.string(),
+  category: BrokerCategorySchema.optional(),
   removalUrl: z.string().url().optional().nullable(),
   requirements: z.array(
     z.enum([

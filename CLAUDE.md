@@ -1,11 +1,11 @@
 # Data Broker Opt-Out Runner
 
 ## Project Overview
-Playwright-based tool that automates opt-out requests from 113+ data broker sites using a human-in-the-loop approach. Includes a CLI tool and a partially-built Electron + Angular 21 desktop app.
+Playwright-based tool that guides opt-out requests at 74 data broker and marketing opt-out pages (47 of them people-search sites) using a human-in-the-loop approach. Includes a CLI tool and a partially-built Electron + Angular 21 desktop app.
 
 ## Architecture
 - **Entry point**: `src/run-refactored.ts` - orchestrates CLI parsing, config loading, browser setup, and execution
-- **Adapters**: `src/adapters/BaseAdapter.ts` (abstract base) + 7 site-specific adapters in `sites/` + `GenericFormAdapter` for simple forms
+- **Adapters**: `src/adapters/BaseAdapter.ts` (abstract base) + 7 site-specific adapters in `sites/` (6 used by the manifest; `RadarisAdapter` has no entry since Radaris lost its domain) + `GenericFormAdapter` for simple forms
 - **Services**: `src/services/` - ConfigLoader, BrokerFilter, ResumeService, ExecutionOrchestrator, StatisticsTracker
 - **Factories**: `src/factories/` - AdapterFactory, BrowserFactory
 - **Config**: `src/config/` - CLI parsing (yargs), Zod schemas for validation
@@ -30,7 +30,7 @@ Playwright-based tool that automates opt-out requests from 113+ data broker site
 - Electron 45 + Angular 21 for desktop (WIP)
 
 ## Data Files
-- `data/manifest.json` - broker configurations (tracked in git)
+- `data/manifest.json` - broker configurations (tracked in git). One entry per parent company; sites sharing an opt-out are listed in `notes`. Every entry has a `category` (`people-search`, `marketing`, `ad-tech`, `credit`, `b2b`); only `people-search` removes a public listing
 - `data/profile.json` - user PII (gitignored, use `data/profile.example.json` as template)
 
 ## Commands
@@ -38,9 +38,10 @@ Playwright-based tool that automates opt-out requests from 113+ data broker site
 - `npm test` - run vitest suite
 - `npm run build` - TypeScript type check
 - `npm run start:dry-run` - test without submitting
+- `npm run check:manifest` - read-only health check (`scripts/check-manifest.mjs`): loads every `removalUrl` headless, reports dead/blocked/redirected, never types or clicks, exits 1 on dead entries
 
 ## Adding a New Broker
-1. Add entry to `data/manifest.json` with selectors for generic adapter (set `verified: true` only after checking the selectors against the live opt-out page), OR
+1. Add entry to `data/manifest.json` (with a `category`, and a `removalUrl` you have loaded yourself) with selectors for generic adapter (set `verified: true` only after checking the selectors against the live opt-out page), OR
 2. Create `src/adapters/sites/NewBrokerAdapter.ts` extending BaseAdapter
 3. Register in `src/factories/AdapterFactory.ts`
 4. Add adapter name to enum in `src/config/schemas.ts` and `src/types.ts`
@@ -50,8 +51,8 @@ Playwright-based tool that automates opt-out requests from 113+ data broker site
 - `.temp/` is gitignored — never commit temp files to the repo
 
 ## Testing
-- Tests in `src/__tests__/` using vitest (104 tests)
-- Schema validation tests verify manifest.json integrity
+- Tests in `src/__tests__/` using vitest (108 tests)
+- Schema validation tests verify manifest.json integrity (every entry has a category; no two entries share a removalUrl)
 - Service tests cover BrokerFilter, ResumeService, StatisticsTracker, AdapterFactory, ExecutionOrchestrator
 - IOProvider tests cover interface contract and CliIOProvider implementation
 - `GenericFormAdapter.test.ts` drives headless Chromium against local HTML fixtures (`page.setContent` / `data:` URLs), never a real site; it needs Playwright's Chromium installed (`npx playwright install chromium`)

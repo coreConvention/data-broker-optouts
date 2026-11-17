@@ -1,68 +1,76 @@
 # Data Broker Opt-Out Runner
 
-**Automate your privacy:** A Playwright-based tool that streamlines opt-out requests from **113 data broker sites** using a **human-in-the-loop** approach for CAPTCHAs and verification steps.
+A Playwright-based tool that walks you through opt-out requests at **74 data broker and marketing opt-out pages**, 47 of them people-search sites. It opens each broker's official opt-out page, fills in what it safely can, and pauses for you to do the rest: finding your listing, CAPTCHAs, and email or phone verification.
 
-> ⚠️ **Privacy-Focused & Legal:** This tool only uses official opt-out pages and never bypasses CAPTCHAs. You handle verification steps manually, ensuring compliance with Terms of Service.
+> ⚠️ **What this tool is and is not:** it is a guided assistant, not a removal service. It only visits official opt-out pages and it never solves a CAPTCHA for you. It does not check afterwards that a listing is gone; you have to do that yourself (see [What "success" means](#what-success-means)).
 
 ## Why This Matters
 
-Data brokers collect and sell personal information — home addresses, phone numbers, family members, employment history — making it trivially easy for anyone to find details about you online. For stalking victims, domestic abuse survivors, and anyone concerned about their privacy, this exposure is dangerous. The opt-out process is deliberately tedious: dozens of different sites, each with their own forms, CAPTCHAs, and verification steps. Most people give up. This tool automates that process so you don't have to.
+Data brokers collect and sell personal information — home addresses, phone numbers, family members, employment history — making it trivially easy for anyone to find details about you online. For stalking victims, domestic abuse survivors, and anyone concerned about their privacy, this exposure is dangerous. The opt-out process is deliberately tedious: dozens of different sites, each with their own forms, CAPTCHAs, and verification steps. Most people give up. This tool keeps the list, opens the right page, and keeps track of where you are.
 
 ## 🎯 Features
 
 ### Core Capabilities
-- **113 Data Brokers Supported** including Spokeo, Whitepages, BeenVerified, Radaris, Nuwber, and more
-- **Smart Adapters**: 7 site-specific adapters for complex flows + generic adapter for 106 simple forms
+- **74 opt-out pages in the manifest**, tagged by what the opt-out actually does (see [Coverage](#-coverage))
+- **6 guided walkthroughs** for the larger people-search companies (Whitepages, Spokeo, BeenVerified, PeopleConnect, Nuwber, MyLife): step-by-step instructions with pauses. The only automation in them is filling a name or email field; you do the searching, selecting and submitting
+- **Generic adapter** for the other 68 entries: opens the opt-out page and hands over to you. It types and clicks nothing unless the entry is marked `verified: true`, meaning a person has checked its CSS selectors against the live page; no entry in the shipped manifest is marked verified yet, so today every one of these is a page you finish by hand
 - **Human-in-the-Loop**: Pauses for CAPTCHA solving, email verification, and manual steps
-- **Progress Tracking**: Real-time progress indicators and detailed summary reports
-- **Error Handling**: Automatic retry with exponential backoff + screenshot capture on failures
-- **Audit Logging**: Timestamped JSONL logs of all opt-out attempts
+- **Progress Tracking**: Real-time progress indicators and a summary report
+- **Error Handling**: Retry with exponential backoff, plus a screenshot on failure. Screenshots are saved to `./logs/*.png` and **can show your name, address, phone number or email**; treat that folder as private and delete it when you are done
+- **Audit Logging**: Timestamped JSONL logs of every attempt
 
 ### Advanced Features ⚡
-- **Stealth Mode**: Anti-bot detection with realistic browser fingerprinting and human-like behavior
+- **Stealth Mode** (on by default): makes the automated browser look like an ordinary one so that basic bot detection does not turn it away. See [Stealth mode](#stealth-mode) for exactly what it changes and how to turn it off
 - **Selective Execution**: Filter by broker name, exclude specific brokers, or limit batch size
 - **Dry Run Mode**: Test configurations without actually submitting requests
-- **Resume Support**: Skip already-successful brokers from previous runs
-- **Smart Filtering**: Run only specific brokers or exclude problematic ones
+- **Resume Support**: Skip brokers a previous run logged as `success`
+- **Manifest health check**: `npm run check:manifest` reports dead, blocked and moved opt-out pages
 
 ## 📊 Coverage
 
-### Total: 113 Data Brokers
+### Total: 74 entries, by what the opt-out does
 
-#### Tier 1: Major People Search Sites (7 custom adapters)
-- **Spokeo** - Multi-step opt-out with email verification
-- **Whitepages** - Comprehensive form automation
-- **BeenVerified** - Search and selection flow
-- **Intelius/PeopleConnect** - Network-wide suppression
-- **Radaris** - Profile-based removal
-- **Nuwber** - Email verification flow
-- **MyLife** - CCPA-compliant opt-out
+Only the first group removes a public listing of your name, address or phone number. The others are worth doing, but they stop marketing, ad targeting or data sales; they do not take a people-search listing down.
 
-#### Tier 2: People Search & Public Records (53 generic adapters)
-FastPeopleSearch, TruePeopleSearch, CheckPeople, ThatsThem, SmartBackgroundChecks, ClustrMaps, PeopleSearchNow, AdvancedBackgroundChecks, PublicDataUSA, Dataveria, NeighborReport, FamilyTreeNow, USPhoneBook, PeopleFinders, PeekYou, InstantCheckmate, TruthFinder, USSearch, Zabasearch, AnyWho, Addresses, InfoTracer, PrivateEye, SearchQuarry, SearchBug, SpyFly, PeopleByName, OldFriends, PrivateRecords, PropertyRecords, Classmates, PeopleConnect, 411, YellowPages, VoterRecords, CocoFinder, CyberBackgroundChecks, GladIKnow, PeopleWhiz, USAPeopleSearch, Verecor, Pub360, Spokeo (Profile URL), PeopleSmart, Veromi, RealPeopleSearch, FastBackgroundCheck, SocialCatfish, OfficialUSA, PeopleSearchExpert, PublicRecords360, NumLooker, Revealname
+| Category | Entries | What opting out does |
+|---|---|---|
+| `people-search` | 47 | Asks a people-search, phone-lookup or public-records site to remove or suppress your listing |
+| `b2b` | 10 | Asks a business-contact or identity-data company to stop selling your details to its customers |
+| `marketing` | 6 | Stops marketing use of your data, junk mail, catalogs or telemarketing calls |
+| `credit` | 6 | Stops pre-approved credit offers or marketing use by credit and consumer-reporting agencies, or places a security freeze |
+| `ad-tech` | 5 | Stops ad targeting tied to a browser cookie or a device's advertising ID |
 
-#### Tier 3: B2B Data Brokers & Identity Resolution (12 generic adapters)
-ZoomInfo, Lusha, Apollo.io, RocketReach, Hunter.io, ContactOut, FullContact, TowerData, LiveRamp, Pipl, Melissa Data, Gravy Analytics
+#### People-search sites (47)
 
-#### Tier 4: Data Aggregators & Marketing (14 generic adapters)
-Acxiom, Acxiom (AboutTheData), Epsilon, Experian, LexisNexis, Oracle Data Cloud (BlueKai), DataAxle (InfoUSA/Donnelley), Equifax Marketing Opt-Out, TransUnion Marketing Opt-Out, Precise Leads (NumLookup), DMAChoice (Direct Marketing Association), National Do Not Call Registry, Catalog Choice, Clearview AI
+Guided walkthroughs (6): **Whitepages**, **Spokeo**, **BeenVerified**, **PeopleConnect**, **Nuwber**, **MyLife**
 
-#### Tier 5: Phone ID & Caller Lookup (6 generic adapters)
-TrueCaller, Hiya, CallerSmart, Numberville, ValidNumber, Tapad
+Generic adapter (41): FastPeopleSearch, TruePeopleSearch, CheckPeople, ThatsThem, SmartBackgroundChecks, FamilyTreeNow, USPhoneBook, PeopleSearchNow, AdvancedBackgroundChecks, NeighborReport, PeopleFinders, InfoTracer, SearchQuarry, SearchBug, PeopleByName, OldFriends, PrivateRecords, PropertyRecords, Classmates, 411, YellowPages, VoterRecords, CocoFinder, CyberBackgroundChecks, GladIKnow, PeopleWhiz, USAPeopleSearch, Unmask, Precise Leads (NumLookup), RecordsFinder, AncestryFree (RootsWeb), TrueCaller, Hiya, CallerSmart, PeopleSmart, RealPeopleSearch, NumLooker, FastBackgroundCheck, SocialCatfish, PeopleSearchExpert, ValidNumber
 
-#### Tier 6: Credit Bureaus & Financial (3 generic adapters)
-Innovis, CoreLogic, ChexSystems
+#### Business-contact and identity data (10)
+Apollo.io, Lusha, RocketReach, Hunter.io, ContactOut, FullContact, AtData (formerly TowerData), Pipl, Melissa Data, Clearview AI
 
-#### Tier 7: Ad Tech & Tracking (3 generic adapters)
-Lotame, ShareThis, Tapad
+#### Marketing (6)
+Acxiom, Epsilon, DataAxle (InfoUSA/Donnelley), DMAChoice, National Do Not Call Registry, Catalog Choice
 
-#### Tier 8: Emerging & Niche Brokers (16 generic adapters)
-IDTrue, Persopo, Unmask, Xlek, NewEnglandFacts, Cubib, Centeda, Verispy, Ownerly, PeopleLooker, LocatePeople, PublicRecordsNow, RecordsFinder, Instant People Finder, AncestryFree (RootsWeb), Spokeo (Direct Removal)
+#### Credit and consumer reporting (6)
+Experian, OptOutPrescreen (Equifax, Experian, Innovis and TransUnion), Innovis, ChexSystems, LexisNexis, Cotality (formerly CoreLogic)
 
-> **Note:** Some brokers share opt-out systems. BeenVerified covers PeopleLooker, NeighborWho, NumberGuru, and Ownerly. Intelius/PeopleConnect covers TruthFinder and InstantCheckmate.
+#### Ad tech and tracking (5)
+LiveRamp, Lotame, Tapad, ShareThis, Unacast (Gravy Analytics)
 
-### Success Rate
-Based on Consumer Reports research, **manual opt-outs have 70% success rate** vs. only 27% for automated services like DeleteMe. This tool combines the best of both: automation where possible, human verification where needed.
+> **One entry per company.** Sites that share an opt-out are listed in that entry's `notes`, not counted separately. **PeopleConnect** covers Intelius, TruthFinder, Instant Checkmate, US Search, Zabasearch and Addresses.com. **BeenVerified** covers PeopleLooker, Ownerly, NeighborWho and NumberGuru. **Spokeo** covers AnyWho.
+
+> **Link rot is real.** When these pages were last checked (2026-11-17, headless browser, nothing typed or clicked), 43 of the 74 loaded at the listed address, 13 loaded after a redirect, and 18 refused an automated browser and can only be confirmed by a person in a visible browser. Radaris and its sister sites are no longer listed: their domains were transferred by court order in 2026 and have no opt-out page. Run `npm run check:manifest` for the current picture.
+
+### What "success" means
+
+A `success` line in the log means **the steps for that broker ran without an error**. It does not mean the broker removed your record, and the tool does not go back to check. Because `--resume` skips every broker already logged as `success`, re-run without `--resume` when you want to repeat a broker.
+
+After a run, search each site for yourself again a week or two later, and repeat every few months: brokers re-list people when they receive new records.
+
+### How well do opt-outs work?
+
+This tool's own removal rate has not been measured. For context, Consumer Reports' 2024 study *Data Defense: Evaluating People-Search Site Removal Services* found that manual opt-outs, done by hand by its researchers, had about **70%** of profiles gone within a week, while the paid removal services it tested had removed only **35%** of profiles overall after four months. The authors note the sample (32 volunteers, 13 people-search sites) is small and not nationally representative. This tool is neither the manual method nor one of the services that study tested.
 
 ## 🚀 Quick Start
 
@@ -109,7 +117,7 @@ npx playwright install chromium
 
 #### 2. Review Manifest (`data/manifest.json`)
 
-The manifest contains **113 pre-configured data brokers**. You can:
+The manifest contains **74 pre-configured entries**, each tagged with a `category` (`people-search`, `marketing`, `ad-tech`, `credit` or `b2b`). You can:
 - Enable/disable specific brokers by removing entries
 - Add custom brokers using the generic adapter
 - Modify selectors for sites that have changed their forms
@@ -139,12 +147,12 @@ The tool supports powerful filtering and control options:
 
 **Filter specific brokers:**
 ```bash
-npm start -- --filter "Spokeo,Whitepages,Radaris"
+npm start -- --filter "Spokeo,Whitepages,Nuwber"
 ```
 
 **Exclude specific brokers:**
 ```bash
-npm start -- --exclude "BeenVerified,Intelius"
+npm start -- --exclude "BeenVerified,PeopleConnect"
 ```
 
 **Resume from previous run:**
@@ -155,11 +163,6 @@ npm start -- --resume ./optouts-2025-11-05-14-30-00.jsonl
 **Limit number of brokers:**
 ```bash
 npm start -- --limit 5
-```
-
-**Disable stealth mode:**
-```bash
-npm start -- --stealth=false
 ```
 
 **Combine multiple options:**
@@ -174,7 +177,7 @@ npm start -- --filter "True,Fast,Check" --limit 10 --dry-run
 | `--manifest` | string | required | Path to manifest.json |
 | `--profile` | string | required | Path to profile.json |
 | `--headful` | boolean | false | Run browser in visible mode |
-| `--stealth` | boolean | true | Enable anti-bot detection measures |
+| `--stealth` | boolean | true | Make the automated browser look like an ordinary one (see [Stealth mode](#stealth-mode)) |
 | `--filter` | string | - | Filter brokers (comma-separated names) |
 | `--exclude` | string | - | Exclude brokers (comma-separated names) |
 | `--dry-run` | boolean | false | Simulate without submitting |
@@ -186,20 +189,36 @@ npm start -- --filter "True,Fast,Check" --limit 10 --dry-run
 npm run help
 ```
 
+#### Stealth mode
+
+Stealth mode is **on by default**. Many opt-out pages turn away anything that looks like an automated browser, so with stealth on the tool hides the usual signs: it removes the `navigator.webdriver` flag, reports a fake browser-plugin list and language list, reports a fake `window.chrome` object, and uses a regular desktop Chrome user agent and a common window size. In plain terms, it is there to get past basic bot detection so that you can reach the opt-out form.
+
+It does **not** solve or skip CAPTCHAs, log in for you, or defeat a full challenge page; when a site shows one, the tool pauses and you handle it. Some sites' terms of service forbid automated access of any kind, so decide for yourself whether you are comfortable with that. To turn the disguise off:
+
+```bash
+npm start -- --stealth=false
+```
+
+With stealth off the fake plugin list, languages and user agent are gone, but the browser is still started with Chromium's `AutomationControlled` flag disabled, so it is not yet a fully undisguised browser.
+
+#### Checking the manifest for dead links
+
+Opt-out pages move and brokers shut down, so the manifest goes stale. `npm run check:manifest` loads every `removalUrl` once in headless Chromium and reports which entries are dead (page missing, domain gone, server error), blocked (the site refuses a headless browser, so a person has to check it) or redirected to a different address. It is read-only: it never types or clicks, it does not read your profile, and it exits with code 1 if any entry is dead. Add `-- --json ./.temp/check.json` to save the details.
+
 ## 📖 How It Works
 
 ### The Process
 
 1. **Browser Launch**: Opens Chromium (visible or headless)
 2. **Iterate Brokers**: Processes each data broker in sequence
-3. **Auto-Fill Forms**: Automatically fills name, email, address fields
+3. **Auto-Fill Forms**: The guided walkthroughs fill a name or email field where they can; the generic adapter fills fields only for entries marked `verified`
 4. **Human Pauses**: Prompts you to:
    - Search for your profile/listing
    - Solve CAPTCHAs
    - Verify email confirmations
    - Complete any manual steps
-5. **Error Handling**: Retries failed requests and captures screenshots
-6. **Audit Trail**: Logs all attempts with timestamps and status
+5. **Error Handling**: Retries failed requests and captures screenshots (saved to `./logs`; they can show your personal details)
+6. **Audit Trail**: Logs all attempts with timestamps and status. `success` means the steps ran without error, not that the record was removed
 
 ### Terminal Output Example
 
@@ -236,6 +255,7 @@ Add to `data/manifest.json`:
 ```json
 {
   "name": "NewBroker",
+  "category": "people-search",
   "removalUrl": "https://newbroker.com/opt-out",
   "requirements": ["online", "captcha"],
   "adapter": "generic",
@@ -281,7 +301,7 @@ export class NewBrokerAdapter extends BaseAdapter {
 
 ### Error Troubleshooting
 
-**Screenshots**: Check `./logs/` for error screenshots with timestamps
+**Screenshots**: Check `./logs/` for error screenshots with timestamps. They are full-page captures of the opt-out page as it was when the error happened, so they can contain your name, address, phone number or email. Do not attach them to a public issue without checking, and delete them when you no longer need them
 
 **Audit Logs**: Review JSONL files for detailed error messages:
 ```bash
@@ -302,8 +322,10 @@ Each run creates a timestamped log file:
 ```json
 {"site":"Spokeo","status":"success","ts":"2025-11-05T14:35:22Z","url":"https://spokeo.com/optout","message":"Submitted (some steps may have been manual)."}
 {"site":"Whitepages","status":"success","ts":"2025-11-05T14:42:18Z","url":"https://whitepages.com/suppression-requests","message":"Submitted (some steps may have been manual)."}
-{"site":"Radaris","status":"failed","ts":"2025-11-05T14:45:01Z","url":"https://radaris.com/control/privacy","message":"Navigation timeout"}
+{"site":"Nuwber","status":"failed","ts":"2025-11-05T14:45:01Z","url":"https://nuwber.com/removal/link","message":"Navigation timeout"}
 ```
+
+`success` here means the steps for that broker ran without an error. It is not confirmation that the broker removed anything; see [What "success" means](#what-success-means).
 
 ### Summary Report
 
@@ -312,7 +334,7 @@ Each run creates a timestamped log file:
 📊 Summary Report
 ============================================================
 Total brokers processed: 20
-✓ Successful: 15
+✓ Successful: 15   (steps ran without error; not a confirmed removal)
 ✗ Failed: 2
 ⊘ Skipped: 1
 ⚠ Manual needed: 2
@@ -333,6 +355,7 @@ Total brokers processed: 20
 - **No telemetry or tracking** - completely open source
 - **Your credentials are never stored** - only profile data you provide
 - **Audit logs are local** - review and delete as needed
+- **Error screenshots are local too, and sensitive** - `./logs/*.png` can show the personal details you entered on a form; keep the folder private and delete it when you are done
 
 ## 🤝 Contributing
 
@@ -341,7 +364,7 @@ Contributions welcome! Here's how you can help:
 ### Add a New Data Broker (Easiest)
 1. Find the broker's official opt-out page
 2. Add an entry to `data/manifest.json` with CSS selectors for form fields
-3. Run `npm test` to verify manifest validates
+3. Give the entry a `category` and run `npm test` to verify the manifest validates
 4. Submit a PR
 
 ### Improve an Existing Adapter
@@ -363,6 +386,7 @@ Open an issue with the broker name and what's broken — even just "Spokeo form 
 Data broker opt-outs are backed by strong legal frameworks:
 
 - **CCPA/CPRA (California)**: Right to delete personal info and opt out of data sales. Brokers must comply within 45 days.
+- **California's DROP (Delete Request and Opt-out Platform)**: Since January 2026, California residents can file **one** deletion request at [privacy.ca.gov/drop](https://privacy.ca.gov/drop/) that goes to every data broker registered with the state, instead of contacting each one. If you live in California, do this first; it reaches hundreds of brokers this tool does not list. It does not cover brokers that have not registered, so the site-by-site opt-outs here are still useful.
 - **VCDPA (Virginia)**, **CPA (Colorado)**, **CTDPA (Connecticut)**, **UCPA (Utah)**: Similar deletion and opt-out rights for state residents.
 - **GDPR (EU/EEA)**: Right to erasure ("right to be forgotten") and right to object to processing.
 - **Federal**: The FTC regulates data brokers under "unfair or deceptive practices." The National Do Not Call Registry covers telemarketing.
@@ -370,13 +394,14 @@ Data broker opt-outs are backed by strong legal frameworks:
 **Tips for leveraging your rights:**
 - Mention the specific law (e.g., "pursuant to CCPA Section 1798.105") in opt-out requests for faster compliance
 - Re-submit opt-outs every 3-6 months — brokers often re-acquire your data
-- Keep audit logs (this tool generates them automatically) as proof of your requests
+- Keep audit logs (this tool generates them automatically) as a record of what you requested and when
 
 ## 📚 Resources
 
 - [Privacy Rights Clearinghouse Data Broker Database](https://privacyrights.org/data-brokers) - 750+ data brokers
 - [Big-Ass-Data-Broker-Opt-Out-List](https://github.com/yaelwrites/Big-Ass-Data-Broker-Opt-Out-List) - Comprehensive guide
-- [Consumer Reports Study](https://www.consumerreports.org/) - Manual opt-outs vs. paid services
+- [Consumer Reports: Data Defense (2024)](https://innovation.consumerreports.org/new-report-data-defense-evaluating-people-search-site-removal-services/) - Manual opt-outs vs. paid removal services
+- [California DROP](https://privacy.ca.gov/drop/) - One deletion request to every registered data broker (California residents)
 - [EFF Surveillance Self-Defense](https://ssd.eff.org/) - Digital privacy best practices
 - [CCPA Official Text](https://oag.ca.gov/privacy/ccpa) - California Consumer Privacy Act
 
@@ -388,8 +413,8 @@ MIT License - See LICENSE file for details
 
 This tool is provided as-is for legal privacy protection purposes. Always:
 - Use only on official opt-out pages
-- Respect website Terms of Service
-- Never attempt to bypass security measures
-- Verify removal success manually after automation
+- Read each website's Terms of Service; stealth mode, which is on by default, disguises the automated browser (see [Stealth mode](#stealth-mode)), and some sites do not allow automated access
+- Solve CAPTCHAs and verification steps yourself; the tool never does this for you
+- Check for yourself that a listing is gone; a `success` in the log is not proof of removal
 
 **This tool is not affiliated with any data broker or removal service.**
