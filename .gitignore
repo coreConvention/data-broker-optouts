@@ -29,6 +29,11 @@ Thumbs.db
 *.log
 npm-debug.log*
 
+# Run result logs (which brokers were contacted and each outcome).
+# Unanchored on purpose: the desktop app writes them to data/, the CLI
+# writes them to whatever directory it was started from.
+optouts-*.jsonl
+
 # Test coverage
 coverage/
 
