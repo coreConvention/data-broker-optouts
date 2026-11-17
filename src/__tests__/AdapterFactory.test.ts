@@ -49,6 +49,15 @@ describe("AdapterFactory", () => {
     });
   });
 
+  describe("createListingAdapter", () => {
+    it("returns null for brokers without a listing adapter", () => {
+      const names: BrokerEntry["adapter"][] = ["generic", "Spokeo", "Whitepages", "Nuwber", "BeenVerified", "Intelius", "MyLife"];
+      for (const name of names) {
+        expect(AdapterFactory.createListingAdapter(makeEntry(name))).toBeNull();
+      }
+    });
+  });
+
   describe("hasAdapter", () => {
     it("returns true for all known adapters", () => {
       const names = ["generic", "Spokeo", "Whitepages", "Nuwber", "BeenVerified", "Intelius", "MyLife"];

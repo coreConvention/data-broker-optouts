@@ -17,9 +17,31 @@ interface RunProgressLike {
   current: number;
   total: number;
   broker: string;
-  status: 'processing' | 'success' | 'manual-needed' | 'skipped' | 'failed';
+  status:
+    | 'processing' | 'success' | 'manual-needed' | 'skipped' | 'failed'
+    // Broker states, reported for brokers handled through a listing adapter
+    | 'unknown' | 'not-found' | 'listed' | 'requested' | 'removed' | 'relisted';
   message?: string;
 }
+
+/**
+ * The renderer's status badge knows only its own vocabulary until it learns
+ * the broker states (#45). Until then each engine status is shown as the
+ * nearest badge, and the message says what actually happened.
+ */
+const RENDERER_STATUS: Record<RunProgressLike['status'], string> = {
+  processing: 'processing',
+  success: 'success',
+  'manual-needed': 'manual',
+  skipped: 'skipped',
+  failed: 'failed',
+  requested: 'success',
+  removed: 'success',
+  'not-found': 'skipped',
+  listed: 'manual',
+  relisted: 'manual',
+  unknown: 'failed',
+};
 
 function sendToWindow(
   getWindow: () => BrowserWindow | null,
@@ -86,8 +108,7 @@ export class ElectronIOProvider {
   reportProgress(progress: RunProgressLike): void {
     sendToWindow(this.getMainWindow, 'run:progress', {
       ...progress,
-      // The renderer's status vocabulary says 'manual' where the engine says 'manual-needed'
-      status: progress.status === 'manual-needed' ? 'manual' : progress.status,
+      status: RENDERER_STATUS[progress.status],
     });
   }
 
