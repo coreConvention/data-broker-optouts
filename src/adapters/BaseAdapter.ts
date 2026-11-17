@@ -1,4 +1,4 @@
-import type { BrowserContext, Page } from "@playwright/test";
+import type { BrowserContext, Locator, Page } from "@playwright/test";
 import type { AdapterOutcome, BrokerEntry, PersonProfile, IOProvider, ExecutionContext } from "../types.js";
 import { promises as fs } from "fs";
 import { join } from "path";
@@ -159,57 +159,201 @@ export abstract class BaseAdapter {
   }
 
   /**
-   * Try to fill a field by probing multiple selectors in order.
-   * Returns true if a field was filled.
+   * Submit labels that belong to some other form. Taken from what the generic
+   * adapter would have clicked on live pages before issue #25 ("Subscribe Now"
+   * on a marketing sign-up form) plus the login boxes of issue #29.
+   */
+  protected static readonly OTHER_PURPOSE_LABEL = /subscribe|sign\s*-?\s*up|newsletter|log\s*-?\s*in|sign\s*-?\s*in/i;
+
+  /** A site search box is another form too, unless the step is itself a search. */
+  protected static readonly SEARCH_LABEL = /search/i;
+
+  /** Controls that submit the form they sit in. */
+  protected static readonly SUBMIT_CONTROLS =
+    "button:not([type='button']):not([type='reset']), input[type='submit'], input[type='image']";
+
+  /** The text a person would read on a button or submit input. */
+  protected async controlLabel(control: Locator): Promise<string> {
+    return control.evaluate((el: Element) =>
+      [el.textContent, el.getAttribute("value"), el.getAttribute("aria-label"), el.getAttribute("title")]
+        .filter(Boolean)
+        .join(" ")
+    );
+  }
+
+  /** True when the label reads like a newsletter, login or (unless allowed) search button. */
+  protected isWrongPurposeLabel(label: string, allowSearchForm: boolean = false): boolean {
+    return BaseAdapter.OTHER_PURPOSE_LABEL.test(label)
+      || (!allowSearchForm && BaseAdapter.SEARCH_LABEL.test(label));
+  }
+
+  /**
+   * Finds the <form>s that could be the one the person's details belong in.
+   *
+   * Matching per form, instead of taking the first match on the page, is what
+   * keeps a loose selector like `input[type='email']` from landing in a
+   * marketing sign-up or login box that happens to come first (issues #25, #29).
+   * A form qualifies when:
+   * - it has a visible submit control, and none of its visible submit controls
+   *   is another form's button (newsletter, login, search);
+   * - it has no visible password field (a login or sign-up box);
+   * - it visibly holds the wanted fields: all of them, or at least one.
+   *
+   * Each wanted field is a list of alternative selectors; any one may match.
+   */
+  protected async findCandidateForms(page: Page, fields: readonly (readonly string[])[], options: FormMatchOptions = {}): Promise<Locator[]> {
+    const submitSelector: string = options.submitSelector ?? BaseAdapter.SUBMIT_CONTROLS;
+    const forms: Locator = page.locator("form");
+    const count: number = await forms.count();
+    const candidates: Locator[] = [];
+
+    for (let i = 0; i < count; i++) {
+      const form: Locator = forms.nth(i);
+      if (!(await this.hasOnlyRightPurposeSubmits(form, submitSelector, options.allowSearchForm === true))) continue;
+      if (await form.locator("input[type='password']").first().isVisible()) continue;
+
+      let held = 0;
+      for (const alternatives of fields) {
+        if ((await this.firstVisible(form, alternatives)) !== null) held++;
+      }
+      const holdsFields: boolean = options.requireEveryField === true ? held === fields.length : held > 0;
+      if (fields.length > 0 && holdsFields) candidates.push(form);
+    }
+    return candidates;
+  }
+
+  private async hasOnlyRightPurposeSubmits(form: Locator, submitSelector: string, allowSearchForm: boolean): Promise<boolean> {
+    const submits: Locator = form.locator(submitSelector);
+    const count: number = await submits.count();
+    let visible = 0;
+    for (let i = 0; i < count; i++) {
+      const submit: Locator = submits.nth(i);
+      if (!(await submit.isVisible())) continue;
+      if (this.isWrongPurposeLabel(await this.controlLabel(submit), allowSearchForm)) return false;
+      visible++;
+    }
+    return visible > 0;
+  }
+
+  /** The first visible element inside `scope` matching any of the selectors, in order. */
+  private async firstVisible(scope: Locator, selectors: readonly string[]): Promise<Locator | null> {
+    for (const selector of selectors) {
+      try {
+        const locator: Locator = scope.locator(selector).first();
+        if (await locator.isVisible()) return locator;
+      } catch { /* an invalid selector matches nothing */ }
+    }
+    return null;
+  }
+
+  /**
+   * The one form a site adapter may type into, or null. Two or more candidate
+   * forms is as bad as none: there is no telling which is the opt-out form, so
+   * the fields are left to the person.
+   */
+  private async findFillForm(page: Page, fields: readonly (readonly string[])[], options: FillOptions): Promise<Locator | null> {
+    const candidates: Locator[] = await this.findCandidateForms(page, fields, options);
+    return candidates.length === 1 ? candidates[0]! : null;
+  }
+
+  /**
+   * Says what was left for the person. Never includes the value: log lines go
+   * to the terminal and the desktop app's log view (issue #29).
+   */
+  private logLeftToPerson(what: string): void {
+    this.ioProvider.log("warn", `[${this.name()}] ${what}: no single opt-out form on this page holds it, so nothing was typed. Please fill it in yourself.`);
+  }
+
+  private async fillIn(form: Locator, selectors: readonly string[], value: string, fieldLabel: string): Promise<boolean> {
+    const target: Locator | null = await this.firstVisible(form, selectors);
+    if (!target) return false;
+    try {
+      await target.fill(value);
+    } catch {
+      return false;
+    }
+    this.ioProvider.log("info", `[${this.name()}] ${fieldLabel} filled`);
+    return true;
+  }
+
+  /** Fills a state field that could be a <select> or a text <input>. */
+  private async fillInState(form: Locator, selectors: readonly string[], value: string): Promise<boolean> {
+    const target: Locator | null = await this.firstVisible(form, selectors);
+    if (!target) return false;
+    try {
+      await target.selectOption({ label: value }, { timeout: 2_000 });
+    } catch {
+      try {
+        await target.selectOption({ value }, { timeout: 2_000 });
+      } catch {
+        try {
+          await target.fill(value);
+        } catch {
+          return false;
+        }
+      }
+    }
+    this.ioProvider.log("info", `[${this.name()}] State filled`);
+    return true;
+  }
+
+  /**
+   * Try to fill a field by probing multiple selectors in order, inside the one
+   * form on the page that could be the opt-out form. Types nothing when there
+   * is no such form. Returns true if a field was filled.
    */
   protected async tryFillField(
     page: Page,
     selectors: string[],
     value: string,
     fieldLabel: string,
-    timeoutMs: number = 1500
+    options: FillOptions = {}
   ): Promise<boolean> {
-    for (const selector of selectors) {
-      try {
-        const locator = page.locator(selector).first();
-        if (await locator.isVisible({ timeout: timeoutMs })) {
-          await locator.fill(value);
-          this.ioProvider.log("info", `[${this.name()}] ${fieldLabel} filled: ${value}`);
-          return true;
-        }
-      } catch {}
+    const form: Locator | null = await this.findFillForm(page, [selectors], options);
+    if (!form) {
+      this.logLeftToPerson(fieldLabel);
+      return false;
     }
-    return false;
+    return this.fillIn(form, selectors, value, fieldLabel);
   }
 
   /**
-   * Try to fill a state field that could be a <select> or text <input>.
+   * Try to fill a state field that could be a <select> or text <input>, with
+   * the same one-form rule as tryFillField.
    */
   protected async tryFillStateField(
     page: Page,
     selectors: string[],
     value: string,
-    timeoutMs: number = 1000
+    options: FillOptions = {}
   ): Promise<boolean> {
-    for (const selector of selectors) {
-      try {
-        const locator = page.locator(selector).first();
-        if (await locator.isVisible({ timeout: timeoutMs })) {
-          try {
-            await page.selectOption(selector, { label: value });
-          } catch {
-            try {
-              await page.selectOption(selector, { value });
-            } catch {
-              await locator.fill(value);
-            }
-          }
-          this.ioProvider.log("info", `[${this.name()}] State filled: ${value}`);
-          return true;
-        }
-      } catch {}
+    const form: Locator | null = await this.findFillForm(page, [selectors], options);
+    if (!form) {
+      this.logLeftToPerson("State");
+      return false;
     }
-    return false;
+    return this.fillInState(form, selectors, value);
+  }
+
+  /**
+   * Try to tick a checkbox (for example "I agree"), with the same one-form
+   * rule as tryFillField, so a marketing-consent box elsewhere stays unticked.
+   */
+  protected async tryCheckBox(page: Page, selectors: string[], boxLabel: string): Promise<boolean> {
+    const form: Locator | null = await this.findFillForm(page, [selectors], {});
+    if (!form) {
+      this.logLeftToPerson(boxLabel);
+      return false;
+    }
+    const box: Locator | null = await this.firstVisible(form, selectors);
+    if (!box) return false;
+    try {
+      if (!(await box.isChecked())) await box.check();
+    } catch {
+      return false;
+    }
+    this.ioProvider.log("info", `[${this.name()}] ${boxLabel} checked`);
+    return true;
   }
 
   /** Common selectors for email fields */
@@ -281,29 +425,52 @@ export abstract class BaseAdapter {
   ];
 
   /**
-   * Auto-fill common profile fields on a page.
-   * Tries email, name, phone, address, city, state, zip in order.
+   * Auto-fill common profile fields: email, name, phone, address, city, state
+   * and zip. All of them go into ONE form, the single form on the page that
+   * could be the opt-out form; when there is no such form nothing is typed.
    */
   protected async autoFillProfile(page: Page, profile: PersonProfile): Promise<void> {
     this.ioProvider.log("info", `[${this.name()}] Attempting to auto-fill form fields...`);
 
-    await this.tryFillField(page, BaseAdapter.EMAIL_SELECTORS, profile.email, "Email", 2000);
-    await this.tryFillField(page, BaseAdapter.NAME_SELECTORS, profile.fullName, "Name");
+    const wanted: Array<{ label: string; selectors: string[]; value: string | null | undefined }> = [
+      { label: "Email", selectors: BaseAdapter.EMAIL_SELECTORS, value: profile.email },
+      { label: "Name", selectors: BaseAdapter.NAME_SELECTORS, value: profile.fullName },
+      { label: "Phone", selectors: BaseAdapter.PHONE_SELECTORS, value: profile.phone },
+      { label: "Address", selectors: BaseAdapter.ADDRESS_SELECTORS, value: profile.address },
+      { label: "City", selectors: BaseAdapter.CITY_SELECTORS, value: profile.city },
+      { label: "State", selectors: BaseAdapter.STATE_SELECTORS, value: profile.state },
+      { label: "ZIP", selectors: BaseAdapter.ZIP_SELECTORS, value: profile.zip },
+    ];
+    const fields = wanted.filter((f): f is { label: string; selectors: string[]; value: string } => Boolean(f.value));
 
-    if (profile.phone) {
-      await this.tryFillField(page, BaseAdapter.PHONE_SELECTORS, profile.phone, "Phone");
+    const form: Locator | null = await this.findFillForm(page, fields.map(f => f.selectors), {});
+    if (!form) {
+      this.logLeftToPerson("Your details");
+      return;
     }
-    if (profile.address) {
-      await this.tryFillField(page, BaseAdapter.ADDRESS_SELECTORS, profile.address, "Address");
-    }
-    if (profile.city) {
-      await this.tryFillField(page, BaseAdapter.CITY_SELECTORS, profile.city, "City", 1000);
-    }
-    if (profile.state) {
-      await this.tryFillStateField(page, BaseAdapter.STATE_SELECTORS, profile.state);
-    }
-    if (profile.zip) {
-      await this.tryFillField(page, BaseAdapter.ZIP_SELECTORS, profile.zip, "ZIP", 1000);
+
+    for (const field of fields) {
+      if (field.label === "State") {
+        await this.fillInState(form, field.selectors, field.value);
+      } else {
+        await this.fillIn(form, field.selectors, field.value, field.label);
+      }
     }
   }
 }
+
+/** How BaseAdapter decides which forms could hold the person's details. */
+export interface FormMatchOptions {
+  /** Selector for the form's submit control. Defaults to any submit control. */
+  submitSelector?: string;
+  /** Require every wanted field in the form, not just one of them. */
+  requireEveryField?: boolean;
+  /**
+   * Accept a form whose button says "Search". Only for steps where the person
+   * is looking up their own record in the broker's search form.
+   */
+  allowSearchForm?: boolean;
+}
+
+/** What a site adapter may relax when it auto-fills a field. */
+export type FillOptions = Pick<FormMatchOptions, "allowSearchForm">;

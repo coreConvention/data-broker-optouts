@@ -19,7 +19,8 @@ Playwright-based tool that automates opt-out requests from 113+ data broker site
 - **CJS/ESM Bridge**: Desktop main process (CJS) loads engine (ESM) via dynamic `await import()` from `desktop/dist/engine/`
 - **Safe-by-default generic adapter**: `GenericFormAdapter` types and clicks only when the manifest entry has `verified: true` (absent means false) AND the live page passes its checks: the page text mentions opt-out/removal/suppression/deletion, and one single `<form>` holds every configured field plus a submit control whose label is not another form's (subscribe, search, sign in). Otherwise it types nothing, clicks nothing, and hands over through `ioProvider.waitForConfirmation` (find your listing first, finish by hand, plus the entry's `notes`). No manifest entry is verified yet, so every generic broker is guided-manual.
 - **Adapter outcome**: `BaseAdapter.run` returns `"submitted" | "manual"` (`AdapterOutcome`); `execute` returning nothing means submitted. `ExecutionOrchestrator` records `manual` as `manual-needed`, never `success`, and a dry run does the same for an unverified generic entry.
-- **BaseAdapter helpers**: `tryFillField()`, `autoFillProfile()`, `detectAndLogSuccess()` reduce duplication across site adapters
+- **BaseAdapter helpers**: `tryFillField()`, `tryFillStateField()`, `tryCheckBox()`, `autoFillProfile()`, `detectAndLogSuccess()` reduce duplication across site adapters
+- **One-form auto-fill**: the site adapters' fill helpers type only inside the single `<form>` that could be the opt-out form, found by `BaseAdapter.findCandidateForms()` (the same per-form matching the generic adapter uses): it holds a wanted field, has a visible submit control, none of its submit controls reads subscribe / sign up / log in / search, and it has no password field. No such form, or more than one, means nothing is typed and a log line leaves the field to the person. Record-search steps (BeenVerified, Intelius) pass `{ allowSearchForm: true }`. Fill log lines name the field only, never the value typed.
 
 ## Tech Stack
 - TypeScript 7 (strict mode, ES2022 target; the Angular renderer uses 5.9)
@@ -50,8 +51,8 @@ Playwright-based tool that automates opt-out requests from 113+ data broker site
 - `.temp/` is gitignored — never commit temp files to the repo
 
 ## Testing
-- Tests in `src/__tests__/` using vitest (104 tests)
+- Tests in `src/__tests__/` using vitest (118 tests)
 - Schema validation tests verify manifest.json integrity
 - Service tests cover BrokerFilter, ResumeService, StatisticsTracker, AdapterFactory, ExecutionOrchestrator
 - IOProvider tests cover interface contract and CliIOProvider implementation
-- `GenericFormAdapter.test.ts` drives headless Chromium against local HTML fixtures (`page.setContent` / `data:` URLs), never a real site; it needs Playwright's Chromium installed (`npx playwright install chromium`)
+- `GenericFormAdapter.test.ts` and `BaseAdapterAutoFill.test.ts` drive headless Chromium against local HTML fixtures (`page.setContent` / `data:` URLs), never a real site; they need Playwright's Chromium installed (`npx playwright install chromium`)
