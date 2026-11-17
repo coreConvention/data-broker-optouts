@@ -142,7 +142,7 @@ export function registerRunHandlers(
       const orchestrator = new ExecutionOrchestrator(logger, {
         dryRun: options.dryRun ?? false,
         delayBetweenBrokers: 2000,
-      }, electronIOProvider, { stateStore });
+      }, electronIOProvider, { stateStore, evidenceDir: path.join(dataPath, 'evidence') });
       currentOrchestrator = orchestrator;
 
       // Execute all broker opt-outs

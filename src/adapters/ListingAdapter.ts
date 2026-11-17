@@ -35,7 +35,8 @@ export type ScanResult =
   | { kind: "unknown"; reason: string };
 
 export type RemovalResult =
-  | { kind: "requested"; pending?: PendingStep }
+  /** `evidence`: path of the confirmation screenshot, relative to the data directory. */
+  | { kind: "requested"; pending?: PendingStep; evidence?: string }
   | { kind: "not-completed"; reason: string };
 
 export type VerifyResult =

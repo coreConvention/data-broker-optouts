@@ -3,7 +3,7 @@ import { BaseAdapter } from "../adapters/BaseAdapter.js";
 import type { ListingAdapter } from "../adapters/ListingAdapter.js";
 import { GenericFormAdapter } from "../adapters/GenericFormAdapter.js";
 import { SpokeoAdapter } from "../adapters/sites/SpokeoAdapter.js";
-import { WhitepagesAdapter } from "../adapters/sites/WhitepagesAdapter.js";
+import { WhitepagesListingAdapter } from "../adapters/sites/WhitepagesListingAdapter.js";
 import { NuwberAdapter } from "../adapters/sites/NuwberAdapter.js";
 import { BeenVerifiedAdapter } from "../adapters/sites/BeenVerifiedAdapter.js";
 import { InteliusAdapter } from "../adapters/sites/InteliusAdapter.js";
@@ -28,7 +28,10 @@ export class AdapterFactory {
         return new SpokeoAdapter(entry);
 
       case "Whitepages":
-        return new WhitepagesAdapter(entry);
+        // Whitepages has only a listing adapter; the orchestrator never asks
+        // for a run()-style one. Failing here beats falling through to the
+        // generic form adapter.
+        throw new Error("Whitepages is handled by its listing adapter (createListingAdapter).");
 
       case "Nuwber":
         return new NuwberAdapter(entry);
@@ -54,12 +57,21 @@ export class AdapterFactory {
    * A broker with a listing adapter is driven through scan, confirm, request
    * by ExecutionOrchestrator instead of through `createAdapter(entry).run()`.
    *
-   * @param _entry - Broker configuration entry
-   * @returns The broker's listing adapter, or null when it has none. No
-   *   broker has one yet; Whitepages is the first (#39).
+   * @param entry - Broker configuration entry
+   * @param options - evidenceDir: folder for confirmation screenshots
+   * @returns The broker's listing adapter, or null when it has none
    */
-  public static createListingAdapter(_entry: BrokerEntry): ListingAdapter | null {
-    return null;
+  public static createListingAdapter(
+    entry: BrokerEntry,
+    options: { evidenceDir?: string } = {}
+  ): ListingAdapter | null {
+    switch (entry.adapter) {
+      case "Whitepages":
+        return new WhitepagesListingAdapter(options);
+
+      default:
+        return null;
+    }
   }
 
   /**

@@ -25,6 +25,8 @@ export interface ExecutionDependencies {
   stateStore?: StateStore;
   /** Defaults to AdapterFactory.createListingAdapter; tests pass a fake or a fixture-backed adapter. */
   createListingAdapter?: (entry: BrokerEntry) => ListingAdapter | null;
+  /** Folder for confirmation screenshots, handed to listing adapters made by the default factory. */
+  evidenceDir?: string;
 }
 
 /**
@@ -55,7 +57,12 @@ export class ExecutionOrchestrator {
     this.ioProvider = ioProvider;
     this.stateStore = dependencies.stateStore;
     this.createListingAdapter =
-      dependencies.createListingAdapter ?? ((entry) => AdapterFactory.createListingAdapter(entry));
+      dependencies.createListingAdapter ??
+      ((entry) =>
+        AdapterFactory.createListingAdapter(
+          entry,
+          dependencies.evidenceDir ? { evidenceDir: dependencies.evidenceDir } : {}
+        ));
   }
 
   /**
@@ -406,7 +413,8 @@ export class ExecutionOrchestrator {
             ? { kind: "requested", ...(removal.pending ? { pending: removal.pending } : {}) }
             : { kind: "not-completed" };
         record = store.recordRequest(adapter.brokerId, listing.id, outcome, {
-          removalWindowDays: adapter.removalWindowDays
+          removalWindowDays: adapter.removalWindowDays,
+          ...(removal.kind === "requested" && removal.evidence ? { evidence: removal.evidence } : {})
         });
         // Saved after every request: a crash must not forget one that was sent.
         await store.save();

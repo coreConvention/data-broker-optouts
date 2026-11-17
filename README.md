@@ -12,7 +12,8 @@ Data brokers collect and sell personal information — home addresses, phone num
 
 ### Core Capabilities
 - **74 opt-out pages in the manifest**, tagged by what the opt-out actually does (see [Coverage](#-coverage))
-- **6 guided walkthroughs** for the larger people-search companies (Whitepages, Spokeo, BeenVerified, PeopleConnect, Nuwber, MyLife): step-by-step instructions with pauses. The only automation in them is filling a name or email field; you do the searching, selecting and submitting
+- **1 scan-first adapter** (Whitepages): searches for your listing, asks which one is yours, enters only that listing's address on the opt-out page, and remembers the request so it can check later whether the listing is gone. Its page selectors were written from a description of the site and are **not yet confirmed against the live pages**; when a page does not match, it types nothing and asks you to paste your profile address instead
+- **5 guided walkthroughs** for other large people-search companies (Spokeo, BeenVerified, PeopleConnect, Nuwber, MyLife): step-by-step instructions with pauses. The only automation in them is filling a name or email field; you do the searching, selecting and submitting
 - **Generic adapter** for the other 68 entries: opens the opt-out page and hands over to you. It types and clicks nothing unless the entry is marked `verified: true`, meaning a person has checked its CSS selectors against the live page; no entry in the shipped manifest is marked verified yet, so today every one of these is a page you finish by hand
 - **Human-in-the-Loop**: Pauses for CAPTCHA solving, email verification, and manual steps
 - **Progress Tracking**: Real-time progress indicators and a summary report
@@ -42,7 +43,9 @@ Only the first group removes a public listing of your name, address or phone num
 
 #### People-search sites (46)
 
-Guided walkthroughs (6): **Whitepages**, **Spokeo**, **BeenVerified**, **PeopleConnect**, **Nuwber**, **MyLife**
+Scan-first adapter (1): **Whitepages**
+
+Guided walkthroughs (5): **Spokeo**, **BeenVerified**, **PeopleConnect**, **Nuwber**, **MyLife**
 
 Generic adapter (40): FastPeopleSearch, TruePeopleSearch, CheckPeople, ThatsThem, SmartBackgroundChecks, FamilyTreeNow, USPhoneBook, PeopleSearchNow, AdvancedBackgroundChecks, NeighborReport, PeopleFinders, InfoTracer, SearchQuarry, SearchBug, PeopleByName, OldFriends, PrivateRecords, PropertyRecords, Classmates, 411, VoterRecords, CocoFinder, CyberBackgroundChecks, GladIKnow, PeopleWhiz, USAPeopleSearch, Unmask, Precise Leads (NumLookup), RecordsFinder, AncestryFree (RootsWeb), TrueCaller, Hiya, CallerSmart, PeopleSmart, RealPeopleSearch, NumLooker, FastBackgroundCheck, SocialCatfish, PeopleSearchExpert, ValidNumber
 
@@ -239,9 +242,10 @@ Opt-out pages move and brokers shut down, so the manifest goes stale. `npm run c
     Adapter: Whitepages
     Requirements: online, captcha
 
-[Whitepages] Starting suppression request process...
-[Whitepages] STEP 1: Search for your listing...
-[Press Enter to continue]
+Whitepages shows these listings:
+  1. (name, age and place as Whitepages shows them)
+     (listing address)
+Which of these are you? e.g. 1,3 or none
 ```
 
 ## 🛠️ Advanced Usage
