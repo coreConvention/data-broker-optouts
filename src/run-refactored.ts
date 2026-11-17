@@ -19,6 +19,8 @@ import { ConfigLoader, BrokerFilter, ResumeService, ExecutionOrchestrator } from
 import { BrowserFactory } from "./factories/index.js";
 import { Logger } from "./utils/logger.js";
 import { CliIOProvider } from "./providers/index.js";
+import { describeProfile } from "./utils/profileSummary.js";
+import type { PersonProfile } from "./types.js";
 
 /**
  * Main application function
@@ -140,11 +142,11 @@ function printFilteringSummary(
  * Print execution configuration
  */
 function printExecutionConfig(
-  profile: { fullName: string; email: string },
+  profile: PersonProfile,
   options: { headful: boolean; stealth: boolean; dryRun: boolean },
   logPath: string
 ): void {
-  console.log(`👤 Profile: ${profile.fullName} (${profile.email})`);
+  console.log(`👤 Profile: ${describeProfile(profile)}`);
   console.log(`🌐 Browser mode: ${options.headful ? "Headful (visible)" : "Headless"}`);
   console.log(`🥷 Stealth mode: ${options.stealth ? "Enabled" : "Disabled"}`);
 
