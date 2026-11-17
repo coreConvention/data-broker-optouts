@@ -115,3 +115,59 @@ export const ProfileSchema = z.object({
  * Array of broker entries
  */
 export const ManifestSchema = z.array(BrokerEntrySchema);
+
+/**
+ * The six broker states (design plan section 5.1). Mirrors BrokerState in
+ * types.ts.
+ */
+export const BrokerStateSchema = z.enum([
+  "unknown",   // Never scanned, or the last look could not tell
+  "not-found", // A scan loaded properly and found no listing the person recognised
+  "listed",    // At least one confirmed listing, no request outstanding
+  "requested", // A removal request was completed for every confirmed listing
+  "removed",   // After the window, each requested listing was looked for and was gone
+  "relisted"   // A later scan found a listing at a broker that had been removed
+]);
+
+const IsoDate = z.iso.datetime();
+
+export const ListingRecordSchema = z.object({
+  id: z.string().min(1),
+  url: z.string().min(1),
+  state: z.enum(["listed", "requested", "removed"]),
+  requestAttempts: z.number().int().min(0),
+  pending: z.enum(["email-link", "phone-call"]).nullable()
+});
+
+export const StateHistoryEntrySchema = z.object({
+  at: IsoDate,
+  event: z.enum(["scan", "request", "verify"]),
+  result: BrokerStateSchema,
+  evidence: z.string().optional(),
+  source: z.literal("person").optional()
+});
+
+export const BrokerRecordSchema = z.object({
+  state: BrokerStateSchema,
+  lastScannedAt: IsoDate.nullable(),
+  lastRequestedAt: IsoDate.nullable(),
+  verifyAfter: IsoDate.nullable(),
+  lastVerifiedAt: IsoDate.nullable(),
+  nextCheckDue: IsoDate.nullable(),
+  timesRelisted: z.number().int().min(0),
+  listings: z.array(ListingRecordSchema),
+  history: z.array(StateHistoryEntrySchema)
+});
+
+/**
+ * Zod schema for data/state.json (design plan section 6.1).
+ *
+ * `version` is a literal so a file written by a newer release is refused
+ * instead of being read wrongly and then saved over.
+ */
+export const StateFileSchema = z.object({
+  version: z.literal(1),
+  person: z.string().regex(/^[0-9a-f]{12}$/),
+  guidanceShownAt: IsoDate.nullable(),
+  brokers: z.record(z.string(), BrokerRecordSchema)
+});

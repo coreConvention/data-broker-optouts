@@ -23,3 +23,7 @@ export type { ExecutionOptions } from "./ExecutionOrchestrator.js";
 
 // Configuration Loading
 export { ConfigLoader } from "./ConfigLoader.js";
+
+// Broker State File
+export { StateStore, StateFileError, personHash } from "./StateStore.js";
+export type { StateStoreOptions, ScanOutcome, RequestOutcome, VerifyOutcome } from "./StateStore.js";

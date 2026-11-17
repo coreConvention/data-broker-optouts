@@ -6,7 +6,7 @@ Playwright-based tool that guides opt-out requests at 74 data broker and marketi
 ## Architecture
 - **Entry point**: `src/run-refactored.ts` - orchestrates CLI parsing, config loading, browser setup, and execution
 - **Adapters**: `src/adapters/BaseAdapter.ts` (abstract base) + 6 site-specific adapters in `sites/` + `GenericFormAdapter` for simple forms
-- **Services**: `src/services/` - ConfigLoader, BrokerFilter, ResumeService, ExecutionOrchestrator, StatisticsTracker
+- **Services**: `src/services/` - ConfigLoader, BrokerFilter, ResumeService, ExecutionOrchestrator, StatisticsTracker, StateStore
 - **Factories**: `src/factories/` - AdapterFactory, BrowserFactory
 - **Config**: `src/config/` - CLI parsing (yargs), Zod schemas for validation
 - **Desktop**: `desktop/` - Electron main process + Angular 21 renderer with real engine integration
@@ -19,6 +19,7 @@ Playwright-based tool that guides opt-out requests at 74 data broker and marketi
 - **CJS/ESM Bridge**: Desktop main process (CJS) loads engine (ESM) via dynamic `await import()` from `desktop/dist/engine/`
 - **Safe-by-default generic adapter**: `GenericFormAdapter` types and clicks only when the manifest entry has `verified: true` (absent means false) AND the live page passes its checks: the page text mentions opt-out/removal/suppression/deletion, and one single `<form>` holds every configured field plus a submit control whose label is not another form's (subscribe, search, sign in). Otherwise it types nothing, clicks nothing, and hands over through `ioProvider.waitForConfirmation` (find your listing first, finish by hand, plus the entry's `notes`). No manifest entry is verified yet, so every generic broker is guided-manual.
 - **Adapter outcome**: `BaseAdapter.run` returns `"submitted" | "manual"` (`AdapterOutcome`); `execute` returning nothing means submitted. `ExecutionOrchestrator` records `manual` as `manual-needed`, never `success`, and a dry run does the same for an unverified generic entry.
+- **Broker state file**: `StateStore` (`src/services/StateStore.ts`) keeps one of six states per broker (`unknown`, `not-found`, `listed`, `requested`, `removed`, `relisted`; `BrokerState` in `src/types.ts`, `StateFileSchema` in `src/config/schemas.ts`). The transitions are the pure functions `applyScan`, `applyRequest`, `applyVerify`. `StateStore.load` is the only way to get a store and throws `StateFileError` for a file it cannot read, so an unreadable file is never saved over; `save` writes a temp file then renames. The file carries a short hash of name, ZIP and email; entries written for a different person read as `unknown`. Nothing calls the store yet (#38 wires it into the orchestrator)
 - **BaseAdapter helpers**: `tryFillField()`, `tryFillStateField()`, `tryCheckBox()`, `autoFillProfile()`, `detectAndLogSuccess()` reduce duplication across site adapters
 - **One-form auto-fill**: the site adapters' fill helpers type only inside the single `<form>` that could be the opt-out form, found by `BaseAdapter.findCandidateForms()` (the same per-form matching the generic adapter uses): it holds a wanted field, has a visible submit control, none of its submit controls reads subscribe / sign up / log in / search, and it has no password field. No such form, or more than one, means nothing is typed and a log line leaves the field to the person. Record-search steps (BeenVerified, Intelius) pass `{ allowSearchForm: true }`. Fill log lines name the field only, never the value typed.
 
@@ -33,6 +34,7 @@ Playwright-based tool that guides opt-out requests at 74 data broker and marketi
 ## Data Files
 - `data/manifest.json` - broker configurations (tracked in git). One entry per parent company; sites sharing an opt-out are listed in `notes`. Every entry has a `category` (`people-search`, `marketing`, `ad-tech`, `credit`, `b2b`); only `people-search` removes a public listing
 - `data/profile.json` - user PII (gitignored, use `data/profile.example.json` as template)
+- `data/state.json` - what the tool found, requested and verified at each broker (gitignored; listing addresses carry the person's name). Read and written only through `StateStore`. `data/evidence/` (gitignored) is for screenshots
 
 ## Commands
 - `npm start` - run in headful mode
@@ -52,9 +54,10 @@ Playwright-based tool that guides opt-out requests at 74 data broker and marketi
 - `.temp/` is gitignored — never commit temp files to the repo
 
 ## Testing
-- Tests in `src/__tests__/` using vitest (130 tests)
+- Tests in `src/__tests__/` using vitest (168 tests)
 - Run output never carries a profile value: `ExecutionOrchestrator.test.ts` checks every dry-run log line, and the CLI start-up summary goes through `describeProfile` (`src/utils/profileSummary.ts`), which lists field names only
 - Schema validation tests verify manifest.json integrity (every entry has a category; no two entries share a removalUrl)
 - Service tests cover BrokerFilter, ResumeService, StatisticsTracker, AdapterFactory, ExecutionOrchestrator
 - IOProvider tests cover interface contract and CliIOProvider implementation
 - `GenericFormAdapter.test.ts` and `BaseAdapterAutoFill.test.ts` drive headless Chromium against local HTML fixtures (`page.setContent` / `data:` URLs), never a real site; they need Playwright's Chromium installed (`npx playwright install chromium`)
+- `StateStore.test.ts` covers the state file: the transitions between the six broker states, round trip, refusal of an unreadable file, a changed person hash, the history cap, and `git check-ignore` on `data/state.json` and `data/evidence/`
