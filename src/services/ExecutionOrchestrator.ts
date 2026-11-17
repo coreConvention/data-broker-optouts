@@ -7,6 +7,8 @@ import type { StateStore, RequestOutcome } from "./StateStore.js";
 import { pickProfileFields } from "../adapters/ListingAdapter.js";
 import type { ListingAdapter, Listing, RemovalResult, ScanResult } from "../adapters/ListingAdapter.js";
 import { chooseListings } from "../utils/chooseListings.js";
+import { describeFailure } from "../utils/describeFailure.js";
+import { describeFields } from "../utils/dryRunNotice.js";
 
 /**
  * Options for execution orchestrator
@@ -331,12 +333,24 @@ export class ExecutionOrchestrator {
     const page = await context.newPage();
 
     try {
+      if (dryRun) {
+        // A dry run still searches the broker, and the search carries the
+        // person's name. Say so, with field names only, where the desktop
+        // app's log view shows it too (issue #63).
+        this.ioProvider.log(
+          "info",
+          `[DRY RUN] Searching ${entry.name} for your listing. The search sends your ` +
+            `${describeFields(adapter.fields.scan)}. No removal request will be sent.`
+        );
+      }
+
       let scan: ScanResult;
       try {
         scan = await adapter.findListings(page, pickProfileFields(profile, adapter.fields.scan), execContext);
       } catch (error) {
         // An errored look tells us nothing about whether the person is listed.
-        scan = { kind: "unknown", reason: error instanceof Error ? error.message : "the scan failed" };
+        // The error's text is not passed on: it can quote the search address.
+        scan = { kind: "unknown", reason: describeFailure("the scan", error) };
       }
 
       if (scan.kind === "unknown") {
@@ -445,7 +459,11 @@ export class ExecutionOrchestrator {
     }
   }
 
-  /** A request that throws is a request that was not completed, not a crashed broker. */
+  /**
+   * A request that throws is a request that was not completed, not a crashed
+   * broker. The error's text is not passed on: it can quote the listing
+   * address the adapter was typing.
+   */
   private async requestRemovalSafely(
     adapter: ListingAdapter,
     page: Page,
@@ -456,7 +474,7 @@ export class ExecutionOrchestrator {
     try {
       return await adapter.requestRemoval(page, listing, person, execContext);
     } catch (error) {
-      return { kind: "not-completed", reason: error instanceof Error ? error.message : "the request failed" };
+      return { kind: "not-completed", reason: describeFailure("the request", error) };
     }
   }
 

@@ -57,8 +57,10 @@ Playwright-based tool that guides opt-out requests at 74 data broker and marketi
 - `.temp/` is gitignored — never commit temp files to the repo
 
 ## Testing
-- Tests in `src/__tests__/` using vitest (227 tests)
+- Tests in `src/__tests__/` using vitest (241 tests)
 - Run output never carries a profile value: `ExecutionOrchestrator.test.ts` checks every dry-run log line, and the CLI start-up summary goes through `describeProfile` (`src/utils/profileSummary.ts`), which lists field names only
+- An exception thrown by a listing-adapter step never reaches run output as text: use `describeFailure` (`src/utils/describeFailure.ts`), which passes on the kind of error only. The browser library quotes addresses and typed values in its errors, and those carry the person's name
+- A dry run still searches brokers that have a listing adapter. `dryRunNotice` (`src/utils/dryRunNotice.ts`) names them, and what the search sends, in the CLI start-up output; the orchestrator logs the same before each such scan
 - Schema validation tests verify manifest.json integrity (every entry has a category; no two entries share a removalUrl)
 - Service tests cover BrokerFilter, ResumeService, StatisticsTracker, AdapterFactory, ExecutionOrchestrator
 - IOProvider tests cover interface contract and CliIOProvider implementation
