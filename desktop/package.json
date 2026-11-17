@@ -11,7 +11,7 @@
     "dev:renderer": "cd renderer && npx ng serve --port 4201",
     "dev:electron": "npm run build:engine && npx wait-on http://localhost:4201 && npm run build:main && npx electron .",
     "build": "npm run build:engine && npm run build:renderer && npm run build:main",
-    "build:engine": "cd .. && npx tsc -p tsconfig.engine.json",
+    "build:engine": "cd .. && npx tsc -p tsconfig.engine.json && node -e \"require('fs').writeFileSync('desktop/dist/engine/package.json','{\\\"type\\\":\\\"module\\\"}\\n')\"",
     "build:renderer": "cd renderer && npx ng build --configuration production",
     "build:main": "tsc -p tsconfig.main.json",
     "package": "npm run build && electron-builder",

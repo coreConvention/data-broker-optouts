@@ -1,6 +1,7 @@
 import { IpcMain, BrowserWindow } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
+import { pathToFileURL } from 'url';
 import { getDataPath } from './config.ipc';
 import { ElectronIOProvider } from '../providers/ElectronIOProvider';
 
@@ -69,12 +70,15 @@ export function registerRunHandlers(
     let context: { close: () => Promise<void> } | null = null;
 
     try {
-      // Dynamic import of compiled ESM engine modules
-      const browserFactoryMod = await import(path.join(engineBase, 'factories/BrowserFactory.js'));
-      const orchestratorMod = await import(path.join(engineBase, 'services/ExecutionOrchestrator.js'));
-      const loggerMod = await import(path.join(engineBase, 'utils/logger.js'));
-      const configLoaderMod = await import(path.join(engineBase, 'services/ConfigLoader.js'));
-      const brokerFilterMod = await import(path.join(engineBase, 'services/BrokerFilter.js'));
+      // Dynamic import of compiled ESM engine modules. Node's ESM loader rejects
+      // Windows absolute paths ("C:\..." parses as an unknown "c:" URL scheme), so
+      // every path is converted to a file:// URL first.
+      const toURL = (p: string) => pathToFileURL(p).href;
+      const browserFactoryMod = await import(toURL(path.join(engineBase, 'factories/BrowserFactory.js')));
+      const orchestratorMod = await import(toURL(path.join(engineBase, 'services/ExecutionOrchestrator.js')));
+      const loggerMod = await import(toURL(path.join(engineBase, 'utils/logger.js')));
+      const configLoaderMod = await import(toURL(path.join(engineBase, 'services/ConfigLoader.js')));
+      const brokerFilterMod = await import(toURL(path.join(engineBase, 'services/BrokerFilter.js')));
 
       const BrowserFactory = browserFactoryMod.BrowserFactory;
       const ExecutionOrchestrator = orchestratorMod.ExecutionOrchestrator;
