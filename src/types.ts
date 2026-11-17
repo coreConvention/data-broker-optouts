@@ -122,3 +122,60 @@ export interface IOProvider {
 export interface ExecutionContext {
   ioProvider: IOProvider;
 }
+/**
+ * What the tool knows about the person's listing at one broker (design plan
+ * section 5.1). One state per broker, the worst case across its listings.
+ * "removed" means "not found when we looked on that date", never "deleted".
+ */
+export type BrokerState = "unknown" | "not-found" | "listed" | "requested" | "removed" | "relisted";
+
+/** State of one confirmed listing. "relisted" is a broker-level state only. */
+export type ListingState = "listed" | "requested" | "removed";
+
+/** A step of a removal request that still waits on the person. */
+export type PendingStep = "email-link" | "phone-call";
+
+/** One confirmed listing as kept in the state file. No summary text is stored. */
+export interface ListingRecord {
+  /** Stable for the broker: the listing URL without query string. */
+  id: string;
+  url: string;
+  state: ListingState;
+  /** Requests made for this listing, so a broker that ignores two is visible. */
+  requestAttempts: number;
+  pending: PendingStep | null;
+}
+
+/** One line of a broker's capped history in the state file. */
+export interface StateHistoryEntry {
+  at: string;
+  event: "scan" | "request" | "verify";
+  /** The broker's state after the event. */
+  result: BrokerState;
+  /** Path of a screenshot, relative to the data directory. */
+  evidence?: string;
+  /** Set when the person, not the tool, supplied the answer (guided scan). */
+  source?: "person";
+}
+
+/** Everything the state file keeps for one broker. Dates are ISO 8601 strings. */
+export interface BrokerRecord {
+  state: BrokerState;
+  lastScannedAt: string | null;
+  lastRequestedAt: string | null;
+  verifyAfter: string | null;
+  lastVerifiedAt: string | null;
+  nextCheckDue: string | null;
+  timesRelisted: number;
+  listings: ListingRecord[];
+  history: StateHistoryEntry[];
+}
+
+/** The contents of data/state.json. Mirrors StateFileSchema in config/schemas.ts. */
+export interface StateFile {
+  version: 1;
+  /** Short hash of the normalised name, ZIP and email the entries were written for. */
+  person: string;
+  guidanceShownAt: string | null;
+  brokers: Record<string, BrokerRecord>;
+}

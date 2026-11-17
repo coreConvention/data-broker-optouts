@@ -13,6 +13,14 @@ dist-electron/
 # Personal profile data (contains PII)
 data/profile.json
 
+# What the tool found and requested at each broker (listing addresses carry
+# the person's name), its write-in-progress temp file, and screenshots of
+# listings and confirmations. Named explicitly so the rule survives a change
+# of image format.
+data/state.json
+data/state.json.*
+data/evidence/
+
 # Claude Code local settings
 .claude/settings.local.json
 
