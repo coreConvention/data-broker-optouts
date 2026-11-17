@@ -132,24 +132,24 @@ export class ExecutionOrchestrator {
     try {
       // Check if broker has online opt-out path
       if (this.shouldSkipBroker(entry)) {
-        this.handleSkippedBroker(entry, result);
+        await this.handleSkippedBroker(entry, result);
         return result;
       }
 
       // Check if manual-only broker
       if (this.isManualOnly(entry)) {
-        this.handleManualOnlyBroker(entry, result);
+        await this.handleManualOnlyBroker(entry, result);
         return result;
       }
 
       // Execute opt-out (dry-run or actual)
       if (this.options.dryRun) {
-        this.handleDryRun(entry, profile, result);
+        await this.handleDryRun(entry, profile, result);
       } else {
         await this.handleActualExecution(entry, profile, context, result);
       }
     } catch (error) {
-      this.handleExecutionError(error, result);
+      await this.handleExecutionError(error, result);
     }
 
     return result;
@@ -181,7 +181,7 @@ export class ExecutionOrchestrator {
   private async handleSkippedBroker(entry: BrokerEntry, result: OptOutResult): Promise<void> {
     result.status = "skipped";
     result.message = "No online/email/phone path defined.";
-    await this.logger.append(result);
+    await this.recordResult(result);
     this.statistics.recordSkipped();
     this.ioProvider.log("warn", `Skipped: ${result.message}`);
   }
@@ -193,7 +193,7 @@ export class ExecutionOrchestrator {
     const method = entry.requirements.includes("email") ? "Email" : "Phone";
     result.status = "manual-needed";
     result.message = `${method}-only removal. See notes/website.`;
-    await this.logger.append(result);
+    await this.recordResult(result);
     this.statistics.recordManualNeeded();
     this.ioProvider.log("warn", `Manual needed: ${result.message}`);
   }
@@ -212,7 +212,7 @@ export class ExecutionOrchestrator {
 
     result.status = "success";
     result.message = "[DRY RUN] Simulated successful submission";
-    await this.logger.append(result);
+    await this.recordResult(result);
     this.statistics.recordSuccess();
     this.ioProvider.log("info", "Dry run completed");
   }
@@ -232,7 +232,7 @@ export class ExecutionOrchestrator {
 
     result.status = "success";
     result.message = "Submitted (some steps may have been manual).";
-    await this.logger.append(result);
+    await this.recordResult(result);
     this.statistics.recordSuccess();
     this.ioProvider.log("success", `${entry.name}: ${result.message}`);
   }
@@ -243,9 +243,26 @@ export class ExecutionOrchestrator {
   private async handleExecutionError(error: unknown, result: OptOutResult): Promise<void> {
     result.status = "failed";
     result.message = error instanceof Error ? error.message : "Unknown error";
-    await this.logger.append(result);
+    await this.recordResult(result);
     this.statistics.recordFailure();
     this.ioProvider.log("error", `Failed: ${result.message}`);
+  }
+
+  /**
+   * Write a broker's result line to the run log.
+   *
+   * Never throws: the log is a record of what happened, not part of the
+   * opt-out itself. A write failure (folder missing, read-only, disk full)
+   * is reported to the user, but it must not turn a submitted opt-out into
+   * a "failed" one, and it must not abort the remaining brokers.
+   */
+  private async recordResult(result: OptOutResult): Promise<void> {
+    try {
+      await this.logger.append(result);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "Unknown error";
+      this.ioProvider.log("error", `Could not write result log for ${result.site}: ${reason}`);
+    }
   }
 
   /**

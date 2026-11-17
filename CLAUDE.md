@@ -48,7 +48,7 @@ Playwright-based tool that automates opt-out requests from 113+ data broker site
 - `.temp/` is gitignored — never commit temp files to the repo
 
 ## Testing
-- Tests in `src/__tests__/` using vitest (87 tests)
+- Tests in `src/__tests__/` using vitest (92 tests)
 - Schema validation tests verify manifest.json integrity
-- Service tests cover BrokerFilter, ResumeService, StatisticsTracker, AdapterFactory
+- Service tests cover BrokerFilter, ResumeService, StatisticsTracker, AdapterFactory, ExecutionOrchestrator
 - IOProvider tests cover interface contract and CliIOProvider implementation

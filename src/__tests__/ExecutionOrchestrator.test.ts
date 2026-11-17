@@ -122,3 +122,65 @@ describe("ExecutionOrchestrator progress reporting", () => {
     expect(brokers).toEqual(["OnlineBroker", "OnlineBroker"]);
   });
 });
+
+describe("ExecutionOrchestrator result log writes", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("finishes writing a broker's result before reporting its outcome", async () => {
+    const events: string[] = [];
+    const logger = {
+      append: vi.fn(async (result: { site: string }) => {
+        // A real write takes at least one turn of the event loop
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        events.push(`written:${result.site}`);
+      }),
+      path: () => "test.jsonl",
+    } as unknown as Logger;
+    const ioProvider: IOProvider = {
+      ...createIOProvider(),
+      reportProgress: (progress) => {
+        if (progress.status !== "processing") events.push(`reported:${progress.broker}`);
+      },
+    };
+    const orchestrator = new ExecutionOrchestrator(logger, { dryRun: true, delayBetweenBrokers: 0 }, ioProvider);
+
+    await orchestrator.executeAll([onlineBroker, emailOnlyBroker, noPathBroker], profile, context);
+
+    expect(events).toEqual([
+      "written:OnlineBroker",
+      "reported:OnlineBroker",
+      "written:EmailOnlyBroker",
+      "reported:EmailOnlyBroker",
+      "written:NoPathBroker",
+      "reported:NoPathBroker",
+    ]);
+  });
+
+  it("keeps running, and keeps each outcome, when the result log cannot be written", async () => {
+    const logger = {
+      append: vi.fn().mockRejectedValue(new Error("EACCES: permission denied")),
+      path: () => "test.jsonl",
+    } as unknown as Logger;
+    const ioProvider = createIOProvider();
+    const orchestrator = new ExecutionOrchestrator(logger, { dryRun: true, delayBetweenBrokers: 0 }, ioProvider);
+
+    await expect(
+      orchestrator.executeAll([onlineBroker, emailOnlyBroker, noPathBroker], profile, context)
+    ).resolves.toBeUndefined();
+
+    // A logging problem must not turn a completed broker into a failed one
+    const stats = orchestrator.getStatistics().getStatistics();
+    expect(stats.success).toBe(1);
+    expect(stats.failed).toBe(0);
+    expect(ioProvider.log).toHaveBeenCalledWith(
+      "error",
+      expect.stringContaining("Could not write result log for OnlineBroker")
+    );
+  });
+});
